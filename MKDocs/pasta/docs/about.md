@@ -1,7 +1,6 @@
-# PASTa: Photometry Analysis and Signal Processing Toolbox
-Welcome to the documentation site for PASTa. 
+# Welcome to MkDocs
 
-For the toolbox and code repository, visit our [GitHub](https://github.com/rdonka/PASTa).
+For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 
 ## Commands
 

@@ -1,1 +1,9 @@
-site_name: My Docs
+site_name: 'PASTa'
+nav:
+  - Getting Started: gettingstarted.md
+  - User Guide: userguide.md
+  - Example Analyses: exampleanalyses.md
+  - Function Documentation: functiondocumentation.md
+  - About: about.md 
+
+extra_css: [specific.css]

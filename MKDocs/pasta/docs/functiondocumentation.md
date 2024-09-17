@@ -100,7 +100,6 @@ _coming soon_
 ## trimFPdata
 Used to trim samples at the very start and end of recordings that are not to be included in analysis (such as the the first two minutes of the session, or the first samples before a hardware control program is initiated). Trims all specified data streams from the index in trimstart to the index in trimend, and adjusts epocs by the amount trimmed by trimstart. Users must pre-prepare the trim start and end indexes to specify as inputs for the function.
 
-
 **INPUTS:**
 
 * DATA: A data frame containing at least the specified input fields.
@@ -128,7 +127,66 @@ whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative posit
 
 # Signal Processing Functions
 
-## Subtraction
+## subtractFPdata
+Used to subtract the background photometry stream (eg, 405nm) from the signal stream (eg, 465nm), convert the subtracted signal to delta F/f, and apply a filter to denoise the output. Users must input the data structure with the raw data, the names of the fields containing the signal and background streams, and the sampling rate of the collected data.
+
+**INPUTS:**
+
+* DATA: A data frame containing at least the specified input fields.
+* SIGFIELD: The name (string) of the field containing the signal stream.
+* BAQFIELD: The name (string) of the field containing the background stream.
+* FS: The sampling rate of the raw data collection in hz.
+
+**OPTIONAL INPUTS:**
+
+* BAQSCALINGTYPE: A string to specify the type of background scaling to apply. Options are 'frequency', 'sigmean', 'OLS', 'detrendOLS', 'smoothedOLS', or 'IRLS'. Default: 'frequency'.
+    * 'frequency': Scales the background to the signal channel based on ratio of specified frequency bands in the FFT (frequency domain) of the channels.
+    * 'sigmean': Scales the background to the signal channel based on the ratio of the mean of the signal to the mean of the background (time domain).
+    * 'OLS': Uses ordinary least-squares regression to generate scaled background.
+    * 'detrendOLS': Removes the linear trend from signal and background streams prior to using ordinary least-squares regression to generate scaled background.
+    * 'smoothedOLS': Applies lowess smoothing to the signal and background streams prior to using ordinary least-squares regression to generate scaled background.
+    * 'IRLS': Uses iteratively reweighted least squares regression to generate scaled background.
+* BAQSCALINGFREQ: Only used with 'frequency' scaling. Numeric frequency (Hz) threshold for scaling the background to signal channel. Frequencies above this value will be included in the scaling factor determination. Default: 10 Hz.
+* BAQSCALINGPERC: Only used with 'frequency' and 'sigmean' scaling. Adjusts the background scaling factor to be a percednt of the derived scaling factor value. Default: 1 (100%).
+* SUBTRACTIONOUTPUT: Output type for the subtracted data. Default: 'dff'
+    * 'dff': Outputs subtracted signal as delta F/F.
+    * 'df': Outputs subtracted signal as delta F.
+* FILTERTYPE: A string to specify the type of filter to apply after subtraction. Default: 'bandpass'.
+    * 'nofilter': No filter will be applied.
+    * 'bandpass': A bandpass filter will be applied.
+    * 'highpass': Only the high pass filter will be applied.
+    * 'lowpass': Only the low pass filter will be applied.
+* PADDING: Defaults to 1, which applies padding. Padding takes the first 10% of the stream, flips it, and appends it to the data before filtering. Appended data is trimmed after filtration. Set to 0 to turn off padding of data streams. Default: 1.
+* PADDINGPERC: Percent of data length to use to determine the number of samples to be appended to the beginning and end of data in padding. Set to minimum 10%. Default: 0.1 (10%).
+* FILTERORDER:  The order to be used for the chosen butterworth filter. Default: 3.
+* HIGHPASSCUTOFF:  The cutoff frequency (hz) to be used for the high pass butterworth filter. Default: 2.2860.
+* LOWPASSCUTOFF: The cutoff to be used for the low pass butterworth filter. Default: 0.0051.
+    * NOTE: 'bandpass' applies both the high and low cutoffs to design the filter.
+* SUPRESSDISP: If set to anything other than 0, this will suppress the command window displays. Default: 0.
+
+**OUTPUTS:**
+
+* DATA: The original data structure with added fields with the scaled background ('baq_scaled'), subtracted signal ('sigsub'), and subtracted and filtered signal ('sigfilt'). All inputs and defaults will be added to the data structure under the field 'inputs'.
+    * NOTE: If using BAQSCALINGMETHOD 'detrendOLS', additional fields containing the detrended signal and background ('sig_detrend' and 'baq_detrend') will be added to the data frame. If using BAQSCALINGMETHOD 'smoothedOLS', additional fields containing the smoothed signal and background ('sig_smoothed' and 'baq_smoothed') will be added to the data frame.
+
+
+**EXAMPLE - DEFAULT:**
+```
+sigfield = 'sig';
+baqfield = 'baq';
+fs = 1017;
+
+data = subtractFPdata(data,sigfield,baqfield,fs);
+```
+
+**EXAMPLE - Frequency Scaling with 20Hz Threshold and Highpass Filter Only:**
+```
+sigfield = 'sig';
+baqfield = 'baq';
+fs = 1017;
+
+data = subtractFPdata(data,sigfield,baqfield,fs,'baqscalingfreq',20,'filtertype,'highpass');
+```
 
 
 ## Normalization

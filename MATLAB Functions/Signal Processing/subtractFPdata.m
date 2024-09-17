@@ -17,24 +17,23 @@ function [data] = subtractFPdata(data,sigfield,baqfield,fs,varargin)
 %
 % OPTIONAL INPUTS:
 %   BAQSCALINGTYPE:      A string to specify the type of background scaling 
-%                        to apply. Only required when using FFT subtraction
-%                        type.
+%                        to apply.
 %                       'frequency': Scales the background to the signal 
 %                           channel based on ratio of specified frequency  
 %                           bands in the FFT of the channels.
 %                       'sigmean': Scales the background to the signal 
 %                           channel based on the ratio of the mean of the
 %                           signal to the mean of the background.
-%                       'OLS': Uses ordinary least-squares linear regression
-%                           to generate scaled background.
+%                       'OLS': Uses ordinary least-squares regression to
+%                           generate scaled background.
 %                       'detrendOLS': Removes the linear trend from signal
 %                           and background streams prior to using ordinary 
-%                           least-squares linear regression to generate 
-%                           scaled background.
+%                           least-squares regression to generate scaled
+%                           background.
 %                       'smoothedOLS': Applies lowess smoothing to the signal
 %                           and background streams prior to using ordinary 
-%                           least-squares linear regression to generate 
-%                           scaled background.
+%                           least-squares regression to generate scaled
+%                           background.
 %                       'IRLS': Uses iteratively reweighted least squares
 %                           regression to generate scaled background.
 %                       Default: 'frequency'.
@@ -47,10 +46,10 @@ function [data] = subtractFPdata(data,sigfield,baqfield,fs,varargin)
 %
 %   BAQSCALINGPERC:     Only used with 'frequency' and 'sigmean' baqscaling. 
 %                       Adjusts the background scaling factor to be a 
-%                       percent of the derived value. 
+%                       percent of the derived scaling factor value. 
 %                       Default: 100%.
 %
-%   SUBTRACTIONTYPE:    Output type for the subtracted data.
+%   SUBTRACTIONOUTPUT:  Output type for the subtracted data.
 %                       'dff':  delta F/F; ((sig/baq)./baq)
 %                       'df':   delta F; (sig/baq).
 %                       Default: 'dff'
@@ -58,20 +57,10 @@ function [data] = subtractFPdata(data,sigfield,baqfield,fs,varargin)
 %   FILTERTYPE:         A string to specify the type of filter to use.
 %                       'nofilter': No filter will be applied.
 %                       'bandpass': A bandpass filter will be applied. 
-%                                   With FFT subtraction, data is output as 
-%                                   'data.sigfilt'. With regression 
-%                                   subtraction, data is output as 
-%                                   'data.sigregressfilt'.
 %                       'highpass': Only the high pass filter will be 
-%                                   applied. With FFT subtraction, data is 
-%                                   output as 'data.sigfilt'. With 
-%                                   regression subtraction, data is output 
-%                                   as 'data.sigregressfilt'.
+%                                   applied.
 %                       'lowpass':  Only the low pass filter will be 
-%                                   applied. With FFT subtraction, data is 
-%                                   output as 'data.sigfilt'.
-%                                   With regression subtraction, data is 
-%                                   output as 'data.sigregressfilt'.
+%                                   applied.
 %                       Default: 'bandpass'
 %
 %   PADDING:            Defaults to 1, which applies padding. Padding takes 
@@ -89,22 +78,20 @@ function [data] = subtractFPdata(data,sigfield,baqfield,fs,varargin)
 %   FILTERORDER:        The order to be used for the chosen butterworth
 %                       filter. Default: 3.
 %
-%   HIGHPASSCUTOFF:     The cutoff to be used for the high pass butterworth
-%                       filter. Default: 0.0001.
+%   HIGHPASSCUTOFF:     The cutoff frequency (hz) to be used for the high pass butterworth
+%                       filter. Default: 2.2860.
 %
 %   LOWPASSCUTOFF:      The cutoff to be used for the low pass butterworth
-%                       filter. Default: 0.0045.
+%                       filter. Default: 0.0051 hz.
 %
 %   SUPRESSDISP:        If set to anything other than 0, this will suppress
 %                       the command window displays. Default: 0
 %
 % OUTPUTS:
 %       DATA:           This is the original data structure with added
-%                       fields with the scaled background, subtracted, and
-%                       filtered streams. Subtraction performed via FFT 
-%                       outputs the fields 'data.sigsub' and 'data.sigfilt'. 
-%                       Subtraction with regression outputs the fields 
-%                       'data.sigregress' and 'data.sigregressfilt'.
+%                       fields with the scaled background (baq_scaled), 
+%                       subtracted signal (sigsub), and subtracted and
+%                       filtered signal (sigfilt).
 %
 % Written by R M Donka, August 2024.
 % Stored in RoitmanPhotometry GitHub repository, see Wiki for additional notes.
@@ -300,6 +287,8 @@ function [data] = subtractFPdata(data,sigfield,baqfield,fs,varargin)
                 sig=smooth(sig,0.002,'lowess')';
                 bls=polyfit(baq(1:end),sig(1:end),1);
                 baq_scaled=bls(1).*baq+bls(2);
+                data(eachfile).baq_smoothed = baq; % Add detrended signal to data
+                data(eachfile).sig_smoothed = sig; % Add detrended background to data
             elseif strcmp('IRLS',baqscalingtype)==true % IRLS, Keevers et al 2024, https://www.researchsquare.com/article/rs-3549461/v2
                 IRLS_coeffs = reshape(flipud(robustfit(baq, sig, 'bisquare', 1.4, 'on')), [1, 2]);
                 baq_scaled = polyval(IRLS_coeffs,baq);

@@ -1,7 +1,9 @@
 site_name: 'PASTa'
 nav:
   - Getting Started: gettingstarted.md
-  - User Guide: userguide.md
+  - User Guide: 
+    - User Guide: userguide/userguide.md
+    - Data Preparation: userguide/datapreparation.md
   - Example Analyses: exampleanalyses.md
   - Function Documentation: functiondocumentation.md
   - About: about.md 

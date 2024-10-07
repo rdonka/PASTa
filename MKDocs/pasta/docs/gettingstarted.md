@@ -14,5 +14,3 @@ For an overview of how to use GitHub and best practices: https://www.freecodecam
 ## MATLAB
 Install MATLAB to you computer, including the simulink suite. Functions have been tested with MALTAB 2022, 2023, and 2024 releases.
 
-
-# For Mac Users:

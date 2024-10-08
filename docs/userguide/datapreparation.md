@@ -13,7 +13,7 @@ By default, the tank path is: C:\TDT\Synapse\Tanks. Synapse recognizes experimen
 
 Synapse will save a new Tank for every day unless you change the default setting. Click _Menu_ at the top of the bar, then Preferences. Under the _Data Saving_ tab, make sure "New Tank Each Day" is unchecked.
 
-![png](/img/datapreparation_SynapseDataSaving.png)
+![png](/docs/img/datapreparation_SynapseDataSaving.png)
 
 
 ## Experiment Key Creation

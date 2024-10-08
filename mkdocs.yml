@@ -4,6 +4,7 @@ nav:
   - User Guide: 
     - User Guide: userguide/userguide.md
     - Data Preparation: userguide/datapreparation.md
+    - Signal Processing: userguide/signalprocessing.md
   - Example Analyses: exampleanalyses.md
   - Function Documentation: functiondocumentation.md
   - About: about.md 

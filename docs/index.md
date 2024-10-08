@@ -6,4 +6,4 @@ The PASTa protocol is developed to be highly flexible and adaptable to a wide va
 
 For the toolbox and code repository, visit our [GitHub](https://github.com/rdonka/PASTa).
 
-![png](/img/PASTa_logo_FINAL.png)
+![png](./img/PASTa_logo_FINAL.png)

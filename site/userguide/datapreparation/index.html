@@ -133,7 +133,7 @@
 <p>Fiber photometry data collected through the software <em>Synapse</em> (Tucker Davis Technologies) is stored in <strong>tanks</strong> and <strong>blocks</strong>. <strong>Tanks</strong> are parent folders created by Synapse for each experiment. <strong>Blocks</strong> are individual folders for each session containing the actual output data. Stored data cannot be accessed directly via the folder, but rather must be extracted via MATLAB.</p>
 <p>By default, the tank path is: C:\TDT\Synapse\Tanks. Synapse recognizes experiments and subjects as key categories of information that play a special role in managing data storage and retrieval. Thus, when running the session, it is critical to ensure the correct Experiment profile is selected, and the correct Subject identifier is input for each session. By default, Synapse names data tanks automatically based on experiment name and the start time of the first recording {ExperimentName}-{yymmdd}-{hhmmss}. Blocks of data are named based on subject {SubjectName}-{yymmdd}-{hhmmss} for each recording session and the start time.</p>
 <p>Synapse will save a new Tank for every day unless you change the default setting. Click <em>Menu</em> at the top of the bar, then Preferences. Under the <em>Data Saving</em> tab, make sure "New Tank Each Day" is unchecked.</p>
-<p><img alt="png" src="/docs/img/datapreparation_SynapseDataSaving.png" /></p>
+<p><img alt="png" src="../../img/datapreparation_SynapseDataSaving.png" /></p>
 <h2 id="experiment-key-creation">Experiment Key Creation</h2>
 <p>To accomodate a variety of file organization structures, users can first create two csv files containing the information necessary to access raw data, and experimental metadata to match to raw photometry data. MATLAB can access raw data folders stored either locally or in a cloud-based storage app like Box or Dropbox. </p>
 <p>To faciliate analysis, users can create two keys as csv files: a subject key and a file key. In the PASTa protocol, these files will be knit together to pair subject specific information with each individual session of data, preventing the need for manual repeated entry of subject specific information and reduce the time burden of properly maintaining and including experimental metadata factors like subject traits, treatments, and experimental equipment.</p>
@@ -141,7 +141,7 @@
 <h3 id="subject-key">Subject Key</h3>
 <p>The subject key should contain information about each subject that is constant and unchanging, such as SubjectID, sex, date of birth, fiber location, sensor, experimental group, and any other user specificed information. </p>
 <p><strong>For example:</strong>
-<img alt="png" src="/img/datapreparation_SubjectKeyExample.png" /></p>
+<img alt="png" src="../../img/datapreparation_SubjectKeyExample.png" /></p>
 <h3 id="file-key">File Key</h3>
 <p>The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.</p>
 <ul>
@@ -160,11 +160,11 @@
 </ul>
 <p>Any additional fields can be included such as equipment information, recording power, session condition, drug treatments, body weight, and any other variables that are specific to that one session. Note that the only field name that should overlap with a field name in the subject key is <em>SubjectID</em>.</p>
 <p><strong>For example:</strong>
-<img alt="png" src="/img/datapreparation_FileKeyExample.png" /></p>
+<img alt="png" src="../../img/datapreparation_FileKeyExample.png" /></p>
 <h3 id="making-the-experiment-key">Making the Experiment Key</h3>
 <p>The function <em>loadKeys</em> joins the individual subject information to the file key with the data for each session. Additionally, <em>loadkeys</em> appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. <strong>For example,</strong> <em>"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"</em>. The created experiment key should be output into a data structure called <em>experimentkey</em>.</p>
 <p><strong>Code example:</strong>
-<img alt="png" src="/img/datapreparation_loadKeysCode.png" /></p>
+<img alt="png" src="../../img/datapreparation_loadKeysCode.png" /></p>
 <h2 id="extracting-the-data">Extracting the Data</h2>
 <p>Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. Two options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format: for d</p>
 <p>If data were collected with TDT's Synapse, use the function <em>loadTDTdata</em>. If data were collected with other systems, use the generic format and load function <em>loadCSVdata</em>.</p>

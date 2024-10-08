@@ -13,7 +13,7 @@ By default, the tank path is: C:\TDT\Synapse\Tanks. Synapse recognizes experimen
 
 Synapse will save a new Tank for every day unless you change the default setting. Click _Menu_ at the top of the bar, then Preferences. Under the _Data Saving_ tab, make sure "New Tank Each Day" is unchecked.
 
-![png](/docs/img/datapreparation_SynapseDataSaving.png)
+![png](../img/datapreparation_SynapseDataSaving.png)
 
 
 ## Experiment Key Creation
@@ -27,7 +27,7 @@ First, locate the raw files to be analyzed in your file organization structure. 
 The subject key should contain information about each subject that is constant and unchanging, such as SubjectID, sex, date of birth, fiber location, sensor, experimental group, and any other user specificed information. 
 
 __For example:__
-![png](/img/datapreparation_SubjectKeyExample.png)
+![png](../img/datapreparation_SubjectKeyExample.png)
 
 
 ### File Key
@@ -45,13 +45,13 @@ The file key should contain information about each unique session / file to be a
     
 
 __For example:__
-![png](/img/datapreparation_FileKeyExample.png)
+![png](../img/datapreparation_FileKeyExample.png)
 
 ### Making the Experiment Key
 The function _loadKeys_ joins the individual subject information to the file key with the data for each session. Additionally, _loadkeys_ appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. __For example,__ _"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"_. The created experiment key should be output into a data structure called _experimentkey_.
 
 __Code example:__
-![png](/img/datapreparation_loadKeysCode.png)
+![png](../img/datapreparation_loadKeysCode.png)
 
 ## Extracting the Data
 Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. Two options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format: for d

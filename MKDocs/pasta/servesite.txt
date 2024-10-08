@@ -1,5 +1,0 @@
-# Use this file to serve the site to a local host - set directory to folder containing the docs and then serve.
-# Copy the below code into Windows PowerShell.
-
-cd  C:\Users\rmdon/OneDrive/Desktop/GitHub_Repositories/PASTa/MKDocs/pasta/
-mkdocs serve

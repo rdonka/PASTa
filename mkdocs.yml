@@ -5,6 +5,7 @@ nav:
     - User Guide: userguide/userguide.md
     - Data Preparation: userguide/datapreparation.md
     - Signal Processing: userguide/signalprocessing.md
+    - Transient Detection: userguide/transientdetection.md
   - Example Analyses: exampleanalyses.md
   - Function Documentation: functiondocumentation.md
   - About: about.md 

@@ -89,7 +89,7 @@ disp('SESSION TRANSIENTS: Peak baseline determined by mean value of the specifie
         outputtransientdata = inputs.outputtransientdata;
     end
     if isempty(inputs.posttransientms)
-        posttransientms = 2000; % ms post transient max for fall/AUC and output data
+        posttransientms = 3000; % ms post transient max for fall/AUC and output data
         inputs.posttransientms = posttransientms;
     else
         posttransientms = inputs.posttransientms;
@@ -166,13 +166,13 @@ disp('SESSION TRANSIENTS: Peak baseline determined by mean value of the specifie
 
                 prepkdata = data(eachfile).(whichstream)((currmaxloc-blstartsamples):currmaxloc);
                 currriseval = currminval + curramp*quantificationheight;
-                currrisesamples = length(prepkdata) - find(prepkdata >= currriseval,1,'first');
+                currrisesamples = find(prepkdata >= currriseval,1,'first');
                 currriseloc = currmaxloc-currrisesamples;
 
-                if (currmaxloc + posttransientsamples) > length(data(eachfile).(whichstream))
-                    postpkdata = data(eachfile).(whichstream)(currmaxloc:(currmaxloc+posttransientsamples));
-                else
+                if (currmaxloc + blendsamples) > length(data(eachfile).(whichstream))
                     postpkdata = data(eachfile).(whichstream)(currmaxloc:end);
+                else
+                    postpkdata = data(eachfile).(whichstream)(currmaxloc:(currmaxloc+posttransientsamples));
                 end
                 
                 currfallval = currmaxval - curramp*quantificationheight;
@@ -213,8 +213,8 @@ disp('SESSION TRANSIENTS: Peak baseline determined by mean value of the specifie
                 if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, add transient data stream
                     transientstreamlocs.transientID(transientcount) = transientcount;
                     transientstreamlocs.maxloc(transientcount) = blstartsamples;
-                    transientstreamlocs.preminstartloc(transientcount) = 1;
-                    transientstreamlocs.preminendloc(transientcount) = blstartsamples-blendsamples;
+                    transientstreamlocs.curpreminstartloc(transientcount) = 1;
+                    transientstreamlocs.currpreminendloc(transientcount) = blstartsamples-blendsamples;
                     transientstreamlocs.posttransientloc(transientcount) = blstartsamples+posttransientsamples;
                     transientstreamlocs.risestartloc(transientcount) = blstartsamples-currrisesamples;
                     transientstreamlocs.fallendloc(transientcount) = blstartsamples+currfallsamples;
@@ -227,7 +227,6 @@ disp('SESSION TRANSIENTS: Peak baseline determined by mean value of the specifie
                 end
             end               
         end
-
         data(eachfile).(append('sessiontransients_blmin_',thresholdlabel)).inputs = inputs;
         data(eachfile).(append('sessiontransients_blmin_',thresholdlabel)).transientquantification = transientquantification(1:transientcount,:);
         

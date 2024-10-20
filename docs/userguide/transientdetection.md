@@ -8,10 +8,10 @@ PASTa includes three options: window minimum (minimum value within user defined 
 ## Transient Event Quantification
 Multiple features of transient events can be quantitatively analyzed and compared. Peak detection functions automatically calculate numerous variables for each transient to characterize aspects of both event rise and fall. PASTa includes flexible functions to group transients in the most experimentally relevant manner, such as by time window or experimental condition. 
 
-    * __Frequency:__ Characterized as peaks per minute. Frequency can be analyzed as whole session frequency, or peaks can be divided into time bins or experimental phases (ITI, during trial, etc).
+* __Frequency__: Characterized as peaks per minute. Frequency can be analyzed as whole session frequency, or peaks can be divided into time bins or experimental phases (ITI, during trial, etc).
 
-    * __Amplitude:__ The height of the event from the pre-peak baseline to the max peak. Note that all events will be at least the value of the set threshold (default 3SD).
+* __Amplitude__: The height of the event from the pre-peak baseline to the max peak. Note that all events will be at least the value of the set threshold (default 3SD).
 
-    * __Rise and Fall Time:__ The time difference between the pre-peak baseline and the max peak value. Rise and fall time can also be characterized from half height to peak, allowing analysis of separate rise and fall dynamic shifts.
-    
-    * __AUC:__ Total area under the curve from half height to peak, calculated via the trapezoidal method. Prior to AUC calculation, each transient is linearly transformed so pre-peak baseline is equal to zero.
+* __Rise and Fall Time__: The time difference between the pre-peak baseline and the max peak value. Rise and fall time can also be characterized from half height to peak, allowing analysis of separate rise and fall dynamic shifts.
+
+* __AUC__: Total area under the curve from half height to peak, calculated via the trapezoidal method. Prior to AUC calculation, each transient is linearly transformed so pre-peak baseline is equal to zero.

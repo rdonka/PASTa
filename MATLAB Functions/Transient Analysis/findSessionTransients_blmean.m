@@ -65,8 +65,9 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
 %                       TRANSIENTSTREAMDATA tables will be skipped and not
 %                       included in the output.
 %
-% Written by R M Donka, October 2024.
-% Stored in PASTa GitHub repository, see Wiki for additional notes.
+% Written by R M Donka, August 2024
+% Stored in the PASTa GitHub Repository, see the user guide for additional
+% documentation: https://rdonka.github.io/PASTa/
 disp('SESSION TRANSIENTS: Peak baseline determined by mean value of the specified baseline window.')
 
 %% Prepare Settings

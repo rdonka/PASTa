@@ -33,6 +33,8 @@ __For example:__
 ### File Key
 The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.
 
+#### REQUIRED INPUTS
+
 - __SubjectID:__ Unique identifier of the subject. This fieldname should match the first field in the subject key, and inputs for each subject have to match the subject key for subject specific data to be properly associated to fiber photometry data.
 
 - __Folder:__ The name of the folder containing the raw data.
@@ -54,13 +56,46 @@ __Code example:__
 ![png](../img/datapreparation_loadKeysCode.png)
 
 ## Extracting the Data
-Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. Two options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format: for d
+Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. 
+
+When the raw data is extracted, clipping will be applied by default. This removes the first and last 5 seconds of the session to remove large fluctuations in output signal that occur when the hardware is turned on and off. The number of seconds clipped can be adjusted by overriding the default.
+
+Multiple options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Several customized functions are available to extract and format the data for easy processing and analysis. Data collected with TDT can be extracted with custom functions. 
+
+
+For all other systems, utilize the generic csv format. 
 
 
 If data were collected with TDT's Synapse, use the function _loadTDTdata_. If data were collected with other systems, use the generic format and load function _loadCSVdata_.
 
-To load TDT data, use the function __extract
 ### Set up inputs
+Regardless of which extract function you use, the required inputs are the same. 
+
+#### REQUIRED INPUTS
+- __rawfolderpaths:__ A string array containing the full paths to the folder locations of raw data to be extracted for each session. This should be formatted as a single column with each full path in a separate row. This is easy to create from the experiment key (see below for an example).
+
+- __extractedfolderpaths:__ A string array containing the full paths to the folder locations where extracted data should be saved for each session (including the individual session name). As with the rawfolderpaths, this should be formatted as a single column with each full path in a separate row and can easily be created from the experiment key (see below for an example).
+
+- __sigstreamnames:__ A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for the signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.
+
+- __baqstreamnames:__ A cell array containing the strings with the names of all streams to be treated as background. This allows for flexibility if different photometry rigs have differing naming conventions for the background stream. Include all background stream name variations in this cell array. Note that only one stream per file can be treated as signal.
+
+- __sigstreamnames:__ A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.
+
+#### OPTIONAL INPUTS
+- __clip:__ Number of seconds to clip at the beginning and end of the session. This defaults to 5 seconds.
+
+- __skipexisting:__ This input allows users to toggle if previously extracted raw data files are re-extracted. By default, previously extracted files will be skipped (skipexisting = 1). To override and re-extract all files, set skipexisting = 0.
+
+Extracted raw data files are saved to the extracted folder path as individual MATLAB structures.
+
+## Loading the Data
+After raw data is extracted, it can be matched to the experimentkey to associate any subject and session metadata with the photometry data. All sessions will be loaded into one data structure (typically called _data_), to ensure that all sessions are analyzed in the same way throughout following steps of the protocol. Each session of data is a row within the data structure.
 
 
-"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"
+
+
+
+
+
+This function will use the file key to load each session's extracted data structure and combine them into the structure "data" for analysis.

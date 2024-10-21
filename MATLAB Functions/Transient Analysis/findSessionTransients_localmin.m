@@ -69,7 +69,8 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
 %                       included in the output.
 %
 % Written by R M Donka, October 2024.
-% Stored in PASTa GitHub repository, see Wiki for additional notes.
+% Stored in the PASTa GitHub Repository, see the user guide for additional
+% documentation: https://rdonka.github.io/PASTa/
 
 disp('SESSION TRANSIENTS: Peak baseline determined by nearest local minimum value in the specified baseline window.')
 

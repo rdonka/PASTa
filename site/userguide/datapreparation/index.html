@@ -117,6 +117,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#loading-the-data" class="nav-link">Loading the Data</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -144,6 +148,7 @@
 <img alt="png" src="../../img/datapreparation_SubjectKeyExample.png" /></p>
 <h3 id="file-key">File Key</h3>
 <p>The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.</p>
+<h4 id="required-inputs">REQUIRED INPUTS</h4>
 <ul>
 <li>
 <p><strong>SubjectID:</strong> Unique identifier of the subject. This fieldname should match the first field in the subject key, and inputs for each subject have to match the subject key for subject specific data to be properly associated to fiber photometry data.</p>
@@ -166,11 +171,44 @@
 <p><strong>Code example:</strong>
 <img alt="png" src="../../img/datapreparation_loadKeysCode.png" /></p>
 <h2 id="extracting-the-data">Extracting the Data</h2>
-<p>Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. Two options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format: for d</p>
+<p>Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. </p>
+<p>When the raw data is extracted, clipping will be applied by default. This removes the first and last 5 seconds of the session to remove large fluctuations in output signal that occur when the hardware is turned on and off. The number of seconds clipped can be adjusted by overriding the default.</p>
+<p>Multiple options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Several customized functions are available to extract and format the data for easy processing and analysis. Data collected with TDT can be extracted with custom functions. </p>
+<p>For all other systems, utilize the generic csv format. </p>
 <p>If data were collected with TDT's Synapse, use the function <em>loadTDTdata</em>. If data were collected with other systems, use the generic format and load function <em>loadCSVdata</em>.</p>
-<p>To load TDT data, use the function __extract</p>
 <h3 id="set-up-inputs">Set up inputs</h3>
-<p>"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"</p></div>
+<p>Regardless of which extract function you use, the required inputs are the same. </p>
+<h4 id="required-inputs_1">REQUIRED INPUTS</h4>
+<ul>
+<li>
+<p><strong>rawfolderpaths:</strong> A string array containing the full paths to the folder locations of raw data to be extracted for each session. This should be formatted as a single column with each full path in a separate row. This is easy to create from the experiment key (see below for an example).</p>
+</li>
+<li>
+<p><strong>extractedfolderpaths:</strong> A string array containing the full paths to the folder locations where extracted data should be saved for each session (including the individual session name). As with the rawfolderpaths, this should be formatted as a single column with each full path in a separate row and can easily be created from the experiment key (see below for an example).</p>
+</li>
+<li>
+<p><strong>sigstreamnames:</strong> A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for the signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.</p>
+</li>
+<li>
+<p><strong>baqstreamnames:</strong> A cell array containing the strings with the names of all streams to be treated as background. This allows for flexibility if different photometry rigs have differing naming conventions for the background stream. Include all background stream name variations in this cell array. Note that only one stream per file can be treated as signal.</p>
+</li>
+<li>
+<p><strong>sigstreamnames:</strong> A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.</p>
+</li>
+</ul>
+<h4 id="optional-inputs">OPTIONAL INPUTS</h4>
+<ul>
+<li>
+<p><strong>clip:</strong> Number of seconds to clip at the beginning and end of the session. This defaults to 5 seconds.</p>
+</li>
+<li>
+<p><strong>skipexisting:</strong> This input allows users to toggle if previously extracted raw data files are re-extracted. By default, previously extracted files will be skipped (skipexisting = 1). To override and re-extract all files, set skipexisting = 0.</p>
+</li>
+</ul>
+<p>Extracted raw data files are saved to the extracted folder path as individual MATLAB structures.</p>
+<h2 id="loading-the-data">Loading the Data</h2>
+<p>After raw data is extracted, it can be matched to the experimentkey to associate any subject and session metadata with the photometry data. All sessions will be loaded into one data structure (typically called <em>data</em>), to ensure that all sessions are analyzed in the same way throughout following steps of the protocol. Each session of data is a row within the data structure.</p>
+<p>This function will use the file key to load each session's extracted data structure and combine them into the structure "data" for analysis.</p></div>
             </div>
         </div>
 

@@ -4,35 +4,40 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
 %             file key.
 %
 % INPUTS:
-%       COMPUTERUSERPATH:   A variable containing the unique portion of the
-%                           path to the DropBox folders for the users
-%                           specific computer. For example,
-%                           'C:\Users\rmdon\'. Make sure it ends in a
-%                           forward slash.
+%       COMPUTERUSERPATH:   String; A variable containing the unique portion
+%                           of the path to the data folders for the users
+%                           specific computer. For example, 'C:\Users\rmdon\'. 
+%                           NOTE: Make sure it ends in a forward slash.
 %
-%       SUBJECTKEYNAME:     A variable containing a string with the name of
-%                           the subject key csv file for the experiment.
+%       SUBJECTKEYNAME:     String; A variable containing a string with the
+%                           name of the subject key csv file for the experiment.
 %                           Must contain the field 'Subject' at a minumum.
+%                           NOTE: If subjectkeyname is left empty (set to
+%                           ''), the subject key will be skipped and only 
+%                           the file key will be loaded into the experiment 
+%                           key output.
 %
-%       FILEKEYNAME:        A variable containing a string with the name of
-%                           the file key csv file for the experiment. Must
-%                           contain the fields 'Subject', 'Folder',
+%       FILEKEYNAME:        String; A variable containing a string with the
+%                           name of the file key csv file for the experiment.
+%                           Must contain the fields 'Subject', 'Folder',
 %                           'RawFolderPath', and 'ExtractedFolderPath', at
-%                           a minimum. Folder paths in 'RawFolderPath' and
-%                           'ExtractedFolderPath' should end with a '\'.
+%                           a minimum. 
+%                           NOTE: Folder paths in 'RawFolderPath' and
+%                           'ExtractedFolderPath' must end with a '\'.
 %
 % OUTPUTS:
-%       EXPERIMENTKEY:      A data structure called "experimentkey" that
-%                           includes the joined file key and subject key,
-%                           with computer user path appended to the front
-%                           and the folder name appended to the end of the
-%                           RawFolderPath and ExtractedFolderPath.
+%       EXPERIMENTKEY:      A data structure that includes the joined file 
+%                           key and subject key with computer user path 
+%                           appended to the front and the folder name 
+%                           appended to the end of the RawFolderPath and 
+%                           ExtractedFolderPath.
 %
 % Written by R M Donka, August 2023
-% Stored in RoitmanPhotometry GitHub repository, see Wiki for additional notes.
+% Stored in the PASTa GitHub Repository, see the user guide for additional
+% documentation: https://rdonka.github.io/PASTa/
 
     %% Load in the subject key and file key csv files as tables
-    if strcmp(subjectkeyname, "") == 0
+    if strcmp(subjectkeyname, "") == 0 % If the subject key name is not empty, match it to the file key 
         subjectkey = readtable(subjectkeyname, 'Decimal',',', 'Delimiter',','); % Load subject key
         filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',','); % Load file key
         try
@@ -46,7 +51,7 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
             disp('Unique Subject IDs in File Key:');
             disp(unique(filekey.Subject));
         end
-    else    
+    else % If the subejct key name is empty, only load the file key    
         filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',',');
         [experimentkey] = table2struct(filekey);
     end

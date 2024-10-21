@@ -1,21 +1,27 @@
 function [data] = loadKeydata(experimentkey)
-% LOADFPDATA    Loads in pre-extracted subject dataframes and combines it into one dataframe.
-% Requires data to be pre-extracted and saved into structures by EXTRACTFPDATA.
-%
+% LOADKEYDATA       Loads individual sessions into a main data structure.
+%                   Individual sessions must have been previously extracted
+%                   and saved as MATLAB data structures with one of the
+%                   following functions: EXTRACTTDTDATA, EXTRACTDORICDATA,
+%                   EXTRACTNPDATA, EXTRACTGENERICDATA
 % INPUTS:
-%       EXPERIMENTKEY:  A prepared data structure with at minimum the 
-%                       ExtractedFolderPath to locate individual block
-%                       structures.
+%       EXPERIMENTKEY:  Data Structure; A prepared data structure with at 
+%                       minimum the field 'ExtractedFolderPath' containing
+%                       the full path to the individual session data
+%                       structures to be loaded. The EXPERIMENTKEY can be
+%                       prepared with the LOADKEYS function.
 %
 % OUTPUTS:
-%       DATA:           A data structure called "data" with each individual
-%                       extracted block as a row.
+%       DATA:           Data Structure; A data structure with each individual
+%                       extracted session block as a row.
 %
-% Written by R M Donka, August 2023
-% Stored in RoitmanPhotometry GitHub repository, see Wiki for additional notes.
+% Written by R M Donka, August 2024
+% Stored in the PASTa GitHub Repository, see the user guide for additional
+% documentation: https://rdonka.github.io/PASTa/
 
 data = experimentkey; % Prepare data structure.
 
+disp('LOADING DATA: Data must be previously extracted and saved as MATLAB data structures.')
     for eachfile = 1:length(experimentkey)
         try
             fprintf('Loading file number: %.f \n',eachfile) % Display which file is loading

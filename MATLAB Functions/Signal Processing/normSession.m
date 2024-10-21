@@ -1,18 +1,24 @@
 function [data] = normSession(data,whichstream)
 % NORMSESSION    Normalizes the data stream to zscore based on the whole session.
 % INPUTS:
-%       DATA:           This is a data structure that contains at least the
-%                       stream specified to be normalized.
+%       DATA:           Data structure; Must contain at least the stream 
+%                       specified to be normalized.
 %
-%       WHICHSTREAM:    The name of the field containing the stream to be
-%                       normalized.
+%       WHICHSTREAM:    String; The name of the field containing the stream 
+%                       to be normalized.
 % OUTPUTS:
-%       DATA:           The original data structure with data.sigz_normsession added.
-
+%       DATA:           Data structure; The original data structure with 
+%                       'data.WHICHSTREAMz_normsession' added.
+%
 % Written by R M Donka, August 2024.
-% Stored in RoitmanPhotometry GitHub repository, see Wiki for additional notes.
+% Stored in the PASTa GitHub Repository, see the user guide for additional
+% documentation: https://rdonka.github.io/PASTa/
+
+%% Normalize to whole session
+disp(append('NORM SESSION: Normalizing ',whichstream,' to whole session mean and standard deviation.'))
 
     for eachfile = 1:length(data)
-        data(eachfile).sigz_normsession = zscore(data(eachfile).(whichstream));
+        disp(append('   Normalizing: File ',num2str(eachfile)))
+        data(eachfile).sigz_normsession = zscore(data(eachfile).(whichstream)); % Z score whole session
     end
 end

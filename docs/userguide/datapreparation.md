@@ -15,7 +15,6 @@ Synapse will save a new Tank for every day unless you change the default setting
 
 ![png](../img/datapreparation_SynapseDataSaving.png)
 
-
 ## Experiment Key Creation
 To accomodate a variety of file organization structures, users can first create two csv files containing the information necessary to access raw data, and experimental metadata to match to raw photometry data. MATLAB can access raw data folders stored either locally or in a cloud-based storage app like Box or Dropbox. 
 
@@ -28,7 +27,6 @@ The subject key should contain information about each subject that is constant a
 
 __For example:__
 ![png](../img/datapreparation_SubjectKeyExample.png)
-
 
 ### File Key
 The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.
@@ -45,7 +43,6 @@ __REQUIRED VARIABLES:__
 
  Any additional fields can be included such as equipment information, recording power, session condition, drug treatments, body weight, and any other variables that are specific to that one session. Note that the only field name that should overlap with a field name in the subject key is _SubjectID_.
     
-
 __For example:__
 ![png](../img/datapreparation_FileKeyExample.png)
 

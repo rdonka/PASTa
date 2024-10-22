@@ -49,7 +49,7 @@ __REQUIRED VARIABLES:__
 __For example:__
 ![png](../img/datapreparation_FileKeyExample.png)
 
-### Making the Experiment Key
+### _LoadKeys_
 The function _loadKeys_ joins the individual subject information to the file key with the data for each session. Additionally, _loadkeys_ appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. __For example,__ _"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"_. The created experiment key should be output into a data structure called _experimentkey_.
 
 __REQUIRED INPUTS:__
@@ -68,11 +68,14 @@ Prior to beginning analysis, individual session data should be extracted and sav
 
 When the raw data is extracted, clipping will be applied by default. This removes the first and last 5 seconds of the session to remove large fluctuations in output signal that occur when the hardware is turned on and off. The number of seconds clipped can be adjusted by overriding the default.
 
+### _extractdata_
+
 Multiple options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Several customized functions are available to extract and format the data for easy processing and analysis. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format. 
 
 The required inputs are the same for all extract data functions.
 
 __REQUIRED INPUTS:__
+
 - __rawfolderpaths:__ A string array containing the full paths to the folder locations of raw data to be extracted for each session. This should be formatted as a single column with each full path in a separate row. This is easy to create from the experiment key (see below for an example).
 
 - __extractedfolderpaths:__ A string array containing the full paths to the folder locations where extracted data should be saved for each session (including the individual session name). As with the rawfolderpaths, this should be formatted as a single column with each full path in a separate row and can easily be created from the experiment key (see below for an example).
@@ -88,6 +91,7 @@ __Code example:__
 
 
 __OPTIONAL INPUTS:__
+
 - __clip:__ Number of seconds to clip at the beginning and end of the session. This defaults to 5 seconds.
 
 - __skipexisting:__ This input allows users to toggle if previously extracted raw data files are re-extracted. By default, previously extracted files will be skipped (skipexisting = 1). To override and re-extract all files, set skipexisting = 0.
@@ -99,23 +103,27 @@ After raw data is extracted, it can be matched to the experimentkey to associate
 
 Regardless of hardware set up, all extracted files can be loaded with the function _LoadKeydata_.
 
+### _loadKeydata_
 __REQUIRED INPUTS:__
 
 - __experimentkey:__ Data structure created by the _LoadKeys_ function, containing at least the field _ExtractedFolderPath_ with the full path to each individual session of data to be loaded.
 
 __Code example:__
-![png](../img/datapreparation_LoadKeydata.png)
+![png](../img/datapreparation_LoadKeyData.png)
 
 ## Trimming the Data
 The final step in data preparation is optional. Photometry recording may start a few seconds before the experiment begins, such as in cases where users have to initiate hardware for operant boxes separately, and after the experiment ends. Additionally, users may want to remove the first few minutes of each session due to the higher rate of photobleaching before the signal stabilizes. 
 
 If desired, data can be trimmed with the function _trimFPdata_, which uses user derived session start and session end indexes to trim data streams and adjust any event epochs (timestamps) to maintain the relationship in time.
 
+### Index Preparation
+
 If timestamps for session start and end are included in the raw data collection, then these fields can be used as it. If not, users must first determine the appropriate start and end points from whatever timestamps are relevant. For example, in the example analysis provided the session is trimmed to 15 minutes before the first injection time stamp, and 60 minutes after the second injection time stamp.
 
 __Code example of preparing the start and end indices:__
 ![png](../img/datapreparation_trimFPdata_indexprep.png)
 
+### _trimFPdata_
 __REQUIRED INPUTS:__
 
 - __data:__ Data structure created by the _LoadKeyData_ function. Each session should be a separate row. The data structure must containing at least the fields specified in the additional inputs.

@@ -33,7 +33,7 @@ __For example:__
 ### File Key
 The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.
 
-#### REQUIRED INPUTS
+__REQUIRED VARIABLES:__
 
 - __SubjectID:__ Unique identifier of the subject. This fieldname should match the first field in the subject key, and inputs for each subject have to match the subject key for subject specific data to be properly associated to fiber photometry data.
 
@@ -52,6 +52,14 @@ __For example:__
 ### Making the Experiment Key
 The function _loadKeys_ joins the individual subject information to the file key with the data for each session. Additionally, _loadkeys_ appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. __For example,__ _"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"_. The created experiment key should be output into a data structure called _experimentkey_.
 
+__REQUIRED INPUTS:__
+
+- __computeruserpath:__ A string containing the portion of the filepath that is unique to the specific computer being used for analysis. This input allows users to easily switch between computers without updating the individual paths in the file key.
+
+- __subjectkeyname:__ A string containing the name of the csv file that contains the subject key file name, including the _.csv_ extention at the end. If no subject is needed (such as if every subject only has one session of photometry data), then subjectkeyname can be left empty (set to '').
+
+- __filekeyname:__ A string containing the name of the csv file that contains the file key file name, including the _.csv_ extention at the end.
+
 __Code example:__
 ![png](../img/datapreparation_loadKeysCode.png)
 
@@ -60,18 +68,11 @@ Prior to beginning analysis, individual session data should be extracted and sav
 
 When the raw data is extracted, clipping will be applied by default. This removes the first and last 5 seconds of the session to remove large fluctuations in output signal that occur when the hardware is turned on and off. The number of seconds clipped can be adjusted by overriding the default.
 
-Multiple options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Several customized functions are available to extract and format the data for easy processing and analysis. Data collected with TDT can be extracted with custom functions. 
+Multiple options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Several customized functions are available to extract and format the data for easy processing and analysis. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format. 
 
+The required inputs are the same for all extract data functions.
 
-For all other systems, utilize the generic csv format. 
-
-
-If data were collected with TDT's Synapse, use the function _loadTDTdata_. If data were collected with other systems, use the generic format and load function _loadCSVdata_.
-
-### Set up inputs
-Regardless of which extract function you use, the required inputs are the same. 
-
-#### REQUIRED INPUTS
+__REQUIRED INPUTS:__
 - __rawfolderpaths:__ A string array containing the full paths to the folder locations of raw data to be extracted for each session. This should be formatted as a single column with each full path in a separate row. This is easy to create from the experiment key (see below for an example).
 
 - __extractedfolderpaths:__ A string array containing the full paths to the folder locations where extracted data should be saved for each session (including the individual session name). As with the rawfolderpaths, this should be formatted as a single column with each full path in a separate row and can easily be created from the experiment key (see below for an example).
@@ -82,7 +83,11 @@ Regardless of which extract function you use, the required inputs are the same.
 
 - __sigstreamnames:__ A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.
 
-#### OPTIONAL INPUTS
+__Code example:__
+![png](../img/datapreparation_extractTDTdataExample.png)
+
+
+__OPTIONAL INPUTS:__
 - __clip:__ Number of seconds to clip at the beginning and end of the session. This defaults to 5 seconds.
 
 - __skipexisting:__ This input allows users to toggle if previously extracted raw data files are re-extracted. By default, previously extracted files will be skipped (skipexisting = 1). To override and re-extract all files, set skipexisting = 0.
@@ -90,12 +95,44 @@ Regardless of which extract function you use, the required inputs are the same.
 Extracted raw data files are saved to the extracted folder path as individual MATLAB structures.
 
 ## Loading the Data
-After raw data is extracted, it can be matched to the experimentkey to associate any subject and session metadata with the photometry data. All sessions will be loaded into one data structure (typically called _data_), to ensure that all sessions are analyzed in the same way throughout following steps of the protocol. Each session of data is a row within the data structure.
+After raw data is extracted, it can be matched to the experimentkey to associate any subject and session metadata with the photometry data. All sessions will be loaded into one data structure (typically called _rawdata_), to ensure that all sessions are analyzed in the same way throughout following steps of the protocol. Each session of data is a row within the data structure.
+
+Regardless of hardware set up, all extracted files can be loaded with the function _LoadKeydata_.
+
+__REQUIRED INPUTS:__
+
+- __experimentkey:__ Data structure created by the _LoadKeys_ function, containing at least the field _ExtractedFolderPath_ with the full path to each individual session of data to be loaded.
+
+__Code example:__
+![png](../img/datapreparation_LoadKeydata.png)
+
+## Trimming the Data
+The final step in data preparation is optional. Photometry recording may start a few seconds before the experiment begins, such as in cases where users have to initiate hardware for operant boxes separately, and after the experiment ends. Additionally, users may want to remove the first few minutes of each session due to the higher rate of photobleaching before the signal stabilizes. 
+
+If desired, data can be trimmed with the function _trimFPdata_, which uses user derived session start and session end indexes to trim data streams and adjust any event epochs (timestamps) to maintain the relationship in time.
+
+If timestamps for session start and end are included in the raw data collection, then these fields can be used as it. If not, users must first determine the appropriate start and end points from whatever timestamps are relevant. For example, in the example analysis provided the session is trimmed to 15 minutes before the first injection time stamp, and 60 minutes after the second injection time stamp.
+
+__Code example of preparing the start and end indices:__
+![png](../img/datapreparation_trimFPdata_indexprep.png)
+
+__REQUIRED INPUTS:__
+
+- __data:__ Data structure created by the _LoadKeyData_ function. Each session should be a separate row. The data structure must containing at least the fields specified in the additional inputs.
+
+- __whichtrimstart:__ A string containing the name of the field with the locations of the session start indices. Everything before the start index will be trimmed.
+
+- __whichtrimend:__ A string containing the name of the field with the locations of the session end indices. Everything after the end index will be trimmed.
+
+- __whichstreams:__ A cell array containing the field names of all the streams to be trimmed. This should include both the signal and the background streams.
+
+__OPTIONAL INPUTS:__
+
+- __whichepocs:__ A cell array containing the field names of all the epochs (time stamps) to be adjusted. This input can contain as many inputs as the experimental paradigm requires, and each timestamp will be adjusted by subtracting the start index - 1.
+
+__Code example of trimming:__
+![png](../img/datapreparation_trimFPdataExample.png)
 
 
 
-
-
-
-
-This function will use the file key to load each session's extracted data structure and combine them into the structure "data" for analysis.
+After data preparation is complete, move to signal processing.

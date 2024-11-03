@@ -67,12 +67,14 @@ disp('BIN TRANSIENTS: Add bin variable to transient quantification table.')
 
     if isempty(inputs.clip) == true
         clip = 5;
+        inputs.clip = clip;
     else
         clip = inputs.clip;
     end
 
     if isempty(inputs.skipexisting) == true
         skipexisting = 1;
+        inputs.skipexisting = skipexisting;
     else
         skipexisting = inputs.skipexisting;
     end

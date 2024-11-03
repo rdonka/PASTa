@@ -37,7 +37,8 @@ function [data] = trimFPdata(data,whichtrimstart,whichtrimend,whichstreams,varar
     % Import required and optional inputs into a structure
     inputs = struct(...
         'whichepocs',[]);
-    inputs = parseArgsLite(varargin,inputs);
+
+    myinputs = parseArgsLite(varargin,inputs);
 
     if isempty(inputs.whichepocs) == true
         disp('TRIMMING DATA: No epocs specified for adjustment.')

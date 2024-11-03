@@ -21,8 +21,8 @@ addpath(genpath(append(computeruserpath,'Onedrive\Desktop\GitHub_Repositories\PA
 addpath(genpath(append(computeruserpath,'Box\PASTaExampleFiles\'))); % Path for analysis files - this is where the keys are saved\\
 
 % Load in experiment key names - Subject Key and File Key
-subjectkeyname = 'Subject Key - Example Analysis - Morphine Transients.csv'; % Name of csv file containing subject information; set to '' if not using a Subject Key
-filekeyname = 'File Key - Example Analysis - Morphine Transients.csv'; % Name of csv file containing session information and paths
+subjectkeyname = 'SubjectKey_ExampleAnalysis_MorphineTransients.csv'; % Name of csv file containing subject information; set to '' if not using a Subject Key
+filekeyname = 'FileKey_ExampleAnalysis_MorphineTransients.csv'; % Name of csv file containing session information and paths
 
 %% Load keys
 % Load subject key and file key into a data structure and append computeruserpath to RawFolderPath and ExtractedFolderPaths
@@ -70,17 +70,17 @@ end
 trimstart = 'sessionstart'; % name of field with session start index
 trimend = 'sessionend'; % name of field with session end index
 whichstreams = {'sig', 'baq'}; % which streams to trim
-whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative position
+whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
 
-[data] = trimFPdata(rawdata,trimstart,trimend, whichstreams,whichepocs); % Output trimmed data into new structure called data
+[data] = trimFPdata(rawdata,trimstart,trimend, whichstreams,'whichepocs', whichepocs); % Output trimmed data into new structure called data
 
 %% Process data
 % Subtract and filter data with default settings
 sigfield = 'sig';
 baqfield = 'baq';
-fs = data(1).fs;
+fsfield = 'fs';
 
-[data] = subtractFPdata(data,sigfield,baqfield,fs); % adds sigsub and sigfilt to data frame
+[data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
 
 % END OF FINALIZATION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -68,10 +68,10 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 %                       Default: 'bandpass'
 %
 %   PADDING:            Numeric; Defaults to 1, which applies padding. 
-%                       Padding takes the first 10% of the stream, flips 
-%                       it, and appends it to the data before filtering. 
-%                       Appended data is trimmed after filtration. Set to 0 
-%                       to turn off padding of data streams. 
+%                       Padding takes the specific percent of the start of
+%                       the stream, flips it, and appends it to the data
+%                       before filtering. Appended data is trimmed after 
+%                       filtration. Set to 0 to turn off padding.
 %                       Default: 1
 %
 %   PADDINGPERC:        Numeric; Percent of data length to use to determine the
@@ -86,7 +86,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 %                       the high pass Butterworth filter. Default: 2.2860.
 %
 %   LOWPASSCUTOFF:      Numeric; The cutoff frequency (Hz) to be used for 
-%                       the low pass Butterworth filter. Default: 0.0051 hz.
+%                       the low pass Butterworth filter. Default: 0.0051.
 %
 %   SUPRESSDISP:        Numeric; If set to anything other than 0, this will 
 %                       suppress the command window displays. Default: 0

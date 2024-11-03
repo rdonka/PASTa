@@ -109,6 +109,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#other-scaling-methods" class="nav-link">Other Scaling Methods</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-bs-level="2"><a href="#filtering" class="nav-link">Filtering</a>
               <ul class="nav flex-column">
               </ul>
@@ -138,7 +142,10 @@
 <h3 id="subtraction">Subtraction</h3>
 <p>The scaled background is subtracted from the raw signal in the time domain. Subtracted signal is output as dF/F, where dF/F = (Signal - Scaled Background) / Scaled Background. If desired, users can override the default to output the as dF instead (dF = Signal - Scaled Background).</p>
 <p>Users have the ability to override PASTa protocol defaults to modify parameters including the scaling threshold frequency cutoff, subtracted data output, or select an alternative method of background scaling.</p>
-<h3 id="other-scaling-methods">Other Scaling Methods</h3>
+<h3 id="comparison-of-background-scaling-and-subtraction-for-vta-gcamp6f-nacls-dlight13b-and-nacls-grabda2h">Comparison of Background Scaling and Subtraction for VTA GCaMP6f, NAcLS dLight1.3b, and NAcLS GRABDA2H</h3>
+<p><img alt="png" src="../../img/signalprocessing_frequencyscalingsubtraction.png" /></p>
+<p>Background scaling and subtraction examples for VTA GCaMP6f, NAcLS dLight1.3b, and NAcLS GRABDA2H. <strong>A)</strong> Traces of 465nm (signal) and 405nm (background) raw streams. <strong>B)</strong> Magnitude frequency plots of raw, overlaid raw, and overlaid raw 465 and scaled 405nm streams. <strong>C)</strong> Trace of raw 465nm stream with overlaid scaled 405nm stream. <strong>D)</strong> Subtracted signal output as dF/F. Overall, this method of scaling aligns the background with the signal, preventing over or under scaling.</p>
+<h2 id="other-scaling-methods">Other Scaling Methods</h2>
 <p>In our hands, frequency scaling performs better than other scaling approaches. Advantages are particularly notable for sensors such as GRABDA2H, for which 405nm is not a perfect isosbestic control. Use of frequency scaling rescues the use of the 405nm stream to control for photobleaching and motion artifact. This may be particularly useful as new sensors are continually in development, not all of which have an isosbestic or commercially available control wavelength for use in photometry systems.</p>
 <p>However, users may want to use or compare to other commonly used methods of scaling the background to the signal. The subtractFPdata function includes options to use OLS regression, detrending and OLS regression, Lowess Smoothing and OLS Regression, and IRLS regression to scale the background prior to subtraction. </p>
 <h2 id="filtering">Filtering</h2>

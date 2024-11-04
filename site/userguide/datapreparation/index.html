@@ -141,7 +141,7 @@
 <p>Fiber photometry data collected through the software <em>Synapse</em> (Tucker Davis Technologies) is stored in <strong>tanks</strong> and <strong>blocks</strong>. <strong>Tanks</strong> are parent folders created by Synapse for each experiment. <strong>Blocks</strong> are individual folders for each session containing the actual output data. Stored data cannot be accessed directly via the folder, but rather must be extracted via MATLAB.</p>
 <p>By default, the tank path is: C:\TDT\Synapse\Tanks. Synapse recognizes experiments and subjects as key categories of information that play a special role in managing data storage and retrieval. Thus, when running the session, it is critical to ensure the correct Experiment profile is selected, and the correct Subject identifier is input for each session. By default, Synapse names data tanks automatically based on experiment name and the start time of the first recording {ExperimentName}-{yymmdd}-{hhmmss}. Blocks of data are named based on subject {SubjectName}-{yymmdd}-{hhmmss} for each recording session and the start time.</p>
 <p>Synapse will save a new Tank for every day unless you change the default setting. Click <em>Menu</em> at the top of the bar, then Preferences. Under the <em>Data Saving</em> tab, make sure "New Tank Each Day" is unchecked.</p>
-<p><img alt="png" src="../../img/datapreparation_SynapseDataSaving.png" /></p>
+<p><img alt="png" src="../../img/datapreparation_1_SynapseDataSaving.png" /></p>
 <h2 id="experiment-key-creation">Experiment Key Creation</h2>
 <p>To accomodate a variety of file organization structures, users can first create two csv files containing the information necessary to access raw data, and experimental metadata to match to raw photometry data. MATLAB can access raw data folders stored either locally or in a cloud-based storage app like Box or Dropbox. </p>
 <p>To faciliate analysis, users can create two keys as csv files: a subject key and a file key. In the PASTa protocol, these files will be knit together to pair subject specific information with each individual session of data, preventing the need for manual repeated entry of subject specific information and reduce the time burden of properly maintaining and including experimental metadata factors like subject traits, treatments, and experimental equipment.</p>
@@ -149,7 +149,7 @@
 <h3 id="subject-key">Subject Key</h3>
 <p>The subject key should contain information about each subject that is constant and unchanging, such as SubjectID, sex, date of birth, fiber location, sensor, experimental group, and any other user specificed information. </p>
 <p><strong>For example:</strong>
-<img alt="png" src="../../img/datapreparation_SubjectKeyExample.png" /></p>
+<img alt="png" src="../../img/datapreparation_2_SubjectKeyExample.png" /></p>
 <h3 id="file-key">File Key</h3>
 <p>The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.</p>
 <p><strong>REQUIRED VARIABLES:</strong></p>
@@ -169,9 +169,13 @@
 </ul>
 <p>Any additional fields can be included such as equipment information, recording power, session condition, drug treatments, body weight, and any other variables that are specific to that one session. Note that the only field name that should overlap with a field name in the subject key is <em>SubjectID</em>.</p>
 <p><strong>For example:</strong>
-<img alt="png" src="../../img/datapreparation_FileKeyExample.png" /></p>
+<img alt="png" src="../../img/datapreparation_3_FileKeyExample.png" /></p>
+<h3 id="prepare-matlab">Prepare MATLAB</h3>
+<p>First, prepare MATLAB by setting up key paths to stored data, locations to save outputs, and add functions folders to the MATLAB path.</p>
+<p><strong>Code example:</strong>
+<img alt="png" src="../../img/datapreparation_4_preparepaths.png" /></p>
 <h3 id="function-loadkeys">FUNCTION: <em>LoadKeys</em></h3>
-<p>The function <em>loadKeys</em> joins the individual subject information to the file key with the data for each session. Additionally, <em>loadkeys</em> appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. <strong>For example,</strong> <em>"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"</em>. The created experiment key should be output into a data structure called <em>experimentkey</em>.</p>
+<p><em>loadKeys</em> joins the individual subject information to the file key with the data for each session. Additionally, <em>loadkeys</em> appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. <strong>For example,</strong> <em>"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"</em>. The created experiment key should be output into a data structure called <em>experimentkey</em>.</p>
 <p><strong>REQUIRED INPUTS:</strong></p>
 <ul>
 <li>
@@ -185,7 +189,7 @@
 </li>
 </ul>
 <p><strong>Code example:</strong>
-<img alt="png" src="../../img/datapreparation_loadKeysCode.png" /></p>
+<img alt="png" src="../../img/datapreparation_5_loadKeys.png" /></p>
 <h2 id="extracting-the-data">Extracting the Data</h2>
 <p>Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. </p>
 <p>When the raw data is extracted, clipping will be applied by default. This removes the first and last 5 seconds of the session to remove large fluctuations in output signal that occur when the hardware is turned on and off. The number of seconds clipped can be adjusted by overriding the default.</p>
@@ -210,8 +214,6 @@
 <p><strong>sigstreamnames:</strong> A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.</p>
 </li>
 </ul>
-<p><strong>Code example:</strong>
-<img alt="png" src="../../img/datapreparation_extractTDTdataExample.png" /></p>
 <p><strong>OPTIONAL INPUTS:</strong></p>
 <ul>
 <li>
@@ -222,6 +224,8 @@
 </li>
 </ul>
 <p>Extracted raw data files are saved to the extracted folder path as individual MATLAB structures.</p>
+<p><strong>Code example:</strong>
+<img alt="png" src="../../img/datapreparation_6_extractTDTdata.png" /></p>
 <h2 id="loading-the-data">Loading the Data</h2>
 <p>After raw data is extracted, it can be matched to the experimentkey to associate any subject and session metadata with the photometry data. All sessions will be loaded into one data structure (typically called <em>rawdata</em>), to ensure that all sessions are analyzed in the same way throughout following steps of the protocol. Each session of data is a row within the data structure.</p>
 <p>Regardless of hardware set up, all extracted files can be loaded with the function <em>LoadKeydata</em>.</p>
@@ -231,14 +235,14 @@
 <li><strong>experimentkey:</strong> Data structure created by the <em>LoadKeys</em> function, containing at least the field <em>ExtractedFolderPath</em> with the full path to each individual session of data to be loaded.</li>
 </ul>
 <p><strong>Code example:</strong>
-<img alt="png" src="../../img/datapreparation_LoadKeyData.png" /></p>
+<img alt="png" src="../../img/datapreparation_7_loadKeydata.png" /></p>
 <h2 id="trimming-the-data">Trimming the Data</h2>
 <p>The final step in data preparation is optional. Photometry recording may start a few seconds before the experiment begins, such as in cases where users have to initiate hardware for operant boxes separately, and after the experiment ends. Additionally, users may want to remove the first few minutes of each session due to the higher rate of photobleaching before the signal stabilizes. </p>
 <p>If desired, data can be trimmed with the function <em>trimFPdata</em>, which uses user derived session start and session end indexes to trim data streams and adjust any event epochs (timestamps) to maintain the relationship in time.</p>
 <h3 id="index-preparation">Index Preparation</h3>
 <p>If timestamps for session start and end are included in the raw data collection, then these fields can be used as it. If not, users must first determine the appropriate start and end points from whatever timestamps are relevant. For example, in the example analysis provided the session is trimmed to 15 minutes before the first injection time stamp, and 60 minutes after the second injection time stamp.</p>
 <p><strong>Code example of preparing the start and end indices:</strong>
-<img alt="png" src="../../img/datapreparation_trimFPdata_indexprep.png" /></p>
+<img alt="png" src="../../img/datapreparation_8_preparetrimindices.png" /></p>
 <h3 id="function-trimfpdata">FUNCTION: <em>trimFPdata</em></h3>
 <p><strong>REQUIRED INPUTS:</strong></p>
 <ul>
@@ -260,7 +264,7 @@
 <li><strong>whichepocs:</strong> A cell array containing the field names of all the epochs (time stamps) to be adjusted. This input can contain as many inputs as the experimental paradigm requires, and each timestamp will be adjusted by subtracting the start index - 1.</li>
 </ul>
 <p><strong>Code example of trimming:</strong>
-<img alt="png" src="../../img/datapreparation_trimFPdataExample.png" /></p>
+<img alt="png" src="../../img/datapreparation_9_trimFPdata.png" /></p>
 <p>After data preparation is complete, move to signal processing.</p></div>
             </div>
         </div>

@@ -146,7 +146,7 @@ scaling preserves the shape of the background and prevents underscaling relative
 <p><img alt="png" src="../../img/signalprocessing_filtering.png" />
 <strong>Figure 5:</strong> Examples of subtracted and filtered data for for VTA GCaMP6f, NAcLS dLight1.3b, and NAcLS GRABDA2H. <strong>A)</strong> Magnitude frequency plots of the Fast Fourier Transform (FFT) of the subtracted and filtered streams. Note that the Butterworth bandpass filter is overlaid (grey dashed line) on the pre-filtering subtracted stream magnitude frequency plots. <strong>B)</strong> Trace of the subtracted stream (signal - scaled background). <strong>C)</strong> Trace of the subtracted and filtered stream. <strong>D)</strong> Zoomed in overlaid example of the subtracted and filtered streams. Note that the filtered stream is in the darker shade.</p>
 <p>While the PASTa Protocol has default filter settings, users can override these as required by sensor or experimental design to modify the filter type (band-pass, high-pass, low-pass), order, and cutoff frequencies.</p>
-<h3 id="function-subtractfpdata"><em>FUNCTION:</em> subtractFPdata</h3>
+<h3 id="function-subtractfpdata"><em>Function:</em> subtractFPdata</h3>
 <p>Subtracts the specified background channel from the specified signal channel and applies a Butterworth filter. Outputs data as dF/F (default) or dF.</p>
 <p><strong>REQUIRED INPUTS:</strong></p>
 <ul>
@@ -226,6 +226,42 @@ scaling preserves the shape of the background and prevents underscaling relative
 <p>Whole session normalization uses the mean and SD of the whole session. Session baseline uses the mean and SD from a specified session baseline, which may be useful in cases where a drug is delivered mid session, experimental events occur mid session, or other treatments may result in a sustained shift that could bias signal normalization. Data can also be normalized on an individual trial basis to a local pre-trial baseline - see the <em>Trial Analysis</em> section of the user guide.</p>
 <p><img alt="png" src="../../img/signalprocessing_normalization.png" />
 <strong>Figure 5:</strong> Normalization examples. <strong>A)</strong> Normalization (Z Score) to whole session mean and SD. <strong>B)</strong>  Normalization (Z Score) to a 3-min session baseline mean and SD.</p>
+<h3 id="function-normsession"><em>Function:</em> normSession</h3>
+<p>Normalizes the data stream to Z Score based on the whole session mean and SD.</p>
+<p><strong>REQUIRED INPUTS:</strong></p>
+<ul>
+<li>
+<p><strong>data:</strong> Data structure containing at least the stream to be normalized. Each session should be a separate row.</p>
+</li>
+<li>
+<p><strong>whichstream:</strong> A string with the name of the field containing the stream to be normalized. For example, 'sigfilt'.</p>
+</li>
+</ul>
+<p><strong>OUTPUTS:</strong></p>
+<ul>
+<li><strong>data:</strong> The original data structure with the added fields 'data.WHICHSTREAMz_normsession' containing the whole session normalized stream.</li>
+</ul>
+<h3 id="function-normbaseline"><em>Function:</em> normBaseline</h3>
+<p>Normalizes the whole session data stream to Z Score based on a baseline period.</p>
+<p><strong>REQUIRED INPUTS:</strong></p>
+<ul>
+<li>
+<p><strong>data:</strong> Data structure containing at least the stream to be normalized, a field with the baseline start index, and a field with the baseline end index. Each session should be a separate row.</p>
+</li>
+<li>
+<p><strong>whichstream:</strong> A string with the name of the field containing the stream to be normalized. For example, 'sigfilt'.</p>
+</li>
+<li>
+<p><strong>whichblstart:</strong> A string with the name of the field containing the index of the start of the baseline period. This field must be prepared before using the normBaseline function.</p>
+</li>
+<li>
+<p><strong>whichblend:</strong> A string with the name of the field containing the index of the end of the baseline period. This field must be prepared before using the normBaseline function.</p>
+</li>
+</ul>
+<p><strong>OUTPUTS:</strong></p>
+<ul>
+<li><strong>data:</strong> The original data structure with the added fields 'data.WHICHSTREAMz_normsession' containing the whole session normalized stream.</li>
+</ul>
 <p>Differing normalization methods may be advantageous depending on the experimental design. If additional options are required, please let us know!</p></div>
             </div>
         </div>

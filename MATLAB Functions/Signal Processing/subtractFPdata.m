@@ -1,6 +1,6 @@
 function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,varargin)
 % SUBTRACTFPDATA    Subtracts the specified background channel from the 
-%                   specified signal channel and applies a butterworth 
+%                   specified signal channel and applies a Butterworth 
 %                   filter. Outputs data as dF/F (default) or dF.
 % INPUTS:
 %   DATA:               Data structure; A data structure that contains at 

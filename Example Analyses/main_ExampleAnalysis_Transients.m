@@ -82,9 +82,6 @@ fsfield = 'fs';
 
 [data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
 
-% END OF FINALIZATION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Normalize data
 % To normalize to session mean:
 [data] = normSession(data,'sigfilt'); % Outputs whole session z score
@@ -94,7 +91,7 @@ for eachfile = 1:length(data) % prepare indexes for baseline period start and en
     data(eachfile).BLstart = 1;
     data(eachfile).BLend =  data(eachfile).injt(1);
 end
-[data] = normBaseline(data,'sigfilt','BLstart','BLend','both'); % 'both' will output df/f and z score
+[data] = normBaseline(data,'sigfilt','BLstart','BLend');
 
 %% Remove injection time window from normalized signal
 % This loop removes samples between the start and end of the injection. For

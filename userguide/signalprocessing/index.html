@@ -221,6 +221,10 @@ scaling preserves the shape of the background and prevents underscaling relative
 <ul>
 <li><strong>data:</strong> The original data structure with added fields with the function inputs, scaled background (baq_scaled), subtracted signal (sigsub), and subtracted and filtered signal (sigfilt).</li>
 </ul>
+<p><strong>Code example:</strong> Subtraction with default scaling and filter parameters
+<img alt="png" src="../../img/signalprocessing_1_subtractFPdata.png" /></p>
+<p><strong>Code example:</strong> Subtraction with background scaling type set to OLS Regression and filter type set to highpass only.
+<img alt="png" src="../../img/signalprocessing_2_subtractFPdataOLS.png" /></p>
 <h2 id="normalization">Normalization</h2>
 <p>Normalization converts the filtered signal to Z score. Multiple methods are included in the tool box to accomodate a variety of experimental designs.</p>
 <p>Whole session normalization uses the mean and SD of the whole session. Session baseline uses the mean and SD from a specified session baseline, which may be useful in cases where a drug is delivered mid session, experimental events occur mid session, or other treatments may result in a sustained shift that could bias signal normalization. Data can also be normalized on an individual trial basis to a local pre-trial baseline - see the <em>Trial Analysis</em> section of the user guide.</p>
@@ -241,6 +245,8 @@ scaling preserves the shape of the background and prevents underscaling relative
 <ul>
 <li><strong>data:</strong> The original data structure with the added fields 'data.WHICHSTREAMz_normsession' containing the whole session normalized stream.</li>
 </ul>
+<p><strong>Code example:</strong>
+<img alt="png" src="../../img/signalprocessing_3_normSession.png" /></p>
 <h3 id="function-normbaseline"><em>Function:</em> normBaseline</h3>
 <p>Normalizes the whole session data stream to Z Score based on a baseline period.</p>
 <p><strong>REQUIRED INPUTS:</strong></p>
@@ -262,6 +268,8 @@ scaling preserves the shape of the background and prevents underscaling relative
 <ul>
 <li><strong>data:</strong> The original data structure with the added fields 'data.WHICHSTREAMz_normsession' containing the whole session normalized stream.</li>
 </ul>
+<p><strong>Code example:</strong>
+<img alt="png" src="../../img/signalprocessing_4_normBaseline.png" /></p>
 <p>Differing normalization methods may be advantageous depending on the experimental design. If additional options are required, please let us know!</p></div>
             </div>
         </div>

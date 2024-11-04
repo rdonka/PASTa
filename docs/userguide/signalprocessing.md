@@ -96,9 +96,17 @@ __OUTPUTS:__
 
 - __data:__ The original data structure with added fields with the function inputs, scaled background (baq_scaled), subtracted signal (sigsub), and subtracted and filtered signal (sigfilt).
 
+__Code example:__ Subtraction with default scaling and filter parameters
+![png](../img/signalprocessing_1_subtractFPdata.png)
+
+
+__Code example:__ Subtraction with background scaling type set to OLS Regression and filter type set to highpass only.
+![png](../img/signalprocessing_2_subtractFPdataOLS.png)
+
 
 ## Normalization
 Normalization converts the filtered signal to Z score. Multiple methods are included in the tool box to accomodate a variety of experimental designs.
+
 
 Whole session normalization uses the mean and SD of the whole session. Session baseline uses the mean and SD from a specified session baseline, which may be useful in cases where a drug is delivered mid session, experimental events occur mid session, or other treatments may result in a sustained shift that could bias signal normalization. Data can also be normalized on an individual trial basis to a local pre-trial baseline - see the _Trial Analysis_ section of the user guide.
 
@@ -117,6 +125,9 @@ __REQUIRED INPUTS:__
 __OUTPUTS:__
 
 - __data:__ The original data structure with the added fields 'data.WHICHSTREAMz_normsession' containing the whole session normalized stream.
+
+__Code example:__
+![png](../img/signalprocessing_3_normSession.png)
 
 
 ### _Function:_ normBaseline
@@ -137,6 +148,8 @@ __OUTPUTS:__
 
 - __data:__ The original data structure with the added fields 'data.WHICHSTREAMz_normsession' containing the whole session normalized stream.
 
+__Code example:__
+![png](../img/signalprocessing_4_normBaseline.png)
 
 
 Differing normalization methods may be advantageous depending on the experimental design. If additional options are required, please let us know!

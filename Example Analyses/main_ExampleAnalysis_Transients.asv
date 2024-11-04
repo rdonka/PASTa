@@ -78,18 +78,6 @@ fsfield = 'fs';
 
 [data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
 
-% Subtract and filter data with custom settings - OLS regression scaling, high pass filter only
-sigfield = 'sig';
-baqfield = 'baq';
-fsfield = 'fs';
-
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'baqscalingtype','OLS','filtertype','highpass'); % adds sigsub and sigfilt to data frame
-
-
-
-
-
-
 % Normalize data
 % To normalize to session mean:
 [data] = normSession(data,'sigfilt'); % Outputs whole session z score

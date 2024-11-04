@@ -13,7 +13,7 @@ By default, the tank path is: C:\TDT\Synapse\Tanks. Synapse recognizes experimen
 
 Synapse will save a new Tank for every day unless you change the default setting. Click _Menu_ at the top of the bar, then Preferences. Under the _Data Saving_ tab, make sure "New Tank Each Day" is unchecked.
 
-![png](../img/datapreparation_SynapseDataSaving.png)
+![png](../img/datapreparation_1_SynapseDataSaving.png)
 
 ## Experiment Key Creation
 To accomodate a variety of file organization structures, users can first create two csv files containing the information necessary to access raw data, and experimental metadata to match to raw photometry data. MATLAB can access raw data folders stored either locally or in a cloud-based storage app like Box or Dropbox. 
@@ -26,7 +26,7 @@ First, locate the raw files to be analyzed in your file organization structure. 
 The subject key should contain information about each subject that is constant and unchanging, such as SubjectID, sex, date of birth, fiber location, sensor, experimental group, and any other user specificed information. 
 
 __For example:__
-![png](../img/datapreparation_SubjectKeyExample.png)
+![png](../img/datapreparation_2_SubjectKeyExample.png)
 
 ### File Key
 The file key should contain information about each unique session / file to be analyzed. At a minimum, this must include the SubjectID, folder name, raw folder location, and desired location for the raw data to be exported to.
@@ -44,10 +44,17 @@ __REQUIRED VARIABLES:__
  Any additional fields can be included such as equipment information, recording power, session condition, drug treatments, body weight, and any other variables that are specific to that one session. Note that the only field name that should overlap with a field name in the subject key is _SubjectID_.
     
 __For example:__
-![png](../img/datapreparation_FileKeyExample.png)
+![png](../img/datapreparation_3_FileKeyExample.png)
 
-### _LoadKeys_
-The function _loadKeys_ joins the individual subject information to the file key with the data for each session. Additionally, _loadkeys_ appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. __For example,__ _"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"_. The created experiment key should be output into a data structure called _experimentkey_.
+### Prepare MATLAB
+First, prepare MATLAB by setting up key paths to stored data, locations to save outputs, and add functions folders to the MATLAB path.
+
+__Code example:__
+![png](../img/datapreparation_4_preparepaths.png)
+
+
+### FUNCTION: _LoadKeys_
+_loadKeys_ joins the individual subject information to the file key with the data for each session. Additionally, _loadkeys_ appends the unique computer user portion of the file navigation path to the beginning and the Folder name to the end of the raw and extracted folder paths specified in the file key. This creates the full path to the location of each session's data. __For example,__ _"C:\Users\rmdon\Box\RawData\Subject1-240101-121500"_. The created experiment key should be output into a data structure called _experimentkey_.
 
 __REQUIRED INPUTS:__
 
@@ -58,14 +65,14 @@ __REQUIRED INPUTS:__
 - __filekeyname:__ A string containing the name of the csv file that contains the file key file name, including the _.csv_ extention at the end.
 
 __Code example:__
-![png](../img/datapreparation_loadKeysCode.png)
+![png](../img/datapreparation_5_loadKeys.png)
 
 ## Extracting the Data
 Prior to beginning analysis, individual session data should be extracted and saved as MATLAB data structures. This makes the process of loading data at the start of each analysis session significantly faster. 
 
 When the raw data is extracted, clipping will be applied by default. This removes the first and last 5 seconds of the session to remove large fluctuations in output signal that occur when the hardware is turned on and off. The number of seconds clipped can be adjusted by overriding the default.
 
-### _extractdata_
+### FUNCTION: _extractdata_
 
 Multiple options are available to extract the data, and should be used depending on the method by which the data was collected, both documented in detail below. Several customized functions are available to extract and format the data for easy processing and analysis. Data collected with TDT can be extracted with custom functions. For all other systems, utilize the generic csv format. 
 
@@ -83,10 +90,6 @@ __REQUIRED INPUTS:__
 
 - __sigstreamnames:__ A cell array containing the strings with the names of all streams to be treated as signal. This allows for flexibility if different photometry rigs have differing naming conventions for signal stream. Include all signal stream name variations in this cell array. Note that only one stream per file can be treated as signal.
 
-__Code example:__
-![png](../img/datapreparation_extractTDTdataExample.png)
-
-
 __OPTIONAL INPUTS:__
 
 - __clip:__ Number of seconds to clip at the beginning and end of the session. This defaults to 5 seconds.
@@ -95,18 +98,21 @@ __OPTIONAL INPUTS:__
 
 Extracted raw data files are saved to the extracted folder path as individual MATLAB structures.
 
+__Code example:__
+![png](../img/datapreparation_6_extractTDTdata.png)
+
 ## Loading the Data
 After raw data is extracted, it can be matched to the experimentkey to associate any subject and session metadata with the photometry data. All sessions will be loaded into one data structure (typically called _rawdata_), to ensure that all sessions are analyzed in the same way throughout following steps of the protocol. Each session of data is a row within the data structure.
 
 Regardless of hardware set up, all extracted files can be loaded with the function _LoadKeydata_.
 
-### _loadKeydata_
+### FUNCTION: _loadKeydata_
 __REQUIRED INPUTS:__
 
 - __experimentkey:__ Data structure created by the _LoadKeys_ function, containing at least the field _ExtractedFolderPath_ with the full path to each individual session of data to be loaded.
 
 __Code example:__
-![png](../img/datapreparation_LoadKeyData.png)
+![png](../img/datapreparation_7_loadKeydata.png)
 
 ## Trimming the Data
 The final step in data preparation is optional. Photometry recording may start a few seconds before the experiment begins, such as in cases where users have to initiate hardware for operant boxes separately, and after the experiment ends. Additionally, users may want to remove the first few minutes of each session due to the higher rate of photobleaching before the signal stabilizes. 
@@ -118,9 +124,9 @@ If desired, data can be trimmed with the function _trimFPdata_, which uses user 
 If timestamps for session start and end are included in the raw data collection, then these fields can be used as it. If not, users must first determine the appropriate start and end points from whatever timestamps are relevant. For example, in the example analysis provided the session is trimmed to 15 minutes before the first injection time stamp, and 60 minutes after the second injection time stamp.
 
 __Code example of preparing the start and end indices:__
-![png](../img/datapreparation_trimFPdata_indexprep.png)
+![png](../img/datapreparation_8_preparetrimindices.png)
 
-### _trimFPdata_
+### FUNCTION: _trimFPdata_
 __REQUIRED INPUTS:__
 
 - __data:__ Data structure created by the _LoadKeyData_ function. Each session should be a separate row. The data structure must containing at least the fields specified in the additional inputs.
@@ -136,8 +142,7 @@ __OPTIONAL INPUTS:__
 - __whichepocs:__ A cell array containing the field names of all the epochs (time stamps) to be adjusted. This input can contain as many inputs as the experimental paradigm requires, and each timestamp will be adjusted by subtracting the start index - 1.
 
 __Code example of trimming:__
-![png](../img/datapreparation_trimFPdataExample.png)
-
+![png](../img/datapreparation_9_trimFPdata.png)
 
 
 After data preparation is complete, move to signal processing.

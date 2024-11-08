@@ -223,3 +223,16 @@ for eachfile = 1:length(data)
     exportgraphics(finalbinplot,append(figurepath,'BinTraces_',data(eachfile).Subject,'Treatment_',data(eachfile).InjType, ...
         '.png'),'Resolution',300)
 end
+
+
+% Doric notes
+ % pick file, export - can see file
+ % of all the things to export, only two are the lockinAOUT1 - isosbestic
+ % lock in AOUT2 -  signal
+ % each one exports the signal and the time
+
+ % Sampling rate - will figure out - 
+
+ % use both the signal and time channels, time in first column and signal 
+
+ % sampling rate

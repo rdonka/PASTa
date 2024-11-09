@@ -33,26 +33,30 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
 %
 %       PREMINSTARTMS:  Number of millseconds pre-transient to use as the
 %                       start of the baseline window. 
-%                       NOTE: Default is set to 1000 in the main findSessionTransients
+%                       NOTE: Default is set to 800 in the main
 %                       'findSessionTransients' function.
 %
 %       PREMINENDMS:    Number of millseconds pre-transient to use as the
 %                       end of the baseline window. If you want to
 %                       determine the absolute local minimum before the
 %                       transient, set this to 0.
-%                       Default: 100
+%                       NOTE: Default is set to 100 in the main
+%                       'findSessionTransients' function.
 %
 %       POSTTRANSIENTMS: Number of millseconds post-transient to use for
 %                       the post peak baseline and trimmed data output.
-%                       Default: 2000
+%                       NOTE: Default is set to 2000 in the main
+%                       'findSessionTransients' function.
 %
 %       QUANTIFICATIONHEIGHT: The height at which to characterize rise time,
 %                       fall time, and AUC. Must be a number between 0 and 1.
-%                       Default: 0.5
+%                       NOTE: Default is set to 0.5 in the main
+%                       'findSessionTransients' function.
 %  
 %       OUTPUTTRANSIENTDATA: Set to 1 to output cut data streams for each
 %                       transient event. Set to 0 to skip.
-%                       Default: 1
+%                       NOTE: Default is set to 1 in the main
+%                       'findSessionTransients' function.
 %
 % OUTPUTS:
 %       DATA:           The original data structure with
@@ -143,6 +147,7 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
             currmaxval = [];
             currpreminstartloc = [];
             currpreminendloc = [];   
+            currminloc = [];
             currminval = [];
             curramp = [];
             
@@ -215,6 +220,8 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                 transientquantification.transientID(transientcount) = transientcount;
                 transientquantification.maxloc(transientcount) = currmaxloc;
                 transientquantification.maxval(transientcount) = currmaxval;
+                transientquantification.preminstartloc(transientcount) = currpreminstartloc;
+                transientquantification.preminendloc(transientcount) = currpreminendloc;
                 transientquantification.preminloc(transientcount) = currminloc;
                 transientquantification.preminval(transientcount) = currminval;
                 transientquantification.amp(transientcount) = curramp;

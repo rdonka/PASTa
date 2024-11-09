@@ -113,22 +113,21 @@ for eachfile = 1:length(data)
 end
 
 %% Find session transients
-% Prepare thresholds - since Z scored streams will be analyzed, input 
-% threshold as the desired SD.
+% Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
 for eachfile = 1:length(data)
     data(eachfile).threshold3SD = 3;
 end
 
 % Find session transients based on pre-peak baseline window minimum
-[data] = findSessionTransients_blmin(data,'sigfiltz_normsession_trimmed','threshold3SD','fs');
+[data] = findSessionTransients(data,'blmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
 
 % Find session transients based on pre-peak baseline window mean
-[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+[data] = findSessionTransients(data,'blmean','sigfiltz_normsession_trimmed','threshold3SD','fs','preminstartms',600);
+
+% Find session transients based on pre-peak local minimum (last minumum before the peak in the baseline window)
+[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs','quantificationheight',0.25);
 
 
-
-
-[data] = findSessionTransients_DEV(data,'sig_normbl_z_trimmed','fs','transthreshold');
 
 %% Bin session transients
 % Set up samples per bin

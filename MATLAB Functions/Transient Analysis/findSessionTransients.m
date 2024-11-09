@@ -50,7 +50,7 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 % OPTIONAL INPUTS:
 %       PREMINSTARTMS:  Number of millseconds pre-transient to use as the
 %                       start of the baseline window.
-%                       Default: 1000
+%                       Default: 800
 %
 %       PREMINENDMS:    Number of millseconds pre-transient to use as the
 %                       end of the baseline window.
@@ -119,7 +119,7 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
     maininputs.whichfs = whichfs;
 
     if isempty(maininputs.preminstartms) % Pre-transient baseline ms start
-        preminstartms = 1000;
+        preminstartms = 800;
         maininputs.preminstartms = preminstartms;
     else
         preminstartms = maininputs.preminstartms;

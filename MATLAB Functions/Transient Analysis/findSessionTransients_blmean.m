@@ -32,23 +32,28 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
 %
 %       PREMINSTARTMS:  Number of millseconds pre-transient to use as the
 %                       start of the baseline window.
-%                       Default: 1000
+%                       NOTE: Default is set to 800 in the main
+%                       'findSessionTransients' function.
 %
 %       PREMINENDMS:    Number of millseconds pre-transient to use as the
 %                       end of the baseline window.
-%                       Default: 100
+%                       NOTE: Default is set to 100 in the main
+%                       'findSessionTransients' function.
 %
 %       POSTTRANSIENTMS: Number of millseconds post-transient to use for
 %                       the post peak baseline and trimmed data output.
-%                       Default: 2000
+%                       NOTE: Default is set to 2000 in the main
+%                       'findSessionTransients' function.
 %
 %       QUANTIFICATIONHEIGHT: The height at which to characterize rise time,
 %                       fall time, and AUC. Must be a number between 0 and 1.
-%                       Default: 0.5
+%                       NOTE: Default is set to 0.5 in the main
+%                       'findSessionTransients' function.
 %  
 %       OUTPUTTRANSIENTDATA: Set to 1 to output cut data streams for each
 %                       transient event. Set to 0 to skip.
-%                       Default: 1
+%                       NOTE: Default is set to 1 in the main
+%                       'findSessionTransients' function.
 %
 % OUTPUTS:
 %       DATA:           The original data structure with

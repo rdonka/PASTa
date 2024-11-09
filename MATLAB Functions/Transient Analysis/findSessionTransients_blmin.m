@@ -32,23 +32,29 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
 %
 %       PREMINSTARTMS:  Number of millseconds pre-transient to use as the
 %                       start of the baseline window.
-%                       Default: 1000
+%                       NOTE: Default is set to 800 in the main
+%                       'findSessionTransients' function.
 %
 %       PREMINENDMS:    Number of millseconds pre-transient to use as the
 %                       end of the baseline window.
-%                       Default: 100
+%                       NOTE: Default is set to 100 in the main
+%                       'findSessionTransients' function.
 %
 %       POSTTRANSIENTMS: Number of millseconds post-transient to use for
 %                       the post peak baseline and trimmed data output.
-%                       Default: 2000
+%                       NOTE: Default is set to 2000 in the main
+%                       'findSessionTransients' function.
 %
 %       QUANTIFICATIONHEIGHT: The height at which to characterize rise time,
 %                       fall time, peak width, and AUC. Must be a number 
-%                       between 0 and 1. Default: 0.5
+%                       between 0 and 1. 
+%                       NOTE: Default is set to 0.5 in the main
+%                       'findSessionTransients' function.
 %  
 %       OUTPUTTRANSIENTDATA: Set to 1 to output cut data streams for each
 %                       transient event. Set to 0 to skip.
-%                       Default: 1
+%                       NOTE: Default is set to 1 in the main
+%                       'findSessionTransients' function.
 %
 % OUTPUTS:
 %       DATA:           The original data structure with
@@ -133,6 +139,7 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
             currmaxval = [];
             currpreminstartloc = [];
             currpreminendloc = [];   
+            currminloc = [];
             currminval = [];
             curramp = [];
             
@@ -148,7 +155,7 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
             end
 
             currminval = min(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)); % Find the value of pre-transient baseline window minimum
-            currminloc = find(currminval == data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
+            currminloc = currpreminstartloc+find(currminval == data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
             curramp = currmaxval-currminval; % Find the amplitude of the current transient relative to baseline
 
             if curramp >= data(eachfile).(whichthreshold) % If the current transient amplitude is greater than the threshold, quantify and add it to the table 'transientquantification'
@@ -203,6 +210,8 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
                 transientquantification.transientID(transientcount) = transientcount;
                 transientquantification.maxloc(transientcount) = currmaxloc;
                 transientquantification.maxval(transientcount) = currmaxval;
+                transientquantification.preminstartloc(transientcount) = currpreminstartloc;
+                transientquantification.preminendloc(transientcount) = currpreminendloc;
                 transientquantification.preminloc(transientcount) = currminloc;
                 transientquantification.preminval(transientcount) = currminval;
                 transientquantification.amp(transientcount) = curramp;

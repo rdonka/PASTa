@@ -185,15 +185,15 @@ user, and recommended to be 3SDs. If data are normalized in Z scores, then the c
 <li><em>transientquantification:</em> Includes the quantified variables for each transient, including amplitude, rise time, fall time, width, and AUC. See <em>Transient Quantification</em> section below for addition details on quantification outputs.</li>
 <li><em>transientstreamlocs:</em> Pre-transient baseline, transient peak, rise, and fall locations for each transient to match the cut transient stream data.</li>
 <li><em>transientstreamdata:</em> Cut data stream from baseline start to the end of the post-transient period for each transient event.</li>
-<li><strong>NOTE:</strong> For all data outputs, each transient is in a separate row. If OUTPUTTRANSIENTDATA is set to anything other than 1, the TRANSIENTSTREAMLOCS and TRANSIENTSTREAMDATA tables will be skipped and not included in the output.</li>
 </ul>
 </li>
 </ul>
-<p><strong>Code example:</strong> Whole session transient detection with baseline minimum and default inputs
+<p><strong>NOTE:</strong> For all data outputs, each transient is in a separate row. If OUTPUTTRANSIENTDATA is set to anything other than 1, the TRANSIENTSTREAMLOCS and TRANSIENTSTREAMDATA tables will be skipped and not included in the output.</p>
+<p><strong>Code example:</strong> Whole session transient detection with baseline minimum and default inputs.
 <img alt="png" src="../../img/transients_2_blmin.png" /></p>
-<p><strong>Code example:</strong> Whole session transient detection with baseline mean and shortened pre-peak baseline window
+<p><strong>Code example:</strong> Whole session transient detection with baseline mean and shortened pre-peak baseline window.
 <img alt="png" src="../../img/transients_3_blmean.png" /></p>
-<p><strong>Code example:</strong> Whole session transient detection with local minimum and 25% quantification height
+<p><strong>Code example:</strong> Whole session transient detection with local minimum and 25% quantification height.
 <img alt="png" src="../../img/transients_4_localmin.png" /></p>
 <h2 id="transient-event-quantification">Transient Event Quantification</h2>
 <p>Multiple features of transient events can be quantitatively analyzed and compared. Peak detection functions automatically calculate numerous variables for each transient to characterize aspects of both event rise and fall. PASTa includes flexible functions to group transients in the most experimentally relevant manner, such as by time window or experimental condition. </p>
@@ -218,9 +218,11 @@ user, and recommended to be 3SDs. If data are normalized in Z scores, then the c
 <strong>Figure 6:</strong> Transient example with labeled detection parameters and output variables. </p>
 <h3 id="function-outputs-findsessiontransients"><em>Function Outputs:</em> findSessionTransients</h3>
 <p>findSessionTransients adds numerous transient quantification values to the data structure for easy output and flexible analysis. </p>
-<p><strong>VARIABLES:</strong>
-- <strong>transientID:</strong> Unique integer ID for each transient identified. IDs start at 1.</p>
+<p><strong>VARIABLES:</strong></p>
 <ul>
+<li>
+<p><strong>transientID:</strong> Unique integer ID for each transient identified. IDs start at 1.</p>
+</li>
 <li>
 <p><strong>maxloc:</strong> Stream index of the maximum transient peak value.</p>
 </li>
@@ -276,20 +278,20 @@ user, and recommended to be 3SDs. If data are normalized in Z scores, then the c
 <p><strong>AUC:</strong> Area under the curve from the quantification height to the transient peak. Calculated via the trapezoidal method.</p>
 </li>
 </ul>
-<p><strong>Output Example: Adding Transients to the Data Structure</strong> Output of findSessionTransients, which is a sub-structure under the field <em>sessiontransients</em> added to the main data structure.
+<p><strong>Output Example - Adding Transients to the Data Structure:</strong> Output of findSessionTransients, which is a sub-structure under the field <em>sessiontransients</em> added to the main data structure.
 <img alt="png" src="../../img/transients_5_sessiontransientsmainoutput.png" /></p>
-<p><strong>Output Example: Function Inputs</strong> Inputs passed to the findSessionTransients functions are output to the table <em>Inputs</em> within the sessiontransients field of the main data structure.
+<p><strong>Output Example - Function Inputs:</strong> Inputs passed to the findSessionTransients functions are output to the table <em>Inputs</em> within the sessiontransients field of the main data structure.
 <img alt="png" src="../../img/transients_6_sessiontransientsinputs.png" /></p>
-<p><strong>Output Example: Transient Quantification</strong> Quantification of individual transient events is output to the table <em>transientquantification</em> within the sessiontransients field of the main data structure. Each transient is in a separate row with a unique transient ID.
+<p><strong>Output Example - Transient Quantification:</strong> Quantification of individual transient events is output to the table <em>transientquantification</em> within the sessiontransients field of the main data structure. Each transient is in a separate row with a unique transient ID.
 <img alt="png" src="../../img/transients_7_sessiontransientsquantification.png" /></p>
-<p><strong>Output Example: Individual Transient Trace Indexes</strong> For individual transient traces, transient stream locations of peak and baseline indexes and values are added to the table <em>transientstreamlocs</em>. Each transient is in a separate row.
+<p><strong>Output Example - Individual Transient Trace Indexes:</strong> For individual transient traces, transient stream locations of peak and baseline indexes and values are added to the table <em>transientstreamlocs</em>. Each transient is in a separate row.
 <img alt="png" src="../../img/transients_8_sessiontransientsstreamlocs.png" /></p>
-<p><strong>Output Example: Individual Transient Traces</strong> Actual stream values for individual transient traces, which are cut from the start of the baseline window to the end of the post peak period, and output to the table <em>transientstreamdata</em>. Each transient is in a separate row, and traces are spatially aligned consistently with the <em>transientstreamlocs</em> for easy plotting and analysis.
+<p><strong>Output Example - Individual Transient Traces:</strong> Actual stream values for individual transient traces, which are cut from the start of the baseline window to the end of the post peak period, and output to the table <em>transientstreamdata</em>. Each transient is in a separate row, and traces are spatially aligned consistently with the <em>transientstreamlocs</em> for easy plotting and analysis.
 <img alt="png" src="../../img/transients_9_sessiontransientsstreams.png" /></p>
 <h3 id="comparison-of-transient-events-with-vta-gcamp6f-nacls-dlight13b-and-nacls-grabda2h">Comparison of Transient Events with VTA GCaMP6f, NAcLS dLight1.3b, and NAcLS GRABDA2H</h3>
 <p>To validate our approach to transient detection, we analyzed identified transient events in dopamine recordings via three sensors: VTA GCaMP6f, NAcLS dLight1.3b, and NAcLS GRABDA2H.</p>
 <p><img alt="png" src="../../img/transients_sensorcomparison.png" />
-<strong>Figure 7:</strong> Transient detection and quantification examples for <strong>A)</strong> GCaMP6f, <strong>B)</strong> dLight1.3b, and <strong>C)</strong> GRABDA2H. Transients were detected with a threshold of 3SD and an 800ms window minimum pre-peak baseline. Bar plots of group means by sensor for <strong>D)</strong> average whole session peak frequency, <strong>E)</strong> mean peak amplitude, <strong>F)</strong> total peak rise time from pre-peak baseline to peak, G) rise time from half height to peak, H) fall time from peak to half height, and <strong>I)</strong> half height AUC. Overall, individual sensor results align well with published kinetics.</p></div>
+<strong>Figure 7:</strong> Transient detection and quantification examples for <strong>A)</strong> GCaMP6f, <strong>B)</strong> dLight1.3b, and <strong>C)</strong> GRABDA2H. Transients were detected with a threshold of 3SD and an 800ms window minimum pre-peak baseline. Bar plots of group means by sensor for <strong>D)</strong> average whole session peak frequency, <strong>E)</strong> mean peak amplitude, <strong>F)</strong> total peak rise time from pre-peak baseline to peak, <strong>G)</strong> rise time from half height to peak, <strong>H)</strong> fall time from peak to half height, and <strong>I)</strong> half height AUC. Overall, individual sensor results align well with published kinetics.</p></div>
             </div>
         </div>
 

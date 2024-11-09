@@ -148,11 +148,11 @@
             
             <li class="nav-item" data-bs-level="1"><a href="#peak-detection-and-quantification-functions" class="nav-link">Peak Detection and Quantification Functions</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#findpeaks" class="nav-link">findpeaks</a>
+            <li class="nav-item" data-bs-level="2"><a href="#findsessiontransients" class="nav-link">findSessionTransients</a>
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#peakarea" class="nav-link">peakarea</a>
+            <li class="nav-item" data-bs-level="2"><a href="#binsessiontransients" class="nav-link">binSessionTransients</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -209,13 +209,13 @@
 <p>Combines subject key and file key into a data structure, and appends the provided computeruserpath to the paths in the file key.</p>
 <p><strong>INPUTS:</strong></p>
 <ul>
-<li>COMPUTERUSERPATH: A variable containing the unique portion of the file explorer path for the users specific computer. For example, 'C:\Users\rmdon\'. Make sure the computeruserpath ends in a forward slash.</li>
-<li>SUBJECTKEYNAME: A variable containing a string with the name of the subject key csv file for the experiment (see <em>"3. Data Analysis Pipeline"</em> for more details). To omit a subject key and only load in the file key, set subjectkeyname = "".</li>
-<li>FILEKEYNAME: A variable containing a string with the name of the file key csv file for the experiment (see <em>"3. Data Analysis Pipeline"</em> for more details).</li>
+<li><strong>COMPUTERUSERPATH:</strong> A variable containing the unique portion of the file explorer path for the users specific computer. For example, 'C:\Users\rmdon\'. Make sure the computeruserpath ends in a forward slash.</li>
+<li><strong>SUBJECTKEYNAME:</strong> A variable containing a string with the name of the subject key csv file for the experiment (see <em>"3. Data Analysis Pipeline"</em> for more details). To omit a subject key and only load in the file key, set subjectkeyname = "".</li>
+<li><strong>FILEKEYNAME:</strong> A variable containing a string with the name of the file key csv file for the experiment (see <em>"3. Data Analysis Pipeline"</em> for more details).</li>
 </ul>
 <p><strong>OUTPUTS:</strong></p>
 <ul>
-<li>EXPERIMENTKEY: A data structure called "experimentkey" that includes the joined file key and subject key with the computer user path appended to raw and extracted folder paths.</li>
+<li><strong>EXPERIMENTKEY:</strong> A data structure called "experimentkey" that includes the joined file key and subject key with the computer user path appended to raw and extracted folder paths.</li>
 </ul>
 <p><strong>EXAMPLE:</strong></p>
 <pre><code>computeruserpath =  'C:\Users\MYNAME\'; % Computer specific portion of file navigation paths
@@ -236,15 +236,15 @@ filekeyname = 'File Key.csv'; % Name of csv file containing session information,
 <p>This function is used to extract TDT data from saved blocks recorded via the software <em>Synapse</em>. For each block, extractTDTdata calls the function "TDTbin2mat" (TDT, 2019) and inputs the RawFolderPath to extract fiber photometry data recorded with Synapse. Extracted blocks are parsed it into a single data structure containing all fields, streams, and epocs. The function will identify the signal channel by matching the names in the input SIGSTREAMNAMES and the control channel by matching the names in the input BAQSTREAMNAMES. The name inputs can include a list of stream names if channel naming conventions vary by rig. Each block is saved as a separate data structure in a '.mat' file at the location specified by the inputs in extractedfolderpaths. </p>
 <p><strong>INPUTS:</strong></p>
 <ul>
-<li>RAWFOLDERPATHS: a string array containing the paths to the folder location of the raw data blocks to be extracted. The string array should contain one column with each full path in a separate row.</li>
-<li>EXTRACTEDFOLDERPATHS: a string array containing the paths to the folder location in which to save the extracted MatLab structs for each block to be extracted. The string array should contain one column with each full path in a separate row.  </li>
-<li>SIGSTREAMNAMES: A cell array containing strings with the names of the streams to be treated as signal. Note that only one stream per file can be treated as signal. If different files have different stream names, include all stream names in the cell array.</li>
-<li>BAQSTREAMNAMES: A cell array containing strings with the names of the streams to be treated as background. Note that only one stream per file can be treated as background. If different files have different stream names, include all stream names in the cell array.</li>
+<li><strong>RAWFOLDERPATHS:</strong> a string array containing the paths to the folder location of the raw data blocks to be extracted. The string array should contain one column with each full path in a separate row.</li>
+<li><strong>EXTRACTEDFOLDERPATHS:</strong> a string array containing the paths to the folder location in which to save the extracted MatLab structs for each block to be extracted. The string array should contain one column with each full path in a separate row.  </li>
+<li><strong>SIGSTREAMNAMES:</strong> A cell array containing strings with the names of the streams to be treated as signal. Note that only one stream per file can be treated as signal. If different files have different stream names, include all stream names in the cell array.</li>
+<li><strong>BAQSTREAMNAMES:</strong> A cell array containing strings with the names of the streams to be treated as background. Note that only one stream per file can be treated as background. If different files have different stream names, include all stream names in the cell array.</li>
 </ul>
 <p><strong>OPTIONAL INPUTS:</strong></p>
 <ul>
-<li>CLIP: the number of seconds to remove on either end of the data streams. If not specified, defaults to 5 seconds.</li>
-<li>SKIPEXISTING: A binary variable containing a 0 if pre-existing extracted blocks should be re-extracted or a 1 if pre-existing extracted blocks should be skipped. This allows the user to toggle whether or not to extract every block, or only blocks that have not previously been extracted. If not specified, defaults to 1 (skip previously extracted blocks).</li>
+<li><strong>CLIP:</strong> the number of seconds to remove on either end of the data streams. If not specified, defaults to 5 seconds.</li>
+<li><strong>SKIPEXISTING:</strong> A binary variable containing a 0 if pre-existing extracted blocks should be re-extracted or a 1 if pre-existing extracted blocks should be skipped. This allows the user to toggle whether or not to extract every block, or only blocks that have not previously been extracted. If not specified, defaults to 1 (skip previously extracted blocks).</li>
 </ul>
 <p><strong>OUTPUTS:</strong></p>
 <p>Saved .mat data structures for each block in the location specified by extractedfolderpaths.</p>
@@ -270,11 +270,11 @@ extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames
 <p>For use with previously extracted data collect with TDT equipment and software Synapse. loadTDTData loads previously extracted .mat data blocks into a data structure for further analysis. Each block is one row. The input experiment key must include at a minimum the extracted folder path location of the block. Any additional information about the subject and session in the experiment key will be matched to the extracted data.</p>
 <p><strong>INPUTS:</strong></p>
 <ul>
-<li>EXPERIMENTKEY: A prepared data structure with at minimum the ExtractedFolderPath to locate the individual block structures to be loaded.</li>
+<li><strong>EXPERIMENTKEY:</strong> A prepared data structure with at minimum the ExtractedFolderPath containing the full path to the individual session data structures to be loaded. The EXPERIMENTKEY can be prepared with the LOADKEYS function.</li>
 </ul>
 <p><strong>OUTPUTS:</strong></p>
 <ul>
-<li>DATA: the input data structure with each individual extracted block added by row.</li>
+<li><strong>DATA:</strong> the input data structure with each individual extracted block added by row.</li>
 </ul>
 <p><strong>EXAMPLE:</strong></p>
 <pre><code>[rawdata] = loadKeydata(experimentkey); % Load data based on the experiment key into the structure 'rawdata'
@@ -286,18 +286,18 @@ extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames
 <p>Used to trim samples at the very start and end of recordings that are not to be included in analysis (such as the the first two minutes of the session, or the first samples before a hardware control program is initiated). Trims all specified data streams from the index in trimstart to the index in trimend, and adjusts epocs by the amount trimmed by trimstart. Users must pre-prepare the trim start and end indexes to specify as inputs for the function.</p>
 <p><strong>INPUTS:</strong></p>
 <ul>
-<li>DATA: A data frame containing at least the specified input fields.</li>
-<li>TRIMSTART: The location to start trimming at.</li>
-<li>TRIMEND: The location to end trimming at.</li>
-<li>WHICHSTREAMS: A cell array containing the names of all the streams to be trimmed.</li>
+<li><strong>DATA:</strong> A data frame containing at least the specified input fields.</li>
+<li><strong>TRIMSTART:</strong> The location to start trimming at.</li>
+<li><strong>TRIMEND:</strong> The location to end trimming at.</li>
+<li><strong>WHICHSTREAMS:</strong> A cell array containing the names of all the streams to be trimmed.</li>
 </ul>
 <p><strong>OPTIONAL INPUTS:</strong></p>
 <ul>
-<li>WHICHEPOCS: A cell array containing the names of all the epocs to be adjusted due to trimming - subtract the (start loc - 1) from the epoc.</li>
+<li><strong>WHICHEPOCS:</strong> A cell array containing the names of all the epocs to be adjusted due to trimming - subtract the (start loc - 1) from the epoc.</li>
 </ul>
 <p><strong>OUTPUTS:</strong></p>
 <ul>
-<li>DATA: The data structure with the specified data stream containing the trimmed data.</li>
+<li><strong>DATA:</strong> The data structure with the specified data stream containing the trimmed data.</li>
 </ul>
 <p><strong>EXAMPLE:</strong></p>
 <pre><code>trimstart = 'sessionstart'; % name of field with session start index
@@ -312,50 +312,50 @@ whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative posit
 <p>Used to subtract the background photometry stream (eg, 405nm) from the signal stream (eg, 465nm), convert the subtracted signal to delta F/f, and apply a filter to denoise the output. Users must input the data structure with the raw data, the names of the fields containing the signal and background streams, and the sampling rate of the collected data.</p>
 <p><strong>INPUTS:</strong></p>
 <ul>
-<li>DATA: A data frame containing at least the specified input fields.</li>
-<li>SIGFIELD: The name (string) of the field containing the signal stream.</li>
-<li>BAQFIELD: The name (string) of the field containing the background stream.</li>
-<li>FS: The sampling rate of the raw data collection in hz.</li>
+<li><strong>DATA:</strong> A data frame containing at least the specified input fields.</li>
+<li><strong>SIGFIELD:</strong> The name (string) of the field containing the signal stream.</li>
+<li><strong>BAQFIELD:</strong> The name (string) of the field containing the background stream.</li>
+<li><strong>WHICHFS:</strong> The name (string) of the field containing the sampling rate of the raw data collection in Hz.</li>
 </ul>
 <p><strong>OPTIONAL INPUTS:</strong></p>
 <ul>
-<li>BAQSCALINGTYPE: A string to specify the type of background scaling to apply. Options are 'frequency', 'sigmean', 'OLS', 'detrendOLS', 'smoothedOLS', or 'IRLS'. Default: 'frequency'.<ul>
-<li>'frequency': Scales the background to the signal channel based on ratio of specified frequency bands in the FFT (frequency domain) of the channels.</li>
-<li>'sigmean': Scales the background to the signal channel based on the ratio of the mean of the signal to the mean of the background (time domain).</li>
-<li>'OLS': Uses ordinary least-squares regression to generate scaled background.</li>
-<li>'detrendOLS': Removes the linear trend from signal and background streams prior to using ordinary least-squares regression to generate scaled background.</li>
-<li>'smoothedOLS': Applies lowess smoothing to the signal and background streams prior to using ordinary least-squares regression to generate scaled background.</li>
-<li>'IRLS': Uses iteratively reweighted least squares regression to generate scaled background.</li>
+<li><strong>BAQSCALINGTYPE:</strong> A string to specify the type of background scaling to apply. Options are 'frequency', 'sigmean', 'OLS', 'detrendOLS', 'smoothedOLS', or 'IRLS'. Default: 'frequency'.<ul>
+<li><em>'frequency':</em> Scales the background to the signal channel based on ratio of specified frequency bands in the FFT (frequency domain) of the channels.</li>
+<li><em>'sigmean':</em> Scales the background to the signal channel based on the ratio of the mean of the signal to the mean of the background (time domain).</li>
+<li><em>'OLS':</em> Uses ordinary least-squares regression to generate scaled background.</li>
+<li><em>'detrendOLS':</em> Removes the linear trend from signal and background streams prior to using ordinary least-squares regression to generate scaled background.</li>
+<li><em>'smoothedOLS':</em> Applies lowess smoothing to the signal and background streams prior to using ordinary least-squares regression to generate scaled background.</li>
+<li><em>'IRLS':</em> Uses iteratively reweighted least squares regression to generate scaled background.</li>
 </ul>
 </li>
-<li>BAQSCALINGFREQ: Only used with 'frequency' scaling. Numeric frequency (Hz) threshold for scaling the background to signal channel. Frequencies above this value will be included in the scaling factor determination. Default: 10 Hz.</li>
-<li>BAQSCALINGPERC: Only used with 'frequency' and 'sigmean' scaling. Adjusts the background scaling factor to be a percednt of the derived scaling factor value. Default: 1 (100%).</li>
-<li>SUBTRACTIONOUTPUT: Output type for the subtracted data. Default: 'dff'<ul>
-<li>'dff': Outputs subtracted signal as delta F/F.</li>
-<li>'df': Outputs subtracted signal as delta F.</li>
+<li><strong>BAQSCALINGFREQ:</strong> Only used with 'frequency' scaling. Numeric frequency (Hz) threshold for scaling the background to signal channel. Frequencies above this value will be included in the scaling factor determination. Default: 10 Hz.</li>
+<li><strong>BAQSCALINGPERC:</strong> Only used with 'frequency' and 'sigmean' scaling. Adjusts the background scaling factor to be a percent of the derived scaling factor value. Default: 1 (100%).</li>
+<li><strong>SUBTRACTIONOUTPUT:</strong> Output type for the subtracted data. Default: 'dff'<ul>
+<li><em>'dff':</em> Outputs subtracted signal as delta F/F.</li>
+<li><em>'df':</em> Outputs subtracted signal as delta F.</li>
 </ul>
 </li>
-<li>FILTERTYPE: A string to specify the type of filter to apply after subtraction. Default: 'bandpass'.<ul>
-<li>'nofilter': No filter will be applied.</li>
-<li>'bandpass': A bandpass filter will be applied.</li>
-<li>'highpass': Only the high pass filter will be applied.</li>
-<li>'lowpass': Only the low pass filter will be applied.</li>
+<li><strong>FILTERTYPE:</strong> A string to specify the type of filter to apply after subtraction. Default: 'bandpass'.<ul>
+<li><em>'nofilter':</em> No filter will be applied.</li>
+<li><em>'bandpass':</em> A bandpass filter will be applied.</li>
+<li><em>'highpass':</em> Only the high pass filter will be applied.</li>
+<li><em>'lowpass':</em> Only the low pass filter will be applied.</li>
 </ul>
 </li>
-<li>PADDING: Defaults to 1, which applies padding. Padding takes the first 10% of the stream, flips it, and appends it to the data before filtering. Appended data is trimmed after filtration. Set to 0 to turn off padding of data streams. Default: 1.</li>
-<li>PADDINGPERC: Percent of data length to use to determine the number of samples to be appended to the beginning and end of data in padding. Set to minimum 10%. Default: 0.1 (10%).</li>
-<li>FILTERORDER:  The order to be used for the chosen butterworth filter. Default: 3.</li>
-<li>HIGHPASSCUTOFF:  The cutoff frequency (hz) to be used for the high pass butterworth filter. Default: 2.2860.</li>
-<li>LOWPASSCUTOFF: The cutoff to be used for the low pass butterworth filter. Default: 0.0051.<ul>
+<li><strong>PADDING:</strong> Defaults to 1, which applies padding. Padding takes the first 10% of the stream, flips it, and appends it to the data before filtering. Appended data is trimmed after filtration. Set to 0 to turn off padding of data streams. Default: 1.</li>
+<li><strong>PADDINGPERC:</strong> Percent of data length to use to determine the number of samples to be appended to the beginning and end of data in padding. Set to minimum 10%. Default: 0.1 (10%).</li>
+<li><strong>FILTERORDER:</strong>  The order to be used for the chosen butterworth filter. Default: 3.</li>
+<li><strong>HIGHPASSCUTOFF:</strong>  The cutoff frequency (hz) to be used for the high pass butterworth filter. Default: 2.2860.</li>
+<li><strong>LOWPASSCUTOFF:</strong> The cutoff to be used for the low pass butterworth filter. Default: 0.0051.<ul>
 <li>NOTE: 'bandpass' applies both the high and low cutoffs to design the filter.</li>
 </ul>
 </li>
-<li>SUPRESSDISP: If set to anything other than 0, this will suppress the command window displays. Default: 0.</li>
+<li><strong>SUPRESSDISP:</strong> If set to anything other than 0, this will suppress the command window displays. Default: 0.</li>
 </ul>
 <p><strong>OUTPUTS:</strong></p>
 <ul>
-<li>DATA: The original data structure with added fields with the scaled background ('baq_scaled'), subtracted signal ('sigsub'), and subtracted and filtered signal ('sigfilt'). All inputs and defaults will be added to the data structure under the field 'inputs'.<ul>
-<li>NOTE: If using BAQSCALINGMETHOD 'detrendOLS', additional fields containing the detrended signal and background ('sig_detrend' and 'baq_detrend') will be added to the data frame. If using BAQSCALINGMETHOD 'smoothedOLS', additional fields containing the smoothed signal and background ('sig_smoothed' and 'baq_smoothed') will be added to the data frame.</li>
+<li><strong>DATA:</strong> The original data structure with added fields with the scaled background ('baq_scaled'), subtracted signal ('sigsub'), and subtracted and filtered signal ('sigfilt'). All inputs and defaults will be added to the data structure under the field 'inputs'.<ul>
+<li><strong>NOTE:</strong> If using BAQSCALINGMETHOD <em>'detrendOLS'</em>, additional fields containing the detrended signal and background ('sig_detrend' and 'baq_detrend') will be added to the data frame. If using BAQSCALINGMETHOD <em>'smoothedOLS'</em>, additional fields containing the smoothed signal and background ('sig_smoothed' and 'baq_smoothed') will be added to the data frame.</li>
 </ul>
 </li>
 </ul>
@@ -375,8 +375,11 @@ data = subtractFPdata(data,sigfield,baqfield,fs,'baqscalingfreq',20,'filtertype,
 </code></pre>
 <h2 id="normalization">Normalization</h2>
 <h1 id="peak-detection-and-quantification-functions">Peak Detection and Quantification Functions</h1>
-<h2 id="findpeaks">findpeaks</h2>
-<h2 id="peakarea">peakarea</h2>
+<h2 id="findsessiontransients">findSessionTransients</h2>
+<h3 id="findsessiontransients_blmean">findSessionTransients_blmean</h3>
+<h3 id="findsessiontransients_blmin">findSessionTransients_blmin</h3>
+<h3 id="findsessiontransients_localmin">findSessionTransients_localmin</h3>
+<h2 id="binsessiontransients">binSessionTransients</h2>
 <h1 id="individual-trial-analyses-functions">Individual Trial Analyses Functions</h1>
 <h2 id="cuttrialdata">cutTrialData</h2>
 <h2 id="trialaverage">trialAverage</h2>

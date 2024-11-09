@@ -162,44 +162,6 @@
             </li>
               </ul>
             </li>
-            
-            <li class="nav-item" data-bs-level="1"><a href="#individual-trial-analyses-functions" class="nav-link">Individual Trial Analyses Functions</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#cuttrialdata" class="nav-link">cutTrialData</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#trialaverage" class="nav-link">trialAverage</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#trialnormalization" class="nav-link">trialnormalization</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-              </ul>
-            </li>
-            
-            <li class="nav-item" data-bs-level="1"><a href="#plotting-functions" class="nav-link">Plotting Functions</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#whole-session-plots" class="nav-link">Whole Session Plots</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#fft-plots" class="nav-link">FFT Plots</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#peak-plots" class="nav-link">Peak Plots</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#trial-plots" class="nav-link">Trial Plots</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-              </ul>
-            </li>
         </ul>
     </div>
 </div></div>
@@ -417,19 +379,67 @@ end
 </code></pre>
 <h1 id="peak-detection-and-quantification-functions">Peak Detection and Quantification Functions</h1>
 <h2 id="findsessiontransients">findSessionTransients</h2>
+<p>Main function to detect and quantify transient events in whole session data streams. Use of this main function will set default values for parameters not specific as optional inputs. Users must input the raw data structure containing the data stream, a field with threshold values for transient inclusion, and the sampling rate of the stream. Optional inputs can be specified to modify transient detection parameters, but defaults will be applied if not specified.</p>
+<p><strong>INPUTS:</strong></p>
+<ul>
+<li><strong>DATA:</strong> This is a structure that contains at least the data stream you want to analyze, a field with the threshold values, and a field with the sampling rate of the data stream.</li>
+<li>
+<p><strong>WHICHBLTYPE:</strong> A string with the type of pre-transient baseline to use for amplitude inclusion and quantification.</p>
+<ul>
+<li><em>'blmean':</em> Pre-transient baselines are set to the mean of the pre-transient window.</li>
+<li><em>'blmin':</em> Pre-transient baselines are set to the minimum value within the pre-transient window.</li>
+<li><em>'localmin':</em> Pre-transient baselines are set to the local minimum directly preceding the transient within the baseline window.</li>
+</ul>
+</li>
+<li>
+<p><strong>WHICHSTREAM:</strong> The name (string) of the field containing the prepared numeric threshold values for each stream. For example, 'threshold_3SD'. </p>
+</li>
+<li><strong>WHICHTHRESHOLD:</strong> A cell array containing the names of all the streams to be trimmed.</li>
+<li><strong>WHICHFS:</strong> The name (string) of the field containing the sampling rate of the raw data collection in Hz.</li>
+</ul>
+<p><strong>OPTIONAL INPUTS:</strong></p>
+<ul>
+<li><strong>PREMINSTARTMS:</strong> Number of millseconds pre-transient to use as the start of the baseline window. <em>Default: 800</em></li>
+<li><strong>PREMINENDMS:</strong> Number of millseconds pre-transient to use as the end of the baseline window. <em>Default: 100</em></li>
+<li><strong>POSTTRANSIENTMS:</strong> Number of millseconds post-transient to use for the post peak baseline and trimmed data output. <em>Default: 2000</em></li>
+<li><strong>QUANTIFICATIONHEIGHT:</strong> The height at which to characterize rise time, fall time, peak width, and AUC. Must be a number between 0 and 1. <em>Default: 0.5</em></li>
+<li><strong>OUTPUTTRANSIENTDATA:</strong> Set to 1 to output cut data streams for each transient event for further analysis or plotting. Set to 0 to skip. <em>Default: 1</em></li>
+</ul>
+<p><strong>OUTPUTS:</strong></p>
+<ul>
+<li><strong>DATA:</strong> The original data structure with sessiontransients_WHICHBLTYPE_THRESHOLDLABEL added in. For more details on individual variables, see the PASTa user guide page <em>Transient Detection</em>. The output contains four nested tables: <ul>
+<li><em>INPUTS:</em> Includes all required and optional inputs. If optional inputs are not specified, defaults will be applied.</li>
+<li><em>TRANSIENTQUANTIFICATION:</em> Includes the quantified variables for each transient, including amplitude, rise time, fall time, width, and AUC. </li>
+<li><em>TRANSIENTSTREAMLOCS:</em> Pre-transient baseline, transient peak, rise, and fall locations for each transient to match the cut transient stream data.</li>
+<li>_TRANSIENTSTREAMDATA: Cut data stream from baseline start to the end of the post-transient period for each transient event.</li>
+</ul>
+</li>
+</ul>
+<p><strong>NOTES:</strong></p>
+<ul>
+<li>Threshold values should be calculated before using the findSessionTransients functions. Typically thresholds are set to 2-3 SDs. If the input data stream is Z scored, this can be the actual SD threshold number. If the input data stream is not Z scored, find the corresponding value to 2-3 SDs for each subject.</li>
+<li>For transient data outputs, each transient is in a separate row. </li>
+<li>If OUTPUTTRANSIENTDATA is set to anything other than 1, the TRANSIENTSTREAMLOCS and TRANSIENTSTREAMDATA tables will be skipped and not included in the output.</li>
+</ul>
+<p><strong>EXAMPLE:</strong></p>
+<pre><code>% Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
+for eachfile = 1:length(data)
+    data(eachfile).threshold3SD = 3;
+end
+
+% Find session transients based on pre-peak baseline window minimum
+[data] = findSessionTransients(data,'blmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+
+% Find session transients based on pre-peak baseline window mean
+[data] = findSessionTransients(data,'blmean','sigfiltz_normsession_trimmed','threshold3SD','fs','preminstartms',600);
+
+% Find session transients based on pre-peak local minimum (last minumum before the peak in the baseline window)
+[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs','quantificationheight',0.25);
+</code></pre>
 <h3 id="findsessiontransients_blmean">findSessionTransients_blmean</h3>
 <h3 id="findsessiontransients_blmin">findSessionTransients_blmin</h3>
 <h3 id="findsessiontransients_localmin">findSessionTransients_localmin</h3>
-<h2 id="binsessiontransients">binSessionTransients</h2>
-<h1 id="individual-trial-analyses-functions">Individual Trial Analyses Functions</h1>
-<h2 id="cuttrialdata">cutTrialData</h2>
-<h2 id="trialaverage">trialAverage</h2>
-<h2 id="trialnormalization">trialnormalization</h2>
-<h1 id="plotting-functions">Plotting Functions</h1>
-<h2 id="whole-session-plots">Whole Session Plots</h2>
-<h2 id="fft-plots">FFT Plots</h2>
-<h2 id="peak-plots">Peak Plots</h2>
-<h2 id="trial-plots">Trial Plots</h2></div>
+<h2 id="binsessiontransients">binSessionTransients</h2></div>
             </div>
         </div>
 

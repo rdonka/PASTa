@@ -139,7 +139,11 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#normalization" class="nav-link">Normalization</a>
+            <li class="nav-item" data-bs-level="2"><a href="#normsession" class="nav-link">normSession</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#normbaseline" class="nav-link">normBaseline</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -373,7 +377,44 @@ fs = 1017;
 
 data = subtractFPdata(data,sigfield,baqfield,fs,'baqscalingfreq',20,'filtertype,'highpass');
 </code></pre>
-<h2 id="normalization">Normalization</h2>
+<h2 id="normsession">normSession</h2>
+<p>Used to normalize the subtracted and filtered signal stream to Z score based on the whole session mean and standard deviation.</p>
+<p><strong>INPUTS:</strong></p>
+<ul>
+<li><strong>DATA:</strong> A data frame containing at least the stream specified to be normalized.</li>
+<li><strong>WHICHSTREAM:</strong> A string with the name of the field containing the stream to be normalized.</li>
+</ul>
+<p><strong>OUTPUTS:</strong></p>
+<ul>
+<li><strong>DATA:</strong> The data structure with the field 'data.WHICHSTREAMz_normsession' containing the whole session normalized signal added.</li>
+</ul>
+<p><strong>EXAMPLE:</strong></p>
+<pre><code>[data] = normSession(data,'sigfilt'); % Outputs whole session z score
+
+</code></pre>
+<h2 id="normbaseline">normBaseline</h2>
+<p>Used to normalize the subtracted and filtered signal stream to Z score based on the a session baseline mean and standard deviation.</p>
+<p><strong>INPUTS:</strong></p>
+<ul>
+<li><strong>DATA:</strong> A data frame containing at least the stream specified to be normalized.</li>
+<li><strong>WHICHSTREAM:</strong> A string with the name of the field containing the stream to be normalized.</li>
+<li><strong>WHICHBLSTART:</strong> A string with the name of the field containing the index of the start of the baseline period.</li>
+<li><strong>WHICHBLEND:</strong> A string with the name of the field containing the index of the end of the baseline period.</li>
+</ul>
+<p><strong>OUTPUTS:</strong></p>
+<ul>
+<li><strong>DATA:</strong> The data structure with the field 'data.WHICHSTREAMz_normbaseline' containing the full stream normalized to baseline added.</li>
+</ul>
+<p><strong>EXAMPLE:</strong></p>
+<pre><code>% Prepare baseline start and end indices
+for eachfile = 1:length(data) % prepare indexes for baseline period start and end
+    data(eachfile).BLstart = 1;
+    data(eachfile).BLend =  data(eachfile).injt(1);
+end
+
+% Normalize filtered signal to session baseline mean and SD
+[data] = normBaseline(data,'sigfilt','BLstart','BLend');
+</code></pre>
 <h1 id="peak-detection-and-quantification-functions">Peak Detection and Quantification Functions</h1>
 <h2 id="findsessiontransients">findSessionTransients</h2>
 <h3 id="findsessiontransients_blmean">findSessionTransients_blmean</h3>

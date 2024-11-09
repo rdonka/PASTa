@@ -19,6 +19,6 @@ disp(append('NORM SESSION: Normalizing ',whichstream,' to whole session mean and
 
     for eachfile = 1:length(data)
         disp(append('   Normalizing: File ',num2str(eachfile)))
-        data(eachfile).sigz_normsession = zscore(data(eachfile).(whichstream)); % Z score whole session
+        data(eachfile).(append(whichstream, 'z_normsession')) = zscore(data(eachfile).(whichstream)); % Z score whole session
     end
 end

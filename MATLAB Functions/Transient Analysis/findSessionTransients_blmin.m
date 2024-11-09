@@ -1,7 +1,12 @@
-function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,whichfs,thresholdlabel,varargin)
+function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,quantificationheight,outputtransientdata)
 % FINDSESSIONTRANSIENTS_BLMIN   Finds transients for the whole session. 
 %                               Pre-transient baselines are set to the min
 %                               value within the pre-transient window.
+%
+%                               NOTE: This sub-function is called by the
+%                               main function FINDSESSIONTRANSIENTS. If
+%                               called outside the main function, users
+%                               must specify all input values manually.
 %
 % INPUTS:
 %       DATA:           This is a structure that contains at least the data
@@ -9,19 +14,25 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
 %
 %       WHICHSTREAM:    A variable containing a string with the name of the 
 %                       field containing the stream to be analyzed for 
-%                       transients.
+%                       transients. For example, 'sigfiltz_normsession'.
 %
+%       WHICHTHRESHOLD: A variable containing a string with the name of the
+%                       field containing the prepared numeric threshold
+%                       values for each stream. For example, 'threshold_3SD'.
+%                       NOTE: Threshold values should be calculated
+%                       before using the findSessionTransients functions.
+%                       Typically thresholds are set to 2-3 SDs. If the
+%                       input data stream is Z scored, this can be the
+%                       actual SD threshold number. If the input data
+%                       stream is not Z scored, find the corresponding
+%                       value to 2-3 SDs for each subject.
+%                     
 %       WHICHFS:        The name of the field containing the sampling rate
 %                       of the streams (fs).
 %
-%       THRESHOLDLABEL: A variable containing a string with the name of the 
-%                       field containing the threshold criterion for the 
-%                       stream to be analyzed for transients.
-%
-% OPTIONAL INPUTS:
 %       PREMINSTARTMS:  Number of millseconds pre-transient to use as the
 %                       start of the baseline window.
-%                       Default: 8000
+%                       Default: 1000
 %
 %       PREMINENDMS:    Number of millseconds pre-transient to use as the
 %                       end of the baseline window.
@@ -29,11 +40,11 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
 %
 %       POSTTRANSIENTMS: Number of millseconds post-transient to use for
 %                       the post peak baseline and trimmed data output.
-%                       Default: 1600
+%                       Default: 2000
 %
 %       QUANTIFICATIONHEIGHT: The height at which to characterize rise time,
-%                       fall time, and AUC. Must be a number between 0 and 1.
-%                       Default: 0.5
+%                       fall time, peak width, and AUC. Must be a number 
+%                       between 0 and 1. Default: 0.5
 %  
 %       OUTPUTTRANSIENTDATA: Set to 1 to output cut data streams for each
 %                       transient event. Set to 0 to skip.
@@ -69,62 +80,26 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
-disp('SESSION TRANSIENTS: Peak baseline determined by min value in the specified baseline window.')
-
 %% Prepare Settings
 % Import required and optional inputs into a structure
     inputs = struct(...
-        'whichstream',[],...
-        'whichthreshold',[],...
-        'whichfs',[],...
-        'thresholdlabel',[],...
-        'preminstartms', [],...
-        'preminendms',[],...
-        'posttransientms',[],...
-        'quantificationheight',[],...
-        'outputtransientdata',[]);
-    inputs = parseArgsLite(varargin,inputs);
-    
-    % Prepare defaults and check for optional inputs
-    inputs.whichstream = whichstream;
-    inputs.whichthreshold = whichthreshold;
-    inputs.whichfs = whichfs;
-    inputs.thresholdlabel = thresholdlabel;
+        'whichstream',whichstream,...
+        'whichthreshold',whichthreshold,...
+        'whichfs',whichfs,...
+        'preminstartms', preminstartms,...
+        'preminendms',preminendms,...
+        'posttransientms',posttransientms,...
+        'quantificationheight',quantificationheight,...
+        'outputtransientdata',outputtransientdata);
 
-    if isempty(inputs.preminstartms) % Pre-transient baseline ms start
-        preminstartms = 1000;
-        inputs.preminstartms = preminstartms;
-    else
-        preminstartms = inputs.preminstartms;
-    end
-    if isempty(inputs.preminendms) % Pre-transient baseline ms end
-        preminendms = 100;
-        inputs.preminendms = preminendms;
-    else
-        preminendms = inputs.preminendms;
-    end
-    if isempty(inputs.posttransientms) % Post transient ms for fall/AUC and output data
-        posttransientms = 2000;
-        inputs.posttransientms = posttransientms;
-    else
-        posttransientms = inputs.posttransientms;
-    end
-    if isempty(inputs.quantificationheight) % Height for rise/fall/AUC; defaults to 0.5 (half height)
-        quantificationheight = 0.5; 
-        inputs.quantificationheight = quantificationheight;
-    else
-        quantificationheight = inputs.quantificationheight;
-    end
-    if isempty(inputs.outputtransientdata)
-        outputtransientdata = 1; % Height for rise/fall/AUC defaults to 0.5 (half height)
-        inputs.outputtransientdata = outputtransientdata;
-    else
-        outputtransientdata = inputs.outputtransientdata;
-    end
+    % Display settings
+    disp("FIND SESSION TRANSIENTS: Peak baseline determined by minimum value in the specified baseline window. WHICHBLTYPE set to 'blmin'")
+    disp("     SUBFUNCTION: findSessionTransients_blmin")
+    disp(append("     Transient data will be added to data structure as 'sessiontransients_blmin_",whichthreshold,"'." ))
 
     disp('INPUTS:') % Display all input values
     disp(inputs)
-    
+
     %% Find transients
     for eachfile = 1:length(data)
         disp(['Finding Transients: File ',num2str(eachfile)]) % Display which file is being processed
@@ -260,13 +235,13 @@ disp('SESSION TRANSIENTS: Peak baseline determined by min value in the specified
             end               
         end
         % Add inputs and transient quantification to the data structure
-        data(eachfile).(append('sessiontransients_blmin_',thresholdlabel)).inputs = inputs;
-        data(eachfile).(append('sessiontransients_blmin_',thresholdlabel)).transientquantification = transientquantification(1:transientcount,:);
+        data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).inputs = inputs;
+        data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
         
         % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
         if outputtransientdata == 1
-            data(eachfile).(append('sessiontransients_blmin_',thresholdlabel)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
-            data(eachfile).(append('sessiontransients_blmin_',thresholdlabel)).transientstreamdata = transientstreamdata(1:transientcount,:);
+            data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
+            data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientstreamdata = transientstreamdata(1:transientcount,:);
         end
     end
 end

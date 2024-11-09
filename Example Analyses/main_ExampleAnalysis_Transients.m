@@ -86,10 +86,6 @@ fsfield = 'fs';
 [data] = subtractFPdata(data,sigfield,baqfield,fsfield,'baqscalingtype','OLS','filtertype','highpass'); % adds sigsub and sigfilt to data frame
 
 
-
-
-
-
 % Normalize data
 % To normalize to session mean:
 [data] = normSession(data,'sigfilt'); % Outputs whole session z score
@@ -104,7 +100,7 @@ end
 %% Remove injection time window from normalized signal
 % This loop removes samples between the start and end of the injection. For
 % trimmed data, injt(1) will be used as the injection time point.
-normstreams = {'sig_normsession_df', 'sig_normsession_z','sig_normbl_df','sig_normbl_z'};
+normstreams = {'sigfilt', 'sigfiltz_normsession','sigfiltz_normbaseline'};
 
 for eachfile = 1:length(data)
     for eachstream = 1:length(normstreams)
@@ -113,17 +109,26 @@ for eachfile = 1:length(data)
         allindices = (1:length(data(eachfile).(currstream))); % Temporary list of all indices in the stream
         includeindices = (allindices < data(eachfile).injt(1) | allindices > data(eachfile).injt(2)); % Find indices before injection start and after injection end
         data(eachfile).(append(currstream,'_trimmed')) = data(eachfile).(currstream)(includeindices); % Add new fields ending in '_trimmed' to data structure
-    end
+    end 
 end
 
 %% Find session transients
-% Find all transient events within the session using default parameters
+% Prepare thresholds - since Z scored streams will be analyzed, input 
+% threshold as the desired SD.
 for eachfile = 1:length(data)
-    data(eachfile).transthreshold = 3;
+    data(eachfile).threshold3SD = 3;
 end
-[data] = findSessionTransients(data,'sig_normbl_z_trimmed');
 
-[data] = findSessionTransients_DEV(data,'sig_normbl_z_trimmed','transthreshold','fs');
+% Find session transients based on pre-peak baseline window minimum
+[data] = findSessionTransients_blmin(data,'sigfiltz_normsession_trimmed','threshold3SD','fs');
+
+% Find session transients based on pre-peak baseline window mean
+[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+
+
+
+
+[data] = findSessionTransients_DEV(data,'sig_normbl_z_trimmed','fs','transthreshold');
 
 %% Bin session transients
 % Set up samples per bin

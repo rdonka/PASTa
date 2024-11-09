@@ -123,24 +123,32 @@
 <h1 id="transient-detection-and-quantification">Transient Detection and Quantification</h1>
 <p>Transient detection is a critical component of fiber photometry analyses, identifying relevant increases in sensor activation. Previous tools and packages have used a sliding window approach, where all values above an absolute threshold are counted as peaks. Here, we present a novel method of peak detection where each peak is compared to a local baseline and amplitude is calculated and compared to a threshold to determine inclusion. This allows for consistent parameters across the session and reliable detection of individual events despite signal absolute value fluctuation.</p>
 <h2 id="transient-event-detection">Transient Event Detection</h2>
-<p>Transients are detected as peaks with a greater amplitude than the specified threshold. To determine amplitude, first a pre-peak baseline must be identified.
-PASTa includes three options: window minimum (minimum value within user defined pre-peak window size, e.g. 800ms), window mean (mean of user defined pre-peak window), or local min (absolute local minimum preceding the peak). The amplitude threshold is set by the user, and recommended to be 3SDs. If data are normalized in Z scores, then the criterion is an increase of 3 from baseline. If not, the user inputs the actual value that corresponds to 3SDs in the data stream.</p>
+<p>Transients are detected as peaks with a greater amplitude than the specified threshold. To determine amplitude, first a pre-peak baseline must be identified.</p>
+<p>PASTa includes three options: window minimum (minimum value within user defined pre-peak window size, e.g. 800ms), window mean (mean of user defined pre-peak window), or local min (absolute local minimum preceding the peak). The amplitude threshold is set by the user, and recommended to be 3SDs. If data are normalized in Z scores, then the criterion is an increase of 3 from baseline. If not, the user inputs the actual value that corresponds to 3SDs in the data stream.</p>
 <h2 id="transient-event-quantification">Transient Event Quantification</h2>
 <p>Multiple features of transient events can be quantitatively analyzed and compared. Peak detection functions automatically calculate numerous variables for each transient to characterize aspects of both event rise and fall. PASTa includes flexible functions to group transients in the most experimentally relevant manner, such as by time window or experimental condition. </p>
 <ul>
 <li>
-<p><strong>Frequency</strong>: Characterized as peaks per minute. Frequency can be analyzed as whole session frequency, or peaks can be divided into time bins or experimental phases (ITI, during trial, etc).</p>
+<p><strong>Frequency:</strong> Characterized as peaks per minute. Frequency can be analyzed as whole session frequency, or peaks can be divided into time bins or experimental phases (ITI, during trial, etc).</p>
 </li>
 <li>
-<p><strong>Amplitude</strong>: The height of the event from the pre-peak baseline to the max peak. Note that all events will be at least the value of the set threshold (default 3SD).</p>
+<p><strong>Amplitude:</strong> The height of the event from the pre-peak baseline to the max peak. Note that all events will be at least the value of the set threshold (default 3SD).</p>
 </li>
 <li>
-<p><strong>Rise and Fall Time</strong>: The time difference between the pre-peak baseline and the max peak value. Rise and fall time can also be characterized from half height to peak, allowing analysis of separate rise and fall dynamic shifts.</p>
+<p><strong>Rise and Fall Time:</strong> Transient rise and fall are measured by default from half height to peak and output in samples and ms. This allows for analysis of separate rise and fall dynamic shifts. The quantification height to be measured from can be manually adjusted if desired.</p>
 </li>
 <li>
-<p><strong>AUC</strong>: Total area under the curve from half height to peak, calculated via the trapezoidal method. Prior to AUC calculation, each transient is linearly transformed so pre-peak baseline is equal to zero.</p>
+<p><strong>Width:</strong> Transient width is measured as the width from the pre-peak quantification height (defaults to half height) location to the post-peak quantification height location. This is equivalent to the rise plus the fall.</p>
 </li>
-</ul></div>
+<li>
+<p><strong>AUC:</strong> Total area under the curve from half height to peak, calculated via the trapezoidal method. Prior to AUC calculation, each transient is linearly transformed so pre-peak baseline is equal to zero. If the height to be measured from is adjusted for rise and fall time, it will also be adjusted for AUC.</p>
+</li>
+</ul>
+<p><img alt="png" src="../../img/transients_example.png" />
+<strong>Figure 6:</strong> Transient example with labeled detection parameters and output variables. </p>
+<h3 id="comparison-of-transient-events-with-vta-gcamp6f-nacls-dlight13b-and-nacls-grabda2h">Comparison of Transient Events with VTA GCaMP6f, NAcLS dLight1.3b, and NAcLS GRABDA2H</h3>
+<p><img alt="png" src="../../img/transients_sensorcomparison.png" />
+<strong>Figure 3:</strong> Transient detection and quantification examples for <strong>A)</strong> GCaMP6f, <strong>B)</strong> dLight1.3b, and <strong>C)</strong> GRABDA2H. Transients were detected with a threshold of 3SD and an 800ms window minimum pre-peak baseline. Bar plots of group means by sensor for <strong>D)</strong> average whole session peak frequency, <strong>E)</strong> mean peak amplitude, <strong>F)</strong> total peak rise time from pre-peak baseline to peak, G) rise time from half height to peak, H) fall time from peak to half height, and <strong>I)</strong> half height AUC. Overall, individual sensor results align well with published kinetics.</p></div>
             </div>
         </div>
 

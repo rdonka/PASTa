@@ -6,7 +6,7 @@
 %% Set up paths and analysis keys
 % Set up user path inputs
 computeruserpath =  'C:\Users\rmdon\'; % Computer user unique portion of file path
-analysisfolder = 'Box\PASTaExampleFiles\Analysis\'; % Folder to output analysis csv files to
+analysisfolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Analysis\'; % Folder to output analysis csv files to
 figurefolder = 'Box\PASTaExampleFiles\Figures\'; % Folder to output figures to
 
 % Create full paths with computeruserpath appended
@@ -118,41 +118,33 @@ for eachfile = 1:length(data)
     data(eachfile).threshold3SD = 3;
 end
 
+% Find session transients based on pre-peak baseline window mean
+[data] = findSessionTransients(data,'blmean','sigfiltz_normsession_trimmed','threshold3SD','fs');
+
 % Find session transients based on pre-peak baseline window minimum
 [data] = findSessionTransients(data,'blmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
 
-% Find session transients based on pre-peak baseline window mean
-[data] = findSessionTransients(data,'blmean','sigfiltz_normsession_trimmed','threshold3SD','fs','preminstartms',600);
-
 % Find session transients based on pre-peak local minimum (last minumum before the peak in the baseline window)
-[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs','quantificationheight',0.25);
+[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+
+% Bin session transients
+[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmean_threshold3SD');
+
+
+[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmin_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_localmin_threshold3SD');
+
+
+% Export transients with added fields for subject and treatment using the
+% EXPORTSESSIONTRANSIENTS function
+addvariables = {'Subject','TreatNum','InjType'};
+alltransients = exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
 
 
 
-%% Bin session transients
-% Set up samples per bin
-minsperbin = 5; % Length of each bin in minutes
-for eachfile = 1:length(data)
-    data(eachfile).binsamples = floor(data(eachfile).fs*60*minsperbin); % Bin length in samples using sampling rate fs
-end
 
-whichbinsamples = 'binsamples'; % Name of field containing the calculated number of samples per bin
-whichstream = 'sig_normbl_z_trimmed'; % Which stream was used for transient analysis
-whichtransients = 'sessiontransients'; % Name of field containing the output table of transients from findSessionTransients
-whichpklocs = 'pklocs'; % Name of field containing the transient peak locations in the output table from findSessionTransients
 
-[data] = binSessionTransients(data,whichbinsamples,whichstream,whichtransients,whichpklocs);
 
-% Export transients with added fields for subject and treatment
-alltransients = table; % Create table of all transients for all files
-% for eachfile = 1:length(data)
-%     eachtransients = data(eachfile).sessiontransients;
-%     eachtransients.Subject(1:size(eachtransients,1)) = {data(eachfile).Subject};
-%     eachtransients.TreatNum(1:size(eachtransients,1)) = data(eachfile).TreatNum;
-%     eachtransients.InjType(1:size(eachtransients,1)) = {data(eachfile).InjType};
-%     alltransients = vertcat(alltransients,eachtransients);
-% end
-writetable(alltransients,append(analysispath,'SalinevsMorphineInjection_TransientsbyBin.csv'));
 
 %% Plot session traces
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq,

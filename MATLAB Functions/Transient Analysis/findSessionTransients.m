@@ -11,22 +11,21 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 %                               
 % INPUTS:
 %       DATA:           This is a structure that contains at least the data
-%                       stream you want to analyze. For example, 
-%                       'sigfiltz_normsession'.
-%
+%                       stream you want to analyze, a field with the threshold 
+%                       values, and a field with the sampling rate of the data
+%                       stream.
 %
 %       WHICHBLTYPE:    A variable containing a string with the type of
 %                       pre-transient baseline to use for amplitude
 %                       inclusion and quantification.
 %                       OPTIONS:
-%                           'blmin': Pre-transient baselines are set to the
-%                               minimum value within the pre-transient window.
 %                           'blmean': Pre-transient baselines are set to the
 %                               mean of the pre-transient window.
+%                           'blmin': Pre-transient baselines are set to the
+%                               minimum value within the pre-transient window.
 %                           'localmin': Pre-transient baselines are set to
 %                               the local minimum directly preceding the
 %                               transient within the baseline window.
-%                       Default: 'blmin'
 %
 %       WHICHSTREAM:    A variable containing a string with the name of the 
 %                       field containing the stream to be analyzed for 

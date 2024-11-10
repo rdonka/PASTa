@@ -1,6 +1,8 @@
-function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,whichtransientstable,whichmaxlocs,varargin)
+function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,varargin)
 % BINSESSIONTRANSIENTS      Adds the variable 'Bin' to the transient
-%                           quantification table
+%                           quantification table and assigns each transient
+%                           a bin based on it's location within the
+%                           session.
 %
 % INPUTS:
 %       DATA:               Data structure; This is a structure that contains 
@@ -22,26 +24,37 @@ function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,
 %                           the table of transients that you want to identify 
 %                           bins for. For example, 'sessiontransients_blmin_3SD'.
 %
+% OPTIONAL INPUTS:
 %       WHICHTRANSIENTSTABLE: String; The name of the field within WHICHTRANSIENTS
 %                           that contains the quantification of individual 
-%                           transient events. For example, 'transientquantification'.
+%                           transient events. This input only needs to be
+%                           specified if not using the format output from
+%                           the FINDSESSIONTRANSIENTS functions.
+%                           Default: 'transientquantification'.
 %
 %       WHICHMAXLOCS:       String; The name of the field containing the
 %                           transient max locations (indexes) relative to
-%                           the whole session. For example, 'maxloc'.
+%                           the whole session. This input only needs to be
+%                           specified if not using the format output from
+%                           the FINDSESSIONTRANSIENTS functions.
+%                           Default: 'maxloc'
 %
-% OPTIONAL INPUTS:
 %       BINLENGTHMINS:      Numeric; Bin length in number of minutes.
 %                           Default: 5
+%
+%       NBINSOVERRIDE:      Numeric; Manual override to set the number of 
+%                           bins. If set to anything other than 0, 
+%                           users can override the stream-length based 
+%                           calculation of the number
+%                           of bins per session and set their own number.
+%                           Default: 0
 % OUTPUTS:
 %       DATA:               This is the original data structure with bins
-%                           added to the specified table of transients
+%                           added to the specified table of transients.
 %
 % Written by R M Donka, September 2024.
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
-
-disp('BIN TRANSIENTS: Add bin variable to transient quantification table.')
 
 %% Prepare Settings
 % Import required and optional inputs into a structure
@@ -51,15 +64,28 @@ disp('BIN TRANSIENTS: Add bin variable to transient quantification table.')
         'whichtransients',[],...
         'whichtransientstable', [],...
         'whichmaxlocs',[],...
-        'binlengthmins',[]);
+        'binlengthmins',[],...
+        'nbinsoverride',[]);
     inputs = parseArgsLite(varargin,inputs);
     
     % Prepare defaults and check for optional inputs
     inputs.whichstream = whichstream;
     inputs.whichfs = whichfs;
     inputs.whichtransients = whichtransients;
-    inputs.whichtransientstable = whichtransientstable;
-    inputs.whichmaxlocs = whichmaxlocs;
+
+    if isempty(inputs.whichtransientstable) % Field containing transient quantification
+        whichtransientstable = 'transientquantification';
+        inputs.whichtransientstable = whichtransientstable;
+    else
+        whichtransientstable = inputs.whichtransientstable;
+    end
+
+    if isempty(inputs.whichmaxlocs) % Field containing transient max location
+        whichmaxlocs = 'maxloc';
+        inputs.whichmaxlocs = whichmaxlocs;
+    else
+        whichmaxlocs = inputs.whichmaxlocs;
+    end
 
     if isempty(inputs.binlengthmins) % Bin length in minutes
         binlengthmins = 5;
@@ -68,18 +94,37 @@ disp('BIN TRANSIENTS: Add bin variable to transient quantification table.')
         binlengthmins = inputs.binlengthmins;
     end
 
+    if isempty(inputs.nbinsoverride) % Bin length in minutes
+        nbinsoverride = 0;
+        inputs.nbinsoverride = nbinsoverride;
+    else
+        nbinsoverride = inputs.nbinsoverride;
+    end
+
+    disp(append('BIN SESSION TRANSIENTS: Add bin variable to transient quantification table. Binning transients from ', whichtransients, ' into ', num2str(binlengthmins), ' minute bins.')) % Display bin length
+
     disp('INPUTS:') % Display all input values
     disp(inputs)
 
     %% Bin Transients
     for eachfile = 1:length(data)
-        disp(['Binning Transients: File ',num2str(eachfile)]) % Display which file is being processed
+        disp(['   Current File: ',num2str(eachfile)]) % Display which file is being processed
 
-           data(eachfile).binsamples = floor(data(eachfile).fs*60*minsperbin); % Bin length in samples using sampling rate fs
-    
-        binsamples = floor(data(eachfile).(whichfs)*60*binlengthmins); % Pull out n samples per bin
-        nbins = ceil(length(data(eachfile).(whichstream))/binsamples); % Determine number of bins
-        disp(['     Total number of bins: ',num2str(nbins)]) % Display which file is being processed
+        binsamples = ceil(data(eachfile).(whichfs)*60*binlengthmins); % Pull out n samples per bin
+
+        if nbinsoverride == 0
+            nbins = ceil(length(data(eachfile).(whichstream))/binsamples); % Determine number of bins
+            disp(append('     ',num2str(nbins),' bins')) % Display which file is being processed
+        else
+            nbins = nbinsoverride;
+            disp(append('     NUMBER OF BINS MANUALLY SET: ', num2str(nbins),' bins')) % Display which file is being processed
+        end
+
+        % Add bin transients settings to the transients table
+        data(eachfile).(whichtransients).BinSettings.nbins = nbins; % Add number of bins to settings table
+        data(eachfile).(whichtransients).BinSettings.nbinsoverride = nbinsoverride; % Add bin number override to settings table
+        data(eachfile).(whichtransients).BinSettings.binlengthmins = binlengthmins; % Add bin length in minutes to settings table        
+        data(eachfile).(whichtransients).BinSettings.binlengthsamples = binsamples; % Add bin length in samples to settings table
 
         for eachbin = 0:(nbins-1) % Add bin to transients column
             startbin = (eachbin*binsamples)+1; % Find bin start index

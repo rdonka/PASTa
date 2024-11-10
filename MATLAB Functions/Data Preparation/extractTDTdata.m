@@ -1,4 +1,4 @@
-function [] = extractTDTdata(rawfolderpaths, extractedfolderpaths, sigstreamnames, baqstreamnames, varargin)
+function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames,varargin)
 % EXTRACTTDTDATA    Extracts and saves raw fiber photometry data collected
 %                   via Tucker Davis Technologies program Synapse, which
 %                   saves raw data into a block structure.

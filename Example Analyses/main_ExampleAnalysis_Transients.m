@@ -135,8 +135,7 @@ end
 [data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_localmin_threshold3SD');
 
 
-% Export transients with added fields for subject and treatment using the
-% EXPORTSESSIONTRANSIENTS function
+% Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'Subject','TreatNum','InjType'};
 alltransients = exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
 

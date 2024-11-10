@@ -364,7 +364,7 @@ This function is called by the main function _findSessionTransients_, which sets
     * _INPUTS:_ Includes all function inputs.
     * _TRANSIENTQUANTIFICATION:_ Includes the quantified variables for each transient, including amplitude, rise time, fall time, width, and AUC. 
     * _TRANSIENTSTREAMLOCS:_ Pre-transient baseline, transient peak, rise, and fall locations for each transient to match the cut transient stream data.
-    * _TRANSIENTSTREAMDATA: Cut data stream from baseline window start to the end of the post-transient period for each transient event.
+    * _TRANSIENTSTREAMDATA:_ Cut data stream from baseline window start to the end of the post-transient period for each transient event.
 
 
 **NOTES:**
@@ -410,7 +410,7 @@ This function is called by the main function _findSessionTransients_, which sets
     * _INPUTS:_ Includes all function inputs.
     * _TRANSIENTQUANTIFICATION:_ Includes the quantified variables for each transient, including amplitude, rise time, fall time, width, and AUC. 
     * _TRANSIENTSTREAMLOCS:_ Pre-transient baseline (local minimum), transient peak, rise, and fall locations for each transient to match the cut transient stream data.
-    * _TRANSIENTSTREAMDATA: Cut data stream from baseline window start to the end of the post-transient period for each transient event.
+    * _TRANSIENTSTREAMDATA:_ Cut data stream from baseline window start to the end of the post-transient period for each transient event.
 
 
 **NOTES:**
@@ -457,7 +457,7 @@ the whole session. This input only needs to be specified if not using the format
     * _INPUTS:_ Includes all function inputs.
     * _TRANSIENTQUANTIFICATION:_ Includes the quantified variables for each transient, including amplitude, rise time, fall time, width, and AUC. 
     * _TRANSIENTSTREAMLOCS:_ Pre-transient baseline (local minimum), transient peak, rise, and fall locations for each transient to match the cut transient stream data.
-    * _TRANSIENTSTREAMDATA: Cut data stream from baseline window start to the end of the post-transient period for each transient event.
+    * _TRANSIENTSTREAMDATA:_ Cut data stream from baseline window start to the end of the post-transient period for each transient event.
 
 
 **NOTES:**
@@ -480,4 +480,41 @@ end
 ```
 
 ## exportSessionTransients
+Used to create a table of all transient events across all sessions included in the file key and data structure, and exports the table of transient quantification to a csv file. This function depends on the output from _findSessionTransients_. The creation of a csv file is helpful for users who prefer to run statistical analyses or make plots in other programs than MATLAB, such as R Studio.
 
+**INPUTS:**
+
+* __DATA:__ This is a structure that contains at least the output from _findSessionTransients_.
+* __WHICHTRANSIENTS:__ The name (string) of the parent field containing the table of transietns that you want to identify bins for. This is the output of the _findSessionTransients_ function. The name usually follows the convention *sessiontransients_WHICHBLTYPE_WHICHTHRESHOLD*
+* __EXPORTFILEPATH:__ A string with the path to the folder location where the created table should be saved to. NOTE: The path must end in a forward slash.
+* __ADDVARIABLES:__ A cell array containing any additional variables from the data structure to be added to the transients table. Variables will be added to every row of the output structure. Cell array inputs must be the names of fields in the data structure. At a minimum, this should contain the subject ID. If multiple sessions per subject are included in the data structure, make sure a session ID variable is also included. For example: {'Subject', 'SessionID', 'Treatment'}
+
+
+**OPTIONAL INPUTS:**
+* __WHICHTRANSIENTSTABLE:__ The name (string) of the field within WHICHTRANSIENTS that contains the quantification of individual transient events. This input only needs to be specified if not using the format output from the FINDSESSIONTRANSIENTS functions. _Default: 'transientquantification'_
+* __FILENAME:__ A string with a custom name for the output csv file. If not specified, the file name will be generated as *'WHICHTRANSIENTS_AllSessionExport_DAY-MONTH-YEAR.csv'*
+
+
+**OUTPUTS:**
+
+* This function outputs a csv file with all transients for all sessions in the data structure. The file will be output at the specified file path. 
+* If the function is called into an object, the table ALLTRANSIENTS will also be saved to an object in the MATLAB workspace. 
+
+
+**NOTES:**
+
+* The file path must include the full path for the folder including the computer address, and must end in a forward slash. If the file path is not specified properly, the function won't be able to automatically save the csv file.
+* Make sure to add all relevant experimental variables to the ADDVARIABLES list. This includes at a minimum the Subject ID and a session ID, but it's wise to include other key variables to make future analyses easier. Alternatively, you can keep only the Subject ID and a session ID and match the data to the subject and file keys later, which would include all subject and experimental variables.
+
+
+**EXAMPLE:**
+```
+% Export transients with added fields for subject and treatment=
+addvariables = {'Subject','TreatNum','InjType'}; % Prepare variables to append to each transient
+
+% To just output the csv file:
+exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
+
+% To output the csv file and add the created table to a MATLAB data structure:
+alltransients = exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
+```

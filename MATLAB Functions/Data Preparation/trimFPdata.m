@@ -2,6 +2,8 @@ function [data] = trimFPdata(data,whichtrimstart,whichtrimend,whichstreams,varar
 % TRIMDATA    Trims all specified data streams from the index in whichtrimstart to the
 %             index in whichtrimend, and adjusts TTLs by the amount trimmed by whichtrimstart.
 %
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%
 % INPUTS:
 %       DATA:           Data structure; A data structure containing at 
 %                       least the specified input fields.
@@ -76,3 +78,17 @@ function [data] = trimFPdata(data,whichtrimstart,whichtrimend,whichstreams,varar
         end
     end
 end
+
+% Copyright (C) 2024 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

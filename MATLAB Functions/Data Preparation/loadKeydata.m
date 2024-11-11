@@ -4,6 +4,9 @@ function [data] = loadKeydata(experimentkey)
 %                   and saved as MATLAB data structures with one of the
 %                   following functions: EXTRACTTDTDATA, EXTRACTDORICDATA,
 %                   EXTRACTNPDATA, EXTRACTGENERICDATA
+%
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%
 % INPUTS:
 %       EXPERIMENTKEY:  Data Structure; A prepared data structure with at 
 %                       minimum the field 'ExtractedFolderPath' containing
@@ -15,7 +18,6 @@ function [data] = loadKeydata(experimentkey)
 %       DATA:           Data Structure; A data structure with each individual
 %                       extracted session block as a row.
 %
-% Written by R M Donka, August 2024
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
@@ -42,3 +44,16 @@ disp('LOADING DATA: Data must be previously extracted and saved as MATLAB data s
     end
 end
 
+% Copyright (C) 2024 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

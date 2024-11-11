@@ -8,7 +8,9 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 %                               FINDSESSIONTRANSIENTS_BLMIN
 %                               FINDSESSIONTRANSIENTS_BLMEAN
 %                               FINDSESSIONTRANSIENTS_LOCALMIN
-%                               
+%
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%                          
 % INPUTS:
 %       DATA:           This is a structure that contains at least the data
 %                       stream you want to analyze, a field with the threshold 
@@ -93,7 +95,6 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 %                       TRANSIENTSTREAMDATA tables will be skipped and not
 %                       included in the output.
 %
-% Written by R M Donka, October 2024.
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
@@ -159,3 +160,17 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
         disp("ERROR: No viable transient baseline type specific. WHICHBLTYPE must be set to 'blmin', 'blmean', or 'localmin'")
     end
 end
+
+% Copyright (C) 2024 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

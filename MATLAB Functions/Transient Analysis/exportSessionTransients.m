@@ -4,6 +4,8 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
 %                           csv file. Used in conjunction with
 %                           FINDSESSIONTRANSIENTS.
 %
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%
 % INPUTS:
 %       DATA:               Data structure; This is a structure that contains 
 %                           at least the output from FINDSESSIONTRANSIENTS
@@ -49,7 +51,6 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
 %       workspace. 
 %       For example: alltransients = exportSessionTransients(...)
 %
-% Written by R M Donka, September 2024.
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
@@ -110,3 +111,17 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
     alltransients = movevars(alltransients,addvariables,"Before",1);
     writetable(alltransients,append(exportfilepath,filename));
 end
+
+% Copyright (C) 2024 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

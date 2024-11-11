@@ -2,6 +2,9 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 % SUBTRACTFPDATA    Subtracts the specified background channel from the 
 %                   specified signal channel and applies a Butterworth 
 %                   filter. Outputs data as dF/F (default) or dF.
+%
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%
 % INPUTS:
 %   DATA:               Data structure; A data structure that contains at 
 %                       least the fields specified by WHICHSIGFIELD,
@@ -97,7 +100,6 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 %                       background (baq_scaled), subtracted signal (sigsub), 
 %                       and subtracted and filtered signal (sigfilt).
 %
-% Written by R M Donka, August 2024.
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
@@ -361,3 +363,17 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
         end
     end
 end
+
+% Copyright (C) 2024 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

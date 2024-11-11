@@ -3,6 +3,8 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
 %             appends the provided computeruserpath to the paths in the
 %             file key.
 %
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%
 % INPUTS:
 %       COMPUTERUSERPATH:   String; A variable containing the unique portion
 %                           of the path to the data folders for the users
@@ -32,11 +34,10 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
 %                           appended to the end of the RawFolderPath and 
 %                           ExtractedFolderPath.
 %
-% Written by R M Donka, August 2023
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
-    %% Load in the subject key and file key csv files as tables
+%% Load in the subject key and file key csv files as tables
     if strcmp(subjectkeyname, "") == 0 % If the subject key name is not empty, match it to the file key 
         subjectkey = readtable(subjectkeyname, 'Decimal',',', 'Delimiter',','); % Load subject key
         filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',','); % Load file key
@@ -62,3 +63,17 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
         [experimentkey(eachfile).ExtractedFolderPath] = strcat(computeruserpath, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).Folder); % Output path for the figures
     end
 end
+
+% Copyright (C) 2024 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

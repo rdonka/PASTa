@@ -7,7 +7,7 @@
 % Set up user path inputs
 computeruserpath =  'C:\Users\rmdon\'; % Computer user unique portion of file path
 analysisfolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Analysis\'; % Folder to output analysis csv files to
-figurefolder = 'Box\PASTaExampleFiles\Figures\'; % Folder to output figures to
+figurefolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Figures\'; % Folder to output figures to
 
 % Create full paths with computeruserpath appended
 analysispath = append(computeruserpath,analysisfolder); 
@@ -62,7 +62,6 @@ end
 % NOTE: Trimming is the only part of the pipeline that will alter the loaded data fields. 
 % To ensure you only complete this step once per analysis, it is reccomended to input structure 
 % 'rawdata' to the function and output a new structure 'data'.
-
 trimstart = 'sessionstart'; % name of field with session start index
 trimend = 'sessionend'; % name of field with session end index
 whichstreams = {'sig', 'baq'}; % which streams to trim
@@ -78,15 +77,25 @@ fsfield = 'fs';
 
 [data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
 
-% Subtract and filter data with custom settings - OLS regression scaling, high pass filter only
-sigfield = 'sig';
-baqfield = 'baq';
-fsfield = 'fs';
+%% Plot whole session streams for each file
+% Use plotTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
+for eachfile = 1:length(data)
+    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    %hold on
+    alltraces = plotTraces(data,eachfile,maintitle);
+    for eachtile = 1:5
+        nexttile(eachtile)
+        xline(data(eachfile).injt(1),'--','Injection','Color','#C40300','FontSize',8)
+        xline(data(eachfile).injt(2),'--','Color','#C40300','FontSize',8)
+    end    
+    hold off
 
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'baqscalingtype','OLS','filtertype','highpass'); % adds sigsub and sigfilt to data frame
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
+    plotfilepath = append(figurepath,'SessionTraces_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
+    exportgraphics(gcf,plotfilepath,'Resolution',300)
+end
 
-
-% Normalize data
+%% Normalize data
 % To normalize to session mean:
 [data] = normSession(data,'sigfilt'); % Outputs whole session z score
 
@@ -129,28 +138,21 @@ end
 
 % Bin session transients
 [data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmean_threshold3SD');
+
+
 [data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmin_threshold3SD');
 [data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_localmin_threshold3SD');
 
 
-% Export transients with added fields for subject and treatment
-
-
-
-alltransients = table; % Create table of all transients for all files
-for eachfile = 1:length(data)
-    eachtransients = data(eachfile).sessiontransients_blmean_threshold3SD.transientquantification;
-    eachtransients.Subject(1:size(eachtransients,1)) = {data(eachfile).Subject};
-    eachtransients.TreatNum(1:size(eachtransients,1)) = data(eachfile).TreatNum;
-    eachtransients.InjType(1:size(eachtransients,1)) = {data(eachfile).InjType};
-    alltransients = vertcat(alltransients,eachtransients);
-end
-
+% Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'Subject','TreatNum','InjType'};
 alltransients = exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
 
 
-writetable(alltransients,append(analysispath,'SalinevsMorphineInjection_TransientsbyBin.csv'));
+
+
+
+
 
 %% Plot session traces
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq,

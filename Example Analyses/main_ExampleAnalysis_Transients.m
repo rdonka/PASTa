@@ -39,8 +39,8 @@ extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames
 % Load previously extracted data blocks and tie to experiment key. 
 % Each block is loaded as a row in the data structure.
 [rawdata] = loadKeydata(experimentkey); % Load data based on the experiment key into the structure 'rawdata'
-
-%% Trim data
+ 
+%% Crop data
 % Prepare session start and end indices
 preinjectionlength = 15; % Minutes pre injection
 postinjectionlength = 60; % Minutes post injection
@@ -58,16 +58,16 @@ for eachfile = 1:length(rawdata)
     end
 end
 
-% Trim data: remove pre and post experimental session samples.
-% NOTE: Trimming is the only part of the pipeline that will alter the loaded data fields. 
+% Crop data: remove pre and post experimental session samples.
+% NOTE: Cropping is the only part of the pipeline that will alter the loaded data fields. 
 % To ensure you only complete this step once per analysis, it is reccomended to input structure 
 % 'rawdata' to the function and output a new structure 'data'.
-trimstart = 'sessionstart'; % name of field with session start index
-trimend = 'sessionend'; % name of field with session end index
-whichstreams = {'sig', 'baq'}; % which streams to trim
+cropstart = 'sessionstart'; % name of field with session start index
+cropend = 'sessionend'; % name of field with session end index
+whichstreams = {'sig', 'baq'}; % which streams to crop
 whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
 
-[data] = trimFPdata(rawdata,trimstart,trimend, whichstreams,'whichepocs', whichepocs); % Output trimmed data into new structure called data
+[data] = cropFPdata(rawdata,cropstart,cropend, whichstreams,'whichepocs', whichepocs); % Output cropmed data into new structure called data
 
 %% Process data
 % Subtract and filter data with default settings
@@ -106,7 +106,7 @@ end
 
 %% Remove injection time window from normalized signal
 % This loop removes samples between the start and end of the injection. For
-% trimmed data, injt(1) will be used as the injection time point.
+% cropped data, injt(1) will be used as the injection time point.
 normstreams = {'sigfilt', 'sigfiltz_normsession','sigfiltz_normbaseline'};
 
 for eachfile = 1:length(data)
@@ -115,7 +115,7 @@ for eachfile = 1:length(data)
 
         allindices = (1:length(data(eachfile).(currstream))); % Temporary list of all indices in the stream
         includeindices = (allindices < data(eachfile).injt(1) | allindices > data(eachfile).injt(2)); % Find indices before injection start and after injection end
-        data(eachfile).(append(currstream,'_trimmed')) = data(eachfile).(currstream)(includeindices); % Add new fields ending in '_trimmed' to data structure
+        data(eachfile).(append(currstream,'_injcropped')) = data(eachfile).(currstream)(includeindices); % Add new fields ending in '_trimmed' to data structure
     end 
 end
 
@@ -126,16 +126,16 @@ for eachfile = 1:length(data)
 end
 
 % Find session transients based on pre-peak baseline window mean
-[data] = findSessionTransients(data,'blmean','sigfiltz_normsession_trimmed','threshold3SD','fs');
+[data] = findSessionTransients(data,'blmean','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Find session transients based on pre-peak baseline window minimum
-[data] = findSessionTransients(data,'blmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+[data] = findSessionTransients(data,'blmin','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Find session transients based on pre-peak local minimum (last minumum before the peak in the baseline window)
-[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Bin session transients
-[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmean_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_blmean_threshold3SD');
 
 
 [data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmin_threshold3SD');

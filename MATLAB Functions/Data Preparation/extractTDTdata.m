@@ -41,7 +41,7 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 %                       For example: baqstreamnames = {'x05A', '405A', 'x405A'};
 %
 % OPTIONAL INPUTS:
-%   CLIP:               Numeric; Specified number of seconds to clip at the 
+%   TRIM:               Numeric; Specified number of seconds to trim at the 
 %                       beginning and end of the session.
 %                       Default: 5
 %
@@ -57,20 +57,19 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 %
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
-disp('BIN TRANSIENTS: Add bin variable to transient quantification table.')
 
     %% Prepare Settings
     % Import required and optional inputs into a structure
     inputs = struct(...
-        'clip',[],...
+        'trim',[],...
         'skipexisting',[]);
     inputs = parseArgsLite(varargin,inputs);
 
-    if isempty(inputs.clip) == true
-        clip = 5;
-        inputs.clip = clip;
+    if isempty(inputs.trim) == true
+        trim = 5;
+        inputs.trim = trim;
     else
-        clip = inputs.clip;
+        trim = inputs.trim;
     end
 
     if isempty(inputs.skipexisting) == true
@@ -123,13 +122,13 @@ disp('BIN TRANSIENTS: Add bin variable to transient quantification table.')
         
                 blockdata.fs = alldata.streams.(currsigname).fs; % Add sampling rate for each file to double check for consistency
                 
-                clipsamples = round(clip*blockdata.fs); % Find number of samples to clip from beginning and end of session
-                blockdata.sig = double(alldata.streams.(currsigname).data((clipsamples+1):round(end-clipsamples))); % Add signal to the data structure and clip
-                blockdata.baq = double(alldata.streams.(currbaqname).data((clipsamples+1):round(end-clipsamples))); % Add background to the data structure and clip
+                trimsamples = round(trim*blockdata.fs); % Find number of samples to trim from beginning and end of session
+                blockdata.sig = double(alldata.streams.(currsigname).data((trimsamples+1):round(end-trimsamples))); % Add signal to the data structure and trim
+                blockdata.baq = double(alldata.streams.(currbaqname).data((trimsamples+1):round(end-trimsamples))); % Add background to the data structure and trim
 
-                for eachepoc = 1:length(epocs) % Adjust each epoc for clipping; Uses epoc onset
+                for eachepoc = 1:length(epocs) % Adjust each epoc for trimming; Uses epoc onset
                     thisepoc = char(epocs(eachepoc));
-                    blockdata.(thisepoc) = round(((alldata.epocs.(thisepoc).onset-alldata.time_ranges(1)).*blockdata.fs)-(clipsamples));
+                    blockdata.(thisepoc) = round(((alldata.epocs.(thisepoc).onset-alldata.time_ranges(1)).*blockdata.fs)-(trimsamples));
                 end
             
                 save(strcat(blockdata.ExtractedFolderPath, '_extracted.mat'),'-struct', 'blockdata'); % Save the extracted data structure to the extracted folder path location

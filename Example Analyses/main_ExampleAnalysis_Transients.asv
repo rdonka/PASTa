@@ -40,7 +40,7 @@ extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames
 % Each block is loaded as a row in the data structure.
 [rawdata] = loadKeydata(experimentkey); % Load data based on the experiment key into the structure 'rawdata'
  
-%% Trim data - RENAME TO CROP
+%% Crop data
 % Prepare session start and end indices
 preinjectionlength = 15; % Minutes pre injection
 postinjectionlength = 60; % Minutes post injection
@@ -58,8 +58,8 @@ for eachfile = 1:length(rawdata)
     end
 end
 
-% Trim data: remove pre and post experimental session samples.
-% NOTE: Trimming is the only part of the pipeline that will alter the loaded data fields. 
+% Crop data: remove pre and post experimental session samples.
+% NOTE: Cropping is the only part of the pipeline that will alter the loaded data fields. 
 % To ensure you only complete this step once per analysis, it is reccomended to input structure 
 % 'rawdata' to the function and output a new structure 'data'.
 cropstart = 'sessionstart'; % name of field with session start index
@@ -67,7 +67,7 @@ cropend = 'sessionend'; % name of field with session end index
 whichstreams = {'sig', 'baq'}; % which streams to crop
 whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
 
-[data] = cropFPdata(rawdata,cropstart,cropend, whichstreams,'whichepocs', whichepocs); % Output cropmed data into new structure called data
+[data] = cropFPdata(rawdata,cropstart,cropend, whichstreams,'whichepocs', whichepocs); % Output cropped data into new structure called data
 
 %% Process data
 % Subtract and filter data with default settings
@@ -123,32 +123,48 @@ end
 % Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
 for eachfile = 1:length(data)
     data(eachfile).threshold3SD = 3;
+    data(eachfile).threshold25SD = 2.5;
 end
 
-% Find session transients based on pre-peak baseline window mean
+% Find session transients based on pre-peak baseline window mean - reccomended as the first pass choice for transient analysis
 [data] = findSessionTransients(data,'blmean','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Find session transients based on pre-peak baseline window minimum
 [data] = findSessionTransients(data,'blmin','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Find session transients based on pre-peak local minimum (last minumum before the peak in the baseline window)
-[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_trimmed','threshold3SD','fs');
+[data] = findSessionTransients(data,'localmin','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Bin session transients
-[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmean_threshold3SD');
-
-
-[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmin_threshold3SD');
-[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_localmin_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_blmean_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_blmin_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_localmin_threshold3SD');
 
 
 % Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'Subject','TreatNum','InjType'};
 alltransients = exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
 
+%% Plot session bin traces with detected transients for each file
+% Use plotTransientBins to plot session bins with detected transients for each file.
+for eachfile = 1:length(data)
+    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    alltraces = plotTraces(data,eachfile,maintitle);
+    for eachtile = 1:5
+        nexttile(eachtile)
+        xline(data(eachfile).injt(1),'--','Injection','Color','#C40300','FontSize',8)
+        xline(data(eachfile).injt(2),'--','Color','#C40300','FontSize',8)
+    end    
+
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
+    plotfilepath = append(figurepath,'SessionTraces_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
+    exportgraphics(gcf,plotfilepath,'Resolution',300)
+end
 
 
 
+
+plotTransientBins(data,whichfile,whichstream,whichtransients,maintitle,varargin)
 
 
 

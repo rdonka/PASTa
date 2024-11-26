@@ -67,7 +67,7 @@ cropend = 'sessionend'; % name of field with session end index
 whichstreams = {'sig', 'baq'}; % which streams to crop
 whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
 
-[data] = cropFPdata(rawdata,cropstart,cropend, whichstreams,'whichepocs', whichepocs); % Output cropmed data into new structure called data
+[data] = cropFPdata(rawdata,cropstart,cropend, whichstreams,'whichepocs', whichepocs); % Output cropped data into new structure called data
 
 %% Process data
 % Subtract and filter data with default settings
@@ -123,9 +123,10 @@ end
 % Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
 for eachfile = 1:length(data)
     data(eachfile).threshold3SD = 3;
+    data(eachfile).threshold25SD = 2.5;
 end
 
-% Find session transients based on pre-peak baseline window mean
+% Find session transients based on pre-peak baseline window mean - reccomended as the first pass choice for transient analysis
 [data] = findSessionTransients(data,'blmean','sigfiltz_normsession_injcropped','threshold3SD','fs');
 
 % Find session transients based on pre-peak baseline window minimum
@@ -136,95 +137,26 @@ end
 
 % Bin session transients
 [data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_blmean_threshold3SD');
-
-
-[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_blmin_threshold3SD');
-[data] = binSessionTransients(data,'sigfiltz_normsession_trimmed','fs','sessiontransients_localmin_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_blmin_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normsession_injcropped','fs','sessiontransients_localmin_threshold3SD');
 
 
 % Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'Subject','TreatNum','InjType'};
 alltransients = exportSessionTransients(data,'sessiontransients_blmean_threshold3SD',analysispath,addvariables);
 
-
-
-
-
-
-
-%% Plot session traces
-% Use plotTraces to plot all raw traces - data needs to contain sig, baq,
-% sigsub, sigfilt, and normsig_z
-whichstreams = {'sig','baq','sigsub','sigfilt','sig_normbl_z'};
-whichtitles = {'Raw 465','Raw 405','Subtracted Signal','Subtracted and Filtered Signal','Normalized Signal - Baseline'};
-whichylabels = {'f','f','df/f','df/f','z score'};
-whichcolors = {'#0E53FF','#600085','#6B39F0','#0DA1A8','#2AB249'};
-
+%% Plot session bin traces with detected transients for each file
+% Use plotTransientBins to plot session bins with detected transients for each file.
 for eachfile = 1:length(data)
-    hold on
-    alltraces = plotTraces(data,eachfile,whichstreams,whichtitles,whichylabels,whichcolors);
-    for eachtile = 1:length(alltraces)
-        xline(alltraces(eachtile),data(eachfile).injt(1),'--','Injection','Color','#C40300','FontSize',8)
-        xline(alltraces(eachtile),data(eachfile).injt(2),'--','Color','#C40300','FontSize',8)
-    end
-    sgtitle(append('Subject ',num2str(data(eachfile).Subject),' - Treatment ', num2str(data(eachfile).TreatNum)))
-    hold off
+    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    allbins = plotTransientBins(data,eachfile,'sigfiltz_normsession_injcropped','sessiontransients_blmean_threshold3SD',maintitle);
 
-    finaltraceplot = gcf;
-    exportgraphics(finaltraceplot,append(figurepath,'SessionSignalTraces_',data(eachfile).Subject,'Treatment_',data(eachfile).InjType, ...
-        '.png'),'Resolution',300)
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 9, 6]);
+    plotfilepath = append(figurepath,'SessionBins_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
+    exportgraphics(gcf,plotfilepath,'Resolution',300)
 end
 
-%% Plot session bins with transients
-% Use plotTraceBins to plot the session by bin with transients marked. 
-% plotTraceBins plots session bins for one file. Use it in a for loop to
-% plot and save all of your files.
 
-% Set up inputs
-whichbinsamples = 'binsamples'; % Name of field containing the calculated number of samples per bin
-whichstream = 'sig_normbl_z_trimmed'; % Which stream was used for transient analysis
-whichtransients = 'sessiontransients'; % Name of field containing the output table of transients from findSessionTransients
-whichpklocs = 'pklocs'; % Name of field containing the transient peak locations in the output table from findSessionTransients
-whichylabel = 'Z Score'; % String with label for the y axis
-whichpkcolors = {'#C60069'}; % Color to plot transients - to change color by bin, this can be a cell array the length of the number of bins you have
-
-% Set up color arrays for streams - set by bin to alter color for pre and post injection by treatment. 
-% Here we can make two cell arrays and then select which one to apply for each file in the for loop.
-streamcolors_saline = {'#0072BD','#0072BD','#0072BD',... % Pre injection (blue)
-                        '#0072BD','#0072BD','#0072BD','#0072BD','#0072BD','#0072BD','#0072BD', '#0072BD','#0072BD','#0072BD','#0072BD','#0072BD'}; % Post injection (blue)
-streamcolors_morphine = {'#0072BD','#0072BD','#0072BD',... % Pre injection (blue)
-                          '#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18','#FFDC18'}; % Post injection (yellow)
-
-% Make bin trace plots
-for eachfile = 1:length(data)
-    % Set plot stream colors by treatment (blue for saline, yellow for morphine)
-    if data(eachfile).TreatNum == 1 % Set plot stream colors by treatment (blue for saline, yellow for morphine)
-        whichstreamcolors = streamcolors_saline;
-    elseif data(eachfile).TreatNum == 2
-        whichstreamcolors = streamcolors_morphine;
-    end
-
-    % Plot bins
-    hold on
-    bintraces = plotTraceBins(data,eachfile,whichbinsamples,whichstream,whichtransients,whichpklocs,whichylabel,whichstreamcolors,whichpkcolors);
-    
-    % Modify x axis for each subplot tile
-    for eachtile = 1:length(bintraces)
-        fsmin = floor(data(eachfile).fs*60);
-        xticks(bintraces(eachtile),[1 fsmin*1 fsmin*2 fsmin*3 fsmin*4 fsmin*5])
-        xticklabels(bintraces(eachtile),{'0','1', '2', '3', '4', '5'})
-        xlabel(bintraces(eachtile),'Minute')
-    end
-    
-    % Add an overall title to the figure
-    sgtitle(append('Subject ',data(eachfile).Subject,' - ', data(eachfile).InjType))
-    hold off
-    
-    % Save figure
-    finalbinplot = gcf;
-    exportgraphics(finalbinplot,append(figurepath,'BinTraces_',data(eachfile).Subject,'Treatment_',data(eachfile).InjType, ...
-        '.png'),'Resolution',300)
-end
 
 
 % Doric notes

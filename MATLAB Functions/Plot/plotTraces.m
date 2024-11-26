@@ -15,7 +15,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
 %
 %       MAINTITLE:      The main title for the overall plot to display
 %                       above the individual tiles. For example,
-%                       '427 - Treatment: Morphine''
+%                       '427 - Treatment: Morphine'
 %
 % OPTIONAL INPUTS:
 %       SAVEOUTPUT:     Set to 1 to automatically save trace plots as png 

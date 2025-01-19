@@ -28,10 +28,11 @@ function [data] = normBaseline(data,whichstream,whichblstart,whichblend)
 
 %% Normalize to session baseline
 disp(append('NORM BASELINE: Normalizing ',whichstream,' to session baseline mean and standard deviation.'))
-disp(append('     Baseline defined by ',whichblstart,' and ',whichblend,'.'))
+disp(append('   Baseline defined by ',whichblstart,' and ',whichblend,'.'))
+disp(append('   Normalized data will be output to the field: ',whichstream, 'z_normbaseline'))
 
     for eachfile = 1:length(data)
-        disp(append('   Normalizing: File ',num2str(eachfile)))
+        disp(append('   NORMALIZING: File ',num2str(eachfile)))
         try
             BLmean = mean(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend))); % Find the mean of the session baseline
             BLsd = std(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend))); % Find the standard deviation of the session baseline

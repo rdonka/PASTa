@@ -1,5 +1,5 @@
 function [data] = cropFPdata(data,whichcropstart,whichcropend,whichstreams,varargin)
-% TRIMDATA    Trims all specified data streams from the index in whichcropstart to the
+% TRIMDATA    Crops all specified data streams from the index in whichcropstart to the
 %             index in whichcropend, and adjusts TTLs by the amount cropped by whichcropstart.
 %
 % Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.

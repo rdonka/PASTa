@@ -19,9 +19,9 @@ function [data] = normSession(data,whichstream)
 
 %% Normalize to whole session
 disp(append('NORM SESSION: Normalizing ',whichstream,' to whole session mean and standard deviation.'))
-
+disp(append('   Normalized data will be output to the field: ',whichstream, 'z_normsession'))
     for eachfile = 1:length(data)
-        disp(append('   Normalizing: File ',num2str(eachfile)))
+        disp(append('     NORMALIZING: File ',num2str(eachfile)))
         data(eachfile).(append(whichstream, 'z_normsession')) = zscore(data(eachfile).(whichstream)); % Z score whole session
     end
 end

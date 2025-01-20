@@ -37,7 +37,7 @@ function [allffts] = plotFFTs(data,whichfile,maintitle,whichfs,varargin)
 %                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionFFTs_427_Morphine.png'
 %
 % OUTPUT:
-%       ALLTRACES:      A plot object containing subplots for each input
+%       ALLFFTS:      A plot object containing subplots for each input
 %                       stream.
 %
 % Stored in the PASTa GitHub Repository, see the user guide for additional

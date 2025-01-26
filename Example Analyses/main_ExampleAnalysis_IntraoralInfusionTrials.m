@@ -1,13 +1,16 @@
 %% EXAMPLE ANALYSIS
-% PROJECT SUMMARY: This is an example analysis to determine changes in GCaMP6f transients in VTA dopamine neurons after within session saline 
-% or morphine injection. Each subject has two recording sessions: a saline control session and a morphine administration session. Each session
-% recording consists of a 15 minute pre-injection baseline, injection, and a 60 minute post injection period.
+% PROJECT SUMMARY: This is an example analysis to determine differences
+% in dopamine release to intraoral infusions of rewarding (sucrose) or 
+% aversive (quinine) solutions. Recordings are made using GRABDA2H in 
+% the nucleus accumbens lateral shell via GRABDA2H. Each session is 30
+% minutes with XX trials of intraoral delivery. Within session, all
+% intraoral infusions are of the same solution.
 
 %% Set up paths and analysis keys
 % Set up user path inputs
 computeruserpath =  'C:\Users\rmdon\'; % Computer user unique portion of file path
-analysisfolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Analysis\'; % Folder to output analysis csv files to
-figurefolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Figures\'; % Folder to output figures to
+analysisfolder = 'Box\PASTaExampleFiles\Example Analyses\Intraoral Infusion Trials\Analysis\'; % Folder to output analysis csv files to
+figurefolder = 'Box\PASTaExampleFiles\Example Analyses\Intraoral Infusion Trials\Figures\'; % Folder to output figures to
 
 % Create full paths with computeruserpath appended
 analysispath = append(computeruserpath,analysisfolder); 
@@ -15,11 +18,11 @@ figurepath = append(computeruserpath,figurefolder);
 
 % Add GitHub Repositories and data folders to MATLAB path
 addpath(genpath(append(computeruserpath,'Onedrive\Desktop\GitHub_Repositories\PASTa\'))); % Path for GitHub repository
-addpath(genpath(append(computeruserpath,'Box\PASTaExampleFiles\'))); % Path for analysis files - this is where the keys are saved\\
+addpath(genpath(append(computeruserpath,'Box\PASTaExampleFiles\Example Analyses\Intraoral Infusion Trials\'))); % Path for analysis files - this is where the keys are saved\\
 
 % Load in experiment key names - Subject Key and File Key
-subjectkeyname = 'SubjectKey_ExampleAnalysis_MorphineTransients.csv'; % Name of csv file containing subject information; set to '' if not using a Subject Key
-filekeyname = 'FileKey_ExampleAnalysis_MorphineTransients.csv'; % Name of csv file containing session information and paths
+subjectkeyname = 'SubjectKey_ExampleAnalysis_IntraoralInfusionTrials.csv'; % Name of csv file containing subject information; set to '' if not using a Subject Key
+filekeyname = 'FileKey_ExampleAnalysis_IntraoralInfusionTrials.csv'; % Name of csv file containing session information and paths
 
 %% Load keys
 % Load subject key and file key into a data structure and append computeruserpath to RawFolderPath and ExtractedFolderPaths
@@ -161,7 +164,9 @@ for eachfile = 1:length(data)
     maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
     allbins = plotTransientBins(data,eachfile,'sigfiltz_normsession_injcropped','sessiontransients_blmin_threshold3SD',maintitle);
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 9, 6]);
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 6]);
     plotfilepath = append(figurepath,'SessionBins_blmin_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
     exportgraphics(gcf,plotfilepath,'Resolution',300)
 end
+
+%% Plot transients - overlaid by bin

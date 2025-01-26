@@ -161,7 +161,9 @@ for eachfile = 1:length(data)
     maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
     allbins = plotTransientBins(data,eachfile,'sigfiltz_normsession_injcropped','sessiontransients_blmin_threshold3SD',maintitle);
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 9, 6]);
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 6]);
     plotfilepath = append(figurepath,'SessionBins_blmin_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
     exportgraphics(gcf,plotfilepath,'Resolution',300)
 end
+
+%% Plot transients - overlaid by bin

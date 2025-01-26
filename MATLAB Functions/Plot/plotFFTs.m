@@ -24,7 +24,7 @@ function [allffts] = plotFFTs(data,whichfile,maintitle,whichfs,varargin)
 % OPTIONAL INPUTS:
 %       XMAX:           Frequency cutoff for the x axis. Frequencies above
 %                       this value will be excluded from the plots. To plot
-%                       all frequencies, set to 'actual'. Default: 20.
+%                       all frequencies, set to 'actual'. Default: 40.
 %
 %       SAVEOUTPUT:     Set to 1 to automatically save trace plots as png 
 %                       to the plot file path. Default: 0.
@@ -67,10 +67,10 @@ disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(wh
         saveoutput = inputs.saveoutput;
     end
     if isempty(inputs.xmax)
-        xmax = 20; % Defaults to 20 - cuts off the x axis of the plot at 20 Hz
+        xmax = 40; % Defaults to 40 - cuts off the x axis of the plot at 20 Hz
         inputs.xmax = xmax;
         disp(append('  X axis (frequency) max cut off at: ',num2str(xmax),' hz'))
-    elseif inputs.xmax == 'actual'
+    elseif strcmp('actual', inputs.xmax)
         xmax = max(sigF);
         disp(append('  X axis (frequency) max set to actual max: ',num2str(xmax),' hz'))
     else

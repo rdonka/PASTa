@@ -8,7 +8,7 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
 %                               called outside the main function, users
 %                               must specify all input values manually.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
 %
 % INPUTS:
 %       DATA:           This is a structure that contains at least the data
@@ -111,154 +111,157 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
     %% Find transients
     for eachfile = 1:length(data)
         disp(['Finding Transients: File ',num2str(eachfile)]) % Display which file is being processed
-        
-        % Prep variables
-        fs = data(eachfile).(whichfs);
-        blstartsamples = floor(fs*(preminstartms/1000));
-        blendsamples = floor(fs*(preminendms/1000));
-        posttransientsamples = floor(fs*(posttransientms/1000));
-
-        % Find all maxes in stream
-        allmaxlocs = find(islocalmax(data(eachfile).(whichstream))); % Find all maxes
-        
-        % Prepare tables - preallocate size
-        allvarnames = {'transientID','maxloc', 'maxval', 'preminstartloc', 'preminendloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems','fallendloc','fallendval','fallsamples','fallms','widthsamples','widthms','AUC'};
-        [allvartypes{1:length(allvarnames)}] = deal('double');
-        transientquantification = table('Size',[length(allmaxlocs), length(allvarnames)], 'VariableNames', allvarnames, 'VariableTypes', allvartypes);
-
-        if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, prep data table and structure for individual transient streams
-            transientstreamlocsvarnames = {'transientID','maxloc','preminstartloc', 'preminendloc','risestartloc','fallendloc'};
-            [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
-            transientstreamlocs = table('Size',[length(allmaxlocs), length(transientstreamlocsvarnames)], 'VariableNames', transientstreamlocsvarnames, 'VariableTypes', transientstreamlocsvartypes);
-            [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
-            transientstreamdata = zeros(length(allmaxlocs), (blstartsamples+posttransientsamples+1));
-        end
-
-        transientcount = 0;
-        for eachmax = 1:length(allmaxlocs)
-            % Initialize variables - set to empty
-            currmaxloc = [];
-            currmaxval = [];
-            currpreminstartloc = [];
-            currpreminendloc = [];   
-            currminval = [];
-            curramp = [];
+        try
+            % Prep variables
+            fs = data(eachfile).(whichfs);
+            blstartsamples = floor(fs*(preminstartms/1000));
+            blendsamples = floor(fs*(preminendms/1000));
+            posttransientsamples = floor(fs*(posttransientms/1000));
+    
+            % Find all maxes in stream
+            allmaxlocs = find(islocalmax(data(eachfile).(whichstream))); % Find all maxes
             
-            % Determine peak variables for inclusion
-            currmaxloc = allmaxlocs(eachmax); % Index of current max in data stream
-            currmaxval = data(eachfile).(whichstream)(currmaxloc); % Value of current max from data stream
-
-            currpreminstartloc = currmaxloc-blstartsamples; % Find the start of the pre-peak baseline window
-            currpreminendloc = currmaxloc-blendsamples; % Find the end of the pre-peak baseline window
-
-            if currpreminstartloc < 1 % If the max is within the baseline length of the start of the session exclude it and move to the next max
-                continue
+            % Prepare tables - preallocate size
+            allvarnames = {'transientID','maxloc', 'maxval', 'preminstartloc', 'preminendloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems','fallendloc','fallendval','fallsamples','fallms','widthsamples','widthms','AUC'};
+            [allvartypes{1:length(allvarnames)}] = deal('double');
+            transientquantification = table('Size',[length(allmaxlocs), length(allvarnames)], 'VariableNames', allvarnames, 'VariableTypes', allvartypes);
+    
+            if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, prep data table and structure for individual transient streams
+                transientstreamlocsvarnames = {'transientID','maxloc','preminstartloc', 'preminendloc','risestartloc','fallendloc'};
+                [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
+                transientstreamlocs = table('Size',[length(allmaxlocs), length(transientstreamlocsvarnames)], 'VariableNames', transientstreamlocsvarnames, 'VariableTypes', transientstreamlocsvartypes);
+                [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
+                transientstreamdata = zeros(length(allmaxlocs), (blstartsamples+posttransientsamples+1));
             end
-
-            currpreminstartloc = currmaxloc-blstartsamples; % Find the start of the pre-transient baseline window
-            currpreminendloc = currmaxloc-blendsamples; % Find the end of the pre-transient baseline window
-
-            currminval = mean(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)); % Find mean of pre-transient baseline window
-            curramp = currmaxval-currminval; % Find the amplitude of the current transient relative to baseline
-
-            if curramp >= data(eachfile).(whichthreshold) % If the current transient amplitude is greater than the threshold, quantify and add it to the table 'transientquantification'
-                transientcount = transientcount + 1; % Update the total count of transients
-
+    
+            transientcount = 0;
+            for eachmax = 1:length(allmaxlocs)
                 % Initialize variables - set to empty
-                pretransientdata = [];
-                curriseval = [];
-                currrisesamples = [];
-                currriseloc = [];
-                posttransientdata = [];
-                currfallval = [];
-                currfallsamples = [];
-                currfallloc = [];
-                currpkAUCdata = [];
-                currAUC = [];
-
-                % Quantify rise time
-                pretransientdata = data(eachfile).(whichstream)((currmaxloc-blstartsamples):currmaxloc); % Find pre-transient data
-                currriseval = currminval + curramp*quantificationheight; % Find the rise value at the input quantification height (default is half height - 0.5)
-                currrisesamples = length(pretransientdata) - find(pretransientdata >= currriseval,1,'first'); % Find the number of samples from rise start to transient peak
-                currriseloc = currmaxloc-currrisesamples; % Find the location index of the rise start
-
-                if (currmaxloc + posttransientsamples) > length(data(eachfile).(whichstream)) % Find post-transient data; check if post-transient period is within the length of the session
-                    posttransientdata = data(eachfile).(whichstream)(currmaxloc:(currmaxloc+posttransientsamples));
-                else
-                    posttransientdata = data(eachfile).(whichstream)(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
-                end
+                currmaxloc = [];
+                currmaxval = [];
+                currpreminstartloc = [];
+                currpreminendloc = [];   
+                currminval = [];
+                curramp = [];
                 
-                currfallval = currmaxval - curramp*quantificationheight; % Find the fall value at the input quantification height (default is half height - 0.5)
-                currfallsamples = find(posttransientdata <= currfallval,1,'first'); % Find the number of samples from transient peak to fall end
-                currfallloc = currmaxloc+currfallsamples; % Find the location index of the fall end
-             
-                if isempty(currfallsamples) % Catch for if no post-transient fall location is found
-                    disp('WARNING: NO FALL FOUND FOR PEAK')
-                    disp(transientcount)
-                    disp('    Peak index: ')
-                    disp(currmaxloc)
-                    currfallval = NaN; % NaN out fall variables
-                    currfallsamples = NaN;
-                    currfallloc = NaN;
-                    currwidthsamples = NaN;
-                    currAUC = NaN;
-                else % Calculate width and AUC (tranpezoidal method)
-                    currwidthsamples = currfallloc - currriseloc;
-                    currpkAUCdata = data(eachfile).(whichstream)(currriseloc:currfallloc);
-                    currpkAUCdata = currpkAUCdata - min(currpkAUCdata);
-                    currAUC = round(trapz(currpkAUCdata));
+                % Determine peak variables for inclusion
+                currmaxloc = allmaxlocs(eachmax); % Index of current max in data stream
+                currmaxval = data(eachfile).(whichstream)(currmaxloc); % Value of current max from data stream
+    
+                currpreminstartloc = currmaxloc-blstartsamples; % Find the start of the pre-peak baseline window
+                currpreminendloc = currmaxloc-blendsamples; % Find the end of the pre-peak baseline window
+    
+                if currpreminstartloc < 1 % If the max is within the baseline length of the start of the session exclude it and move to the next max
+                    continue
                 end
-                    
-                % Add variables to the table 'transientquantification'
-                transientquantification.transientID(transientcount) = transientcount;
-                transientquantification.maxloc(transientcount) = currmaxloc;
-                transientquantification.maxval(transientcount) = currmaxval;
-                transientquantification.preminstartloc(transientcount) = currpreminstartloc;
-                transientquantification.preminendloc(transientcount) = currpreminendloc;
-                transientquantification.preminval(transientcount) = currminval;
-                transientquantification.amp(transientcount) = curramp;
-                transientquantification.risestartloc(transientcount) = currriseloc;
-                transientquantification.risestartval(transientcount) = currriseval;
-                transientquantification.risesamples(transientcount) = currrisesamples;
-                transientquantification.risems(transientcount) = (currrisesamples/fs)*1000;            
-                transientquantification.fallendloc(transientcount) = currfallloc;
-                transientquantification.fallendval(transientcount) = currfallval;
-                transientquantification.fallsamples(transientcount) = currfallsamples;
-                transientquantification.fallms(transientcount) = (currfallsamples/fs)*1000;
-                transientquantification.widthsamples(transientcount) = currwidthsamples;    
-                transientquantification.widthms(transientcount) = (currwidthsamples/fs)*1000;
-                transientquantification.AUC(transientcount) = currAUC;    
-
-                if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, add transient data stream
-                    % Add locs for the cut data streams
-                    transientstreamlocs.transientID(transientcount) = transientcount; 
-                    transientstreamlocs.maxloc(transientcount) = blstartsamples;
-                    transientstreamlocs.preminstartloc(transientcount) = 1;
-                    transientstreamlocs.preminendloc(transientcount) = blstartsamples-blendsamples;
-                    transientstreamlocs.risestartloc(transientcount) = blstartsamples-currrisesamples;
-                    transientstreamlocs.fallendloc(transientcount) = blstartsamples+currfallsamples;
-                    % Cut data streams
-                    if (currmaxloc+posttransientsamples) <= length(data(eachfile).(whichstream))
-                        transientstreamdata(transientcount,:) = data(eachfile).(whichstream)(currpreminstartloc:(currpreminstartloc+blstartsamples+posttransientsamples));
+    
+                currpreminstartloc = currmaxloc-blstartsamples; % Find the start of the pre-transient baseline window
+                currpreminendloc = currmaxloc-blendsamples; % Find the end of the pre-transient baseline window
+    
+                currminval = mean(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)); % Find mean of pre-transient baseline window
+                curramp = currmaxval-currminval; % Find the amplitude of the current transient relative to baseline
+    
+                if curramp >= data(eachfile).(whichthreshold) % If the current transient amplitude is greater than the threshold, quantify and add it to the table 'transientquantification'
+                    transientcount = transientcount + 1; % Update the total count of transients
+    
+                    % Initialize variables - set to empty
+                    pretransientdata = [];
+                    curriseval = [];
+                    currrisesamples = [];
+                    currriseloc = [];
+                    posttransientdata = [];
+                    currfallval = [];
+                    currfallsamples = [];
+                    currfallloc = [];
+                    currpkAUCdata = [];
+                    currAUC = [];
+    
+                    % Quantify rise time
+                    pretransientdata = data(eachfile).(whichstream)((currmaxloc-blstartsamples):currmaxloc); % Find pre-transient data
+                    currriseval = currminval + curramp*quantificationheight; % Find the rise value at the input quantification height (default is half height - 0.5)
+                    currrisesamples = length(pretransientdata) - find(pretransientdata >= currriseval,1,'first'); % Find the number of samples from rise start to transient peak
+                    currriseloc = currmaxloc-currrisesamples; % Find the location index of the rise start
+    
+                    if (currmaxloc + posttransientsamples) > length(data(eachfile).(whichstream)) % Find post-transient data; check if post-transient period is within the length of the session
+                        posttransientdata = data(eachfile).(whichstream)(currmaxloc:(currmaxloc+posttransientsamples));
                     else
-                        transientstreamdata(transientcount,:) = [data(eachfile).(whichstream)(currpreminstartloc:end),NaN(1,(blstartsamples+posttransientsamples)-length(data(eachfile).(whichstream)(currpreminstartloc:end)))];
+                        posttransientdata = data(eachfile).(whichstream)(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
                     end
-                end
-            end               
-        end
-        % Add inputs and transient quantification to the data structure
-        data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).inputs = inputs;
-        data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
-        
-        % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
-        if outputtransientdata == 1
-            data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
-            data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientstreamdata = transientstreamdata(1:transientcount,:);
+                    
+                    currfallval = currmaxval - curramp*quantificationheight; % Find the fall value at the input quantification height (default is half height - 0.5)
+                    currfallsamples = find(posttransientdata <= currfallval,1,'first'); % Find the number of samples from transient peak to fall end
+                    currfallloc = currmaxloc+currfallsamples; % Find the location index of the fall end
+                 
+                    if isempty(currfallsamples) % Catch for if no post-transient fall location is found
+                        disp('WARNING: NO FALL FOUND FOR PEAK')
+                        disp(transientcount)
+                        disp('    Peak index: ')
+                        disp(currmaxloc)
+                        currfallval = NaN; % NaN out fall variables
+                        currfallsamples = NaN;
+                        currfallloc = NaN;
+                        currwidthsamples = NaN;
+                        currAUC = NaN;
+                    else % Calculate width and AUC (tranpezoidal method)
+                        currwidthsamples = currfallloc - currriseloc;
+                        currpkAUCdata = data(eachfile).(whichstream)(currriseloc:currfallloc);
+                        currpkAUCdata = currpkAUCdata - min(currpkAUCdata);
+                        currAUC = round(trapz(currpkAUCdata));
+                    end
+                        
+                    % Add variables to the table 'transientquantification'
+                    transientquantification.transientID(transientcount) = transientcount;
+                    transientquantification.maxloc(transientcount) = currmaxloc;
+                    transientquantification.maxval(transientcount) = currmaxval;
+                    transientquantification.preminstartloc(transientcount) = currpreminstartloc;
+                    transientquantification.preminendloc(transientcount) = currpreminendloc;
+                    transientquantification.preminval(transientcount) = currminval;
+                    transientquantification.amp(transientcount) = curramp;
+                    transientquantification.risestartloc(transientcount) = currriseloc;
+                    transientquantification.risestartval(transientcount) = currriseval;
+                    transientquantification.risesamples(transientcount) = currrisesamples;
+                    transientquantification.risems(transientcount) = (currrisesamples/fs)*1000;            
+                    transientquantification.fallendloc(transientcount) = currfallloc;
+                    transientquantification.fallendval(transientcount) = currfallval;
+                    transientquantification.fallsamples(transientcount) = currfallsamples;
+                    transientquantification.fallms(transientcount) = (currfallsamples/fs)*1000;
+                    transientquantification.widthsamples(transientcount) = currwidthsamples;    
+                    transientquantification.widthms(transientcount) = (currwidthsamples/fs)*1000;
+                    transientquantification.AUC(transientcount) = currAUC;    
+    
+                    if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, add transient data stream
+                        % Add locs for the cut data streams
+                        transientstreamlocs.transientID(transientcount) = transientcount; 
+                        transientstreamlocs.maxloc(transientcount) = blstartsamples;
+                        transientstreamlocs.preminstartloc(transientcount) = 1;
+                        transientstreamlocs.preminendloc(transientcount) = blstartsamples-blendsamples;
+                        transientstreamlocs.risestartloc(transientcount) = blstartsamples-currrisesamples;
+                        transientstreamlocs.fallendloc(transientcount) = blstartsamples+currfallsamples;
+                        % Cut data streams
+                        if (currmaxloc+posttransientsamples) <= length(data(eachfile).(whichstream))
+                            transientstreamdata(transientcount,:) = data(eachfile).(whichstream)(currpreminstartloc:(currpreminstartloc+blstartsamples+posttransientsamples));
+                        else
+                            transientstreamdata(transientcount,:) = [data(eachfile).(whichstream)(currpreminstartloc:end),NaN(1,(blstartsamples+posttransientsamples)-length(data(eachfile).(whichstream)(currpreminstartloc:end)))];
+                        end
+                    end
+                end               
+            end
+            % Add inputs and transient quantification to the data structure
+            data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).inputs = inputs;
+            data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
+            
+            % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
+            if outputtransientdata == 1
+                data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
+                data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientstreamdata = transientstreamdata(1:transientcount,:);
+            end
+        catch ME
+            fprintf('   ERROR: %s\n', ME.message);
         end
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

@@ -1,4 +1,4 @@
-function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,quantificationheight,outputtransientdata)
+function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,compoundtransientwindowms,quantificationheight,outputtransientdata)
 % FINDSESSIONTRANSIENTS_BLMEAN  Finds transients for the whole session. 
 %                               Pre-transient baselines are set to the mean
 %                               of the pre-transient window.
@@ -44,6 +44,11 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
 %
 %       POSTTRANSIENTMS: Number of millseconds post-transient to use for
 %                       the post peak baseline and trimmed data output.
+%                       NOTE: Default is set to 2000 in the main
+%                       'findSessionTransients' function.
+%
+%       COMPOUNDTRANSIENTWINDOWMS: Number of millseconds pre and post-
+%                       transient to check for compound transient events.
 %                       NOTE: Default is set to 2000 in the main
 %                       'findSessionTransients' function.
 %
@@ -97,6 +102,7 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
         'preminstartms', preminstartms,...
         'preminendms',preminendms,...
         'posttransientms',posttransientms,...
+        'compoundtransientwindowms',compoundtransientwindowms,...
         'quantificationheight',quantificationheight,...
         'outputtransientdata',outputtransientdata);
 
@@ -117,12 +123,18 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
             blstartsamples = floor(fs*(preminstartms/1000));
             blendsamples = floor(fs*(preminendms/1000));
             posttransientsamples = floor(fs*(posttransientms/1000));
+            compoundtransientwindowsamples = floor(fs*(compoundtransientwindowms/1000));
+
+            % FOR OUTPUT TRANSIENT DATA:
+            premaxstart = floor(5*fs);
+            postmaxend = floor(8*fs);
     
             % Find all maxes in stream
             allmaxlocs = find(islocalmax(data(eachfile).(whichstream))); % Find all maxes
             
             % Prepare tables - preallocate size
-            allvarnames = {'transientID','maxloc', 'maxval', 'preminstartloc', 'preminendloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems','fallendloc','fallendval','fallsamples','fallms','widthsamples','widthms','AUC'};
+            allvarnames = {'transientID','maxloc', 'maxval', 'preminstartloc', 'preminendloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems',...
+                'fallendloc','fallendval','fallsamples','fallms','widthsamples','widthms','AUC','IEIsamples','IEIs','compoundeventnum'};
             [allvartypes{1:length(allvarnames)}] = deal('double');
             transientquantification = table('Size',[length(allmaxlocs), length(allvarnames)], 'VariableNames', allvarnames, 'VariableTypes', allvartypes);
     
@@ -131,7 +143,7 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
                 [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
                 transientstreamlocs = table('Size',[length(allmaxlocs), length(transientstreamlocsvarnames)], 'VariableNames', transientstreamlocsvarnames, 'VariableTypes', transientstreamlocsvartypes);
                 [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
-                transientstreamdata = zeros(length(allmaxlocs), (blstartsamples+posttransientsamples+1));
+                transientstreamdata = zeros(length(allmaxlocs), (premaxstart+postmaxend+1));
             end
     
             transientcount = 0;
@@ -175,6 +187,8 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
                     currfallloc = [];
                     currpkAUCdata = [];
                     currAUC = [];
+                    currIEIsamples = [];
+                    currIEIs = [];
     
                     % Quantify rise time
                     pretransientdata = data(eachfile).(whichstream)((currmaxloc-blstartsamples):currmaxloc); % Find pre-transient data
@@ -188,6 +202,7 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
                         posttransientdata = data(eachfile).(whichstream)(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
                     end
                     
+                    % Quantify fall time
                     currfallval = currmaxval - curramp*quantificationheight; % Find the fall value at the input quantification height (default is half height - 0.5)
                     currfallsamples = find(posttransientdata <= currfallval,1,'first'); % Find the number of samples from transient peak to fall end
                     currfallloc = currmaxloc+currfallsamples; % Find the location index of the fall end
@@ -209,6 +224,16 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
                         currAUC = round(trapz(currpkAUCdata));
                     end
                         
+                    % Find interevent interval (IEI)
+                    if transientcount > 1
+                        prevmaxloc = transientquantification.maxloc(transientcount-1);
+                        currIEIsamples = currmaxloc - prevmaxloc;
+                        currIEIs = currIEIsamples/fs;
+                    else
+                        currIEIsamples = NaN;
+                        currIEIs = NaN;
+                    end
+
                     % Add variables to the table 'transientquantification'
                     transientquantification.transientID(transientcount) = transientcount;
                     transientquantification.maxloc(transientcount) = currmaxloc;
@@ -227,25 +252,61 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
                     transientquantification.fallms(transientcount) = (currfallsamples/fs)*1000;
                     transientquantification.widthsamples(transientcount) = currwidthsamples;    
                     transientquantification.widthms(transientcount) = (currwidthsamples/fs)*1000;
-                    transientquantification.AUC(transientcount) = currAUC;    
+                    transientquantification.AUC(transientcount) = currAUC;
+                    transientquantification.IEIsamples(transientcount) = currIEIsamples;
+                    transientquantification.IEIs(transientcount) = currIEIs;
     
                     if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, add transient data stream
                         % Add locs for the cut data streams
                         transientstreamlocs.transientID(transientcount) = transientcount; 
-                        transientstreamlocs.maxloc(transientcount) = blstartsamples;
-                        transientstreamlocs.preminstartloc(transientcount) = 1;
-                        transientstreamlocs.preminendloc(transientcount) = blstartsamples-blendsamples;
-                        transientstreamlocs.risestartloc(transientcount) = blstartsamples-currrisesamples;
-                        transientstreamlocs.fallendloc(transientcount) = blstartsamples+currfallsamples;
+                        transientstreamlocs.maxloc(transientcount) = premaxstart;
+                        transientstreamlocs.blstart(transientcount) = blstartsamples;
+                        transientstreamlocs.blend(transientcount) = currmaxloc-blendsamples;
+                        transientstreamlocs.risestartloc(transientcount) = premaxstart-currrisesamples;
+                        transientstreamlocs.fallendloc(transientcount) = premaxstart+currfallsamples;
+                        
                         % Cut data streams
-                        if (currmaxloc+posttransientsamples) <= length(data(eachfile).(whichstream))
-                            transientstreamdata(transientcount,:) = data(eachfile).(whichstream)(currpreminstartloc:(currpreminstartloc+blstartsamples+posttransientsamples));
+                        if (currmaxloc-premaxstart) >= 1 && (currmaxloc+postmaxend) <= length(data(eachfile).(whichstream))
+                            transientstreamdata(transientcount,:) = data(eachfile).(whichstream)(currmaxloc-premaxstart:currmaxloc+postmaxend);
                         else
-                            transientstreamdata(transientcount,:) = [data(eachfile).(whichstream)(currpreminstartloc:end),NaN(1,(blstartsamples+posttransientsamples)-length(data(eachfile).(whichstream)(currpreminstartloc:end)))];
+                            if (currmaxloc-premaxstart) < 1
+                                premissingsamples = abs(currmaxloc-premaxstart);
+                                prenans = NaN(1,premissingsamples);
+                            else
+                                premissingsamples = 0;
+                                prenans = [];
+                            end
+                            if (currmaxloc+postmaxend) >= length(data(eachfile).(whichstream))
+                                postmissingsamples = abs((postmaxend)-length(data(eachfile).(whichstream)(currmaxloc:end)));
+                                postnans = [NaN(1,postmissingsamples)];
+                            else
+                                postmissingsamples = 0;
+                                postnans = [];
+                            end
+                            streamwithnans = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples-1)),postnans];
+                            streamwithnans = [streamwithnans, NaN(1,(premaxstart+postmaxend+1)-length(streamwithnans))];
+                            transientstreamdata(transientcount,:) = streamwithnans;
                         end
                     end
                 end               
             end
+            
+            % Check for compound peak. 0 = no compound peaks in window; Otherwise, value reflects the event number of the transient relative to the others in the window.
+            for eachtransient = 1:transientcount
+                compoundstart = transientquantification{eachtransient,"maxloc"}-compoundtransientwindowsamples;
+                compoundend = transientquantification{eachtransient,"maxloc"}+compoundtransientwindowsamples;
+
+                transientsbefore = sum(transientquantification{1:transientcount,"maxloc"}>compoundstart & transientquantification{1:transientcount,"maxloc"}<transientquantification{eachtransient,"maxloc"});
+                transientsafter = sum(transientquantification{1:transientcount,"maxloc"}>transientquantification{eachtransient,"maxloc"} & transientquantification{1:transientcount,"maxloc"}<compoundend);
+
+                if (transientsbefore == 0) && (transientsafter == 0)
+                    currcompoundeventnum = 0;
+                else 
+                    currcompoundeventnum = transientsbefore+1;
+                end
+                transientquantification.compoundeventnum(eachtransient) = currcompoundeventnum;
+            end
+
             % Add inputs and transient quantification to the data structure
             data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).inputs = inputs;
             data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);

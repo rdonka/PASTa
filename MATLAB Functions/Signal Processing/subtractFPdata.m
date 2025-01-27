@@ -236,15 +236,15 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 
         % Prepare filters
         if strcmp(filtertype,'bandpass')==true
-            highpasscutoffval = round(highpasscutoff/floor(fs/2),5);
-            lowpasscutoffval = round(lowpasscutoff/floor(fs/2),5);
+            highpasscutoffval = round(highpasscutoff/floor(fs/2),6);
+            lowpasscutoffval = round(lowpasscutoff/floor(fs/2),6);
             [a,b] = butter(filterorder,highpasscutoffval,'high');
             [c,d] = butter(filterorder,lowpasscutoffval,'low');
         elseif strcmp(filtertype, 'highpass')==true
-            highpasscutoffval = round(highpasscutoff/floor(fs/2),5);
+            highpasscutoffval = round(highpasscutoff/floor(fs/2),6);
             [a,b] = butter(filterorder,highpasscutoffval,'high');
         elseif strcmp(filtertype, 'lowpass')==true
-            lowpasscutoffval = round(lowpasscutoff/floor(fs/2),5);
+            lowpasscutoffval = round(lowpasscutoff/floor(fs/2),6);
             [c,d] = butter(filterorder,lowpasscutoffval,'low');
         end
 

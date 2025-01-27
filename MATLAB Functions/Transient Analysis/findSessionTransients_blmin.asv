@@ -1,8 +1,7 @@
-function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,compoundtransientwindowms,quantificationheight,outputtransientdata)
-% FINDSESSIONTRANSIENTS_LOCALMIN  Finds transients for the whole session. 
-%                               Pre-transient baselines are set to the
-%                               local minimum directly preceding the
-%                               transient within the baseline window. 
+function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,compoundtransientwindowms,quantificationheight,outputtransientdata)
+% FINDSESSIONTRANSIENTS_BLMIN   Finds transients for the whole session. 
+%                               Pre-transient baselines are set to the min
+%                               value within the pre-transient window.
 %
 %                               NOTE: This sub-function is called by the
 %                               main function FINDSESSIONTRANSIENTS. If
@@ -35,14 +34,12 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
 %                       of the streams (fs).
 %
 %       PREMINSTARTMS:  Number of millseconds pre-transient to use as the
-%                       start of the baseline window. 
+%                       start of the baseline window.
 %                       NOTE: Default is set to 800 in the main
 %                       'findSessionTransients' function.
 %
 %       PREMINENDMS:    Number of millseconds pre-transient to use as the
-%                       end of the baseline window. If you want to
-%                       determine the absolute local minimum before the
-%                       transient, set this to 0.
+%                       end of the baseline window.
 %                       NOTE: Default is set to 100 in the main
 %                       'findSessionTransients' function.
 %
@@ -57,7 +54,8 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
 %                       'findSessionTransients' function.
 %
 %       QUANTIFICATIONHEIGHT: The height at which to characterize rise time,
-%                       fall time, and AUC. Must be a number between 0 and 1.
+%                       fall time, peak width, and AUC. Must be a number 
+%                       between 0 and 1. 
 %                       NOTE: Default is set to 0.5 in the main
 %                       'findSessionTransients' function.
 %  
@@ -92,10 +90,9 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
 %                       TRANSIENTSTREAMDATA tables will be skipped and not
 %                       included in the output.
 %
-% Written by R M Donka, October 2024.
+% Written by R M Donka, October 2025.
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
-
 
 %% Prepare Settings
 % Import required and optional inputs into a structure
@@ -111,9 +108,9 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
         'outputtransientdata',outputtransientdata);
 
     % Display settings
-    disp("FIND SESSION TRANSIENTS: Peak baseline determined by last local minimum in the specified baseline window. WHICHBLTYPE set to 'localmin'")
-    disp("     SUBFUNCTION: findSessionTransients_localmin")
-    disp(append("     Transient data will be added to data structure as 'sessiontransients_localmin_",whichthreshold,"'." ))
+    disp("FIND SESSION TRANSIENTS: Peak baseline determined by minimum value in the specified baseline window. WHICHBLTYPE set to 'blmin'")
+    disp("     SUBFUNCTION: findSessionTransients_blmin")
+    disp(append("     Transient data will be added to data structure as 'sessiontransients_blmin_",whichthreshold,"'." ))
 
     disp('INPUTS:') % Display all input values
     disp(inputs)
@@ -128,18 +125,13 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
             blendsamples = floor(fs*(preminendms/1000));
             posttransientsamples = floor(fs*(posttransientms/1000));
             compoundtransientwindowsamples = floor(fs*(compoundtransientwindowms/1000));
-
+            
             % FOR OUTPUT TRANSIENT DATA:
             premaxstart = floor(5*fs);
             postmaxend = floor(8*fs);
     
             % Find all maxes and mins in stream
             allmaxlocs = find(islocalmax(data(eachfile).(whichstream))); % Find all maxes
-            allminlocs = find(islocalmin(data(eachfile).(whichstream))); % Find all mins
-    
-            if allmaxlocs(1) < allminlocs(1) % If the first max is without a min, remove it
-                allmaxlocs = allmaxlocs(2:end);
-            end
     
             % Prepare tables - preallocate size
             allvarnames = {'transientID','maxloc', 'maxval', 'preminloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems',...
@@ -165,6 +157,7 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                 currminloc = [];
                 currminval = [];
                 curramp = [];
+
                 
                 % Determine peak variables for inclusion
                 currmaxloc = allmaxlocs(eachmax); % Index of current max in data stream
@@ -177,10 +170,8 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                     continue
                 end
     
-                allpreminlocs = allminlocs(allminlocs > currpreminstartloc & allminlocs < currpreminendloc); % Indexes of all mins that are between the baseline start and end point relative to the current max
-    
-                currminloc = allpreminlocs(find(allpreminlocs < allmaxlocs(eachmax),1,'last')); % Index of the pre-transient local minimum (last min point in the baseline window) in the data stream
-                currminval = data(eachfile).(whichstream)(currminloc); % Find the value of pre-transient local minimum
+                currminval = min(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)); % Find the value of pre-transient baseline window minimum
+                currminloc = currpreminstartloc+find(currminval == data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
                 curramp = currmaxval-currminval; % Find the amplitude of the current transient relative to baseline
     
                 if curramp >= data(eachfile).(whichthreshold) % If the current transient amplitude is greater than the threshold, quantify and add it to the table 'transientquantification'
@@ -195,7 +186,7 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                     currfallval = [];
                     currfallsamples = [];
                     currfallloc = [];
-                    currpkAUCdata = [];
+                    currAUCdata = [];
                     currAUC = [];
                     currIEIsamples = [];
                     currIEIs = [];
@@ -229,11 +220,11 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                         currAUC = NaN;
                     else % Calculate width and AUC (tranpezoidal method)
                         currwidthsamples = currfallloc - currriseloc;
-                        currpkAUCdata = data(eachfile).(whichstream)(currriseloc:currfallloc);
-                        currpkAUCdata = currpkAUCdata - min(currpkAUCdata);
-                        currAUC = round(trapz(currpkAUCdata));
+                        currAUCdata = data(eachfile).(whichstream)(currriseloc:currfallloc);
+                        currAUCdata = currAUCdata - min(currAUCdata);
+                        currAUC = round(trapz(currAUCdata));
                     end
-
+                        
                     % Find interevent interval (IEI)
                     if transientcount > 1
                         prevmaxloc = transientquantification.maxloc(transientcount-1);
@@ -263,11 +254,10 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                     transientquantification.fallms(transientcount) = (currfallsamples/fs)*1000;
                     transientquantification.widthsamples(transientcount) = currwidthsamples;    
                     transientquantification.widthms(transientcount) = (currwidthsamples/fs)*1000;
-                    transientquantification.AUC(transientcount) = currAUC;    
+                    transientquantification.AUC(transientcount) = currAUC;
                     transientquantification.IEIsamples(transientcount) = currIEIsamples;
                     transientquantification.IEIs(transientcount) = currIEIs;
-
-
+    
                     if outputtransientdata == 1 % OPTIONAL: If outputtransientdata is set to 1, add transient data stream
                         % Add locs for the cut data streams
                         transientstreamlocs.transientID(transientcount) = transientcount; 
@@ -296,9 +286,9 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                                 postmissingsamples = 0;
                                 postnans = [];
                             end
-                            streamwithnans = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples-1)),postnans];
-                            streamwithnans = [streamwithnans, NaN(1,(premaxstart+postmaxend+1)-length(streamwithnans))];
-                            transientstreamdata(transientcount,:) = streamwithnans;
+                            streamwithnans = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples):end),postnans];
+                            streamwithnans = [streamwithnans, NaN(1,)]
+                            transientstreamdata(transientcount,:) = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples):end),postnans];
                         end
                     end
                 end               
@@ -321,13 +311,13 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
             end
 
             % Add inputs and transient quantification to the data structure
-            data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).inputs = inputs;
-            data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
+            data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).inputs = inputs;
+            data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
             
             % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
             if outputtransientdata == 1
-                data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
-                data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).transientstreamdata = transientstreamdata(1:transientcount,:);
+                data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
+                data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientstreamdata = transientstreamdata(1:transientcount,:);
             end
         catch ME
             fprintf('   ERROR: %s\n', ME.message);

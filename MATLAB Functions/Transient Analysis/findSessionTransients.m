@@ -108,6 +108,7 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
         'preminstartms', [],...
         'preminendms',[],...
         'posttransientms',[],...
+        'compoundtransientwindowms',[],...
         'quantificationheight',[],...
         'outputtransientdata',[]);
     maininputs = parseArgsLite(varargin,maininputs);
@@ -136,6 +137,12 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
     else
         posttransientms = maininputs.posttransientms;
     end
+    if isempty(maininputs.compoundtransientwindowms) % Window to search before and after each event for compound transients
+        compoundtransientwindowms = 2000; % Default is 2000 ms
+        maininputs.compoundtransientwindowms = compoundtransientwindowms;
+    else
+        posttransientms = maininputs.posttransientms;
+    end
     if isempty(maininputs.quantificationheight) % Height for rise/fall/AUC; defaults to 0.5 (half height)
         quantificationheight = 0.5; 
         maininputs.quantificationheight = quantificationheight;
@@ -151,11 +158,11 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 
 %% Call findSessionTransients subfunctions: findSessionTransients_blmin, findSessionTransients_blmean, or findSessionTransients_localmin
     if strcmp(whichbltype,'blmin') == true
-        [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,quantificationheight,outputtransientdata);
+        [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,compoundtransientwindowms,quantificationheight,outputtransientdata);
     elseif strcmp(whichbltype,'blmean') == true
-        [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,quantificationheight,outputtransientdata);
+        [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,compoundtransientwindowms,quantificationheight,outputtransientdata);
     elseif strcmp(whichbltype,'localmin') == true
-        [data] = findSessionTransients_localmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,quantificationheight,outputtransientdata);
+        [data] = findSessionTransients_localmin(data,whichstream,whichthreshold,whichfs,preminstartms,preminendms,posttransientms,compoundtransientwindowms,quantificationheight,outputtransientdata);
     else
         disp("ERROR: No viable transient baseline type specific. WHICHBLTYPE must be set to 'blmin', 'blmean', or 'localmin'")
     end

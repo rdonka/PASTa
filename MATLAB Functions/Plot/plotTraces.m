@@ -1,6 +1,6 @@
 function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
 % PLOTTRACES    Plots whole session fiber photometry traces. This function
-%               will plot the streams sig, baq, baq_scaled, sigsub, and
+%               will plot the streams sig, baq, baqscaled, sigsub, and
 %               sigfilt. Use this function in a loop to plot streams for
 %               all sessions in the data structure.
 %
@@ -126,7 +126,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     nexttile;
     hold on;
     plot(data(whichfile).sig, 'Color', sigcolor);
-    plot(data(whichfile).baq_scaled, 'Color', baqcolor);
+    plot(data(whichfile).baqscaled, 'Color', baqcolor);
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);

@@ -1,7 +1,7 @@
 function [allffts] = plotFFTs(data,whichfile,maintitle,whichfs,varargin)
 % PLOTFFTs      Creates frequency magnitude plots of fiber photometry 
 %               streams. This function will take the FFTs and plot the 
-%               streams sig, baq, baq_scaled, sigsub, and sigfilt. Use this 
+%               streams sig, baq, baqscaled, sigsub, and sigfilt. Use this 
 %               function in a loop to make plots for all sessions in the 
 %               data structure.
 %
@@ -48,7 +48,7 @@ disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(wh
 %% Prep FFTs
 [sigFFT,sigF] = preparestreamFFT(data(whichfile).sig,data(whichfile).(whichfs));
 [baqFFT,baqF] = preparestreamFFT(data(whichfile).baq,data(whichfile).(whichfs));
-[baqscaledFFT,baqscaledF] = preparestreamFFT(data(whichfile).baq_scaled,data(whichfile).(whichfs));
+[baqscaledFFT,baqscaledF] = preparestreamFFT(data(whichfile).baqscaled,data(whichfile).(whichfs));
 [sigsubFFT,sigsubF] = preparestreamFFT(data(whichfile).sigsub,data(whichfile).(whichfs));
 [sigfiltFFT,sigfiltF] = preparestreamFFT(data(whichfile).sigfilt,data(whichfile).(whichfs));
 

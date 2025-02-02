@@ -3,7 +3,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 %                   specified signal channel and applies a Butterworth 
 %                   filter. Outputs data as dF/F (default) or dF.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
 %
 % INPUTS:
 %   DATA:               Data structure; A data structure that contains at 
@@ -364,7 +364,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

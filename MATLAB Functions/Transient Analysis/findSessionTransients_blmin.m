@@ -127,8 +127,8 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
             compoundtransientwindowsamples = floor(fs*(compoundtransientwindowms/1000));
             
             % FOR OUTPUT TRANSIENT DATA:
-            premaxstart = floor(5*fs);
-            postmaxend = floor(8*fs);
+            premaxstart = floor(2*fs);
+            postmaxend = floor(3*fs);
     
             % Find all maxes and mins in stream
             allmaxlocs = find(islocalmax(data(eachfile).(whichstream))); % Find all maxes
@@ -286,7 +286,7 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
                                 postmissingsamples = 0;
                                 postnans = [];
                             end
-                            streamwithnans = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples-1)),postnans];
+                            streamwithnans = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples)),postnans];
                             streamwithnans = [streamwithnans, NaN(1,(premaxstart+postmaxend+1)-length(streamwithnans))];
                             transientstreamdata(transientcount,:) = streamwithnans;
                         end

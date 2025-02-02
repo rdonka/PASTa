@@ -296,22 +296,22 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                 sig = detrend(sig)+sigmean; % Detrend signal
                 bls = polyfit(baq,sig,1); % Fit background to signal with least-squares linear regression
                 baqscaled = (bls(1).*baq)+ bls(2); % Fit to signal
-                data(eachfile).baq_detrend = baq; % Add detrended signal to data
-                data(eachfile).sig_detrend = sig; % Add detrended background to data
+                data(eachfile).baqdetrend = baq; % Add detrended signal to data
+                data(eachfile).sigdetrend = sig; % Add detrended background to data
             elseif strcmp('smoothedOLS',baqscalingtype)==true % Lowess smoothing and OLS regression scaling; Per pMAT, see Bruno et al 2021, https://www.sciencedirect.com/science/article/abs/pii/S0091305720307413?via=ihub#f0020
                 baq=smooth(baq,0.002,'lowess')'; 
                 sig=smooth(sig,0.002,'lowess')';
                 bls=polyfit(baq(1:end),sig(1:end),1);
                 baqscaled=bls(1).*baq+bls(2);
-                data(eachfile).baq_smoothed = baq; % Add detrended signal to data
-                data(eachfile).sig_smoothed = sig; % Add detrended background to data
+                data(eachfile).baqsmoothed = baq; % Add detrended signal to data
+                data(eachfile).sigsmoothed = sig; % Add detrended background to data
             elseif strcmp('IRLS',baqscalingtype)==true % IRLS regression scaling; See Keevers et al 2024, https://www.researchsquare.com/article/rs-3549461/v2
                 IRLS_coeffs = reshape(flipud(robustfit(baq, sig, 'bisquare', 1.4, 'on')), [1, 2]);
                 baqscaled = polyval(IRLS_coeffs,baq);
             else
                 disp(append('ERROR: Baq scaling type issue - baqscalingtype set to ', baqscalingtype, '. Function inputs limited to frequency, sigmean, OLS, detrendedOLS, smoothedOLS, or IRLS.'));
             end
-            data(eachfile).(append(whichbaqfield,'_scaled')) =  baqscaled; % Add scaled background to data frame
+            data(eachfile).(append(whichbaqfield,'scaled')) =  baqscaled; % Add scaled background to data frame
 
         %% Subtract data
             if strcmp(subtractionoutput,'dff')==true % Output delta F/F

@@ -135,7 +135,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
         baqscalingtype = inputs.baqscalingtype;
     end
     if isempty(inputs.baqscalingfreq)
-        baqscalingfreq = 5; % Background scaling frequency defaults to 5 Hz
+        baqscalingfreq = 10; % Background scaling frequency defaults to 10 Hz
         inputs.baqscalingfreq = baqscalingfreq;
     else
         baqscalingfreq = inputs.baqscalingfreq;
@@ -269,7 +269,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
             end
 
         %% Scale Background: apply the selected background scaling method.
-            if strcmp('frequency',baqscalingtype)==true % Frequency domain scaling - scales to power
+            if strcmp('frequency',baqscalingtype)==true % Frequency domain scaling - power
                 baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
                 sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
 
@@ -279,15 +279,22 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                 sigFidxs = sigF > baqscalingfreq; % Find indices of frequencies above the set threshold
                 baqFidxs = baqF > baqscalingfreq; % Find indices of frequencies above the set threshold
 
-                sigPower = sigFFT(sigFidxs).^2; % Compute average power in the selected band
-                baqPower = baqFFT(baqFidxs).^2; % Compute average power in the selected band
+                % 4) Compute average power in the selected band.
+                %    Since sigFFT and baqFFT are amplitudes, power = amplitude^2:
+                sigPower = sigFFT(sigFidxs).^2;
+                baqPower = baqFFT(baqFidxs).^2;
 
-                powerRatio = mean(sigPower) / mean(baqPower); % Find the ratio of mean powers between signal and background (same as RMS)
+                % 5) The ratio of mean powers = (mean of signal power) / (mean of background power).
+                %    But the scaling factor for amplitude is the sqrt of that ratio:
+                powerRatio = mean(sigPower) / mean(baqPower);
                 baqscalingfactor = sqrt(powerRatio) * baqscalingperc;  % or remove baqscalingperc if not needed
 
+                % 6) Scale the background to match signal’s power above 10 Hz,
+                %    then add back the signal’s mean if you want them to match baseline levels:
+                baqscaled = (baq_centered .* baqscalingfactor) + mean(sig);
                 baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
                 data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
-            elseif strcmp('frequency_amplitude',baqscalingtype)==true % Frequency domain scaling - scales to amplitude
+            elseif strcmp('frequency_amplitude',baqscalingtype)==true % Frequency domain scaling - based on amplitude
                 baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
                 sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
 
@@ -298,8 +305,6 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                 baqFidxs = baqF > baqscalingfreq; % Find indices of frequencies above the set threshold
 
                 baqscalingfactor = (mean(sigFFT(sigFidxs))/mean(baqFFT(baqFidxs)))*baqscalingperc; % Find power ratio of signal to background for frequencies above the set threshold
-                baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
-
                 data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
             elseif strcmp('sigmean',baqscalingtype)==true % Signal mean time domain scaling
                 baqscalingfactor = (mean(sig)/(mean(baq)))*baqscalingperc; % Find the scaling factor for background to signal based on the ratio of the means

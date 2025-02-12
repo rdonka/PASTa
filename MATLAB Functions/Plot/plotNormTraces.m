@@ -1,4 +1,4 @@
-function [normtrace] = plotNormTrace(data,whichfile,whichstream,whichfs,maintitle,varargin)
+function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maintitle,streamtitles,varargin)
 % PLOTTRACES    Plots whole session fiber photometry traces. This function
 %               will plot the streams sig, baq, baq_scaled, sigsub, and
 %               sigfilt. Use this function in a loop to plot streams for
@@ -13,9 +13,9 @@ function [normtrace] = plotNormTrace(data,whichfile,whichstream,whichfs,maintitl
 %       WHICHFILE:      The file number to plot (this can be set in a for
 %                       loop to plot all files).
 %
-%       WHICHSTREAM:    The name (string) of the field in the data
-%                       structure containing the normalized (Z scored) 
-%                       stream to be plotted.
+%       WHICHSTREAMS:   A cell array containing the names (string) of the 
+%                       fields in the data structure containing the normalized 
+%                       (Z scored) stream to be plotted.
 %
 %       WHICHFS:        String; The name of the field that contains the
 %                       sampling rate of the stream used for transient
@@ -49,9 +49,9 @@ function [normtrace] = plotNormTrace(data,whichfile,whichstream,whichfs,maintitl
         'plotfilepath',[]);
     inputs = parseArgsLite(varargin,inputs);
 
-    disp(append('PLOTNORMTRACE: Plotting normalized trace for file: ',num2str(whichfile)))
-    disp(append('   whichstream: ',whichstream))
-
+    disp(append('PLOTNORMTRACES: Plotting normalized traces for file: ',num2str(whichfile)))
+    disp(append('   whichstreams: '))
+    disp(whichstreams)
 
     % Prepare defaults and check for optional inputs
     if isempty(inputs.saveoutput)
@@ -65,44 +65,68 @@ function [normtrace] = plotNormTrace(data,whichfile,whichstream,whichfs,maintitl
         disp('   ERROR: SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
     end
 
-%% Prep colors
+    %% Prep colors
     signormcolor = '#1300b6';
     
-%% Prep axis variables
-    currxlength = length(data(whichfile).(whichstream));
-    currxmins = (length(data(whichfile).(whichstream))/data(whichfile).(whichfs))/60; % Find total number of minutes per session - helper variable to determine ticks
-    currxticklabels = 0:5:floor(currxmins/5)*5;
-    currxticks = floor(currxticklabels.*60.*data(whichfile).(whichfs)); % Determine x axis ticks - add ticks every 5 minutes
-
-    ymax = ceil(max(data(whichfile).(whichstream))+(0.1*max(data(whichfile).(whichstream))));
-    ymin = floor(min(data(whichfile).(whichstream))-(0.1*min(data(whichfile).(whichstream))));
-    yticksize = round((ymax-ymin)/4,0); % Find size of ticks to generate 5 y axis ticks total
-    curryticks = ymin:yticksize:ymax;
-
-%% Plot traces
+    %% Prep tiled layout
+    ntiles = length(whichstreams); % Number of tiles
+    
     close all
-    % Create tiled layout
-    normtrace = tiledlayout(1, 1, 'Padding','compact', 'TileSpacing','compact');
+    normtraces = tiledlayout(ntiles, 1, 'Padding','compact', 'TileSpacing','compact');
+        
+    %% Prep y axis variables
+    streammax = 0;
+    streammin = 0;
+    for eachstream = 1:length(whichstreams)
+        currstream = char(whichstreams(eachstream));
+        % Find max
+        currstreammax = max(data(whichfile).(currstream));
+        if currstreammax > streammax
+            streammax = currstreammax;
+        end
+        % Find min
+        currstreammin = min(data(whichfile).(currstream));
+        if currstreammin < streammin
+            streammin = currstreammin;
+        end
+    end
+    
+    ymax = ceil(max(data(whichfile).(currstream))+(0.1*max(data(whichfile).(currstream))));
+    ymin = floor(streammin-(0.1*streammin));
+    yticksize = round((ymax-ymin)/4,0); % Find size of ticks to generate 5 y axis ticks total
+    yticklocs = ymin:yticksize:ymax;
 
-    % Plot normalized signal
-    nexttile;
-    hold on;
-    plot(data(whichfile).(whichstream), 'Color', signormcolor);
-    xlim([0 currxlength]);
-    xticks(currxticks);
-    xticklabels(currxticklabels);
-    ylim([ymin ymax]);
-    yticks(curryticks);
-    title('Normalized Signal');
-    xlabel('Minute');
-    ylabel('Z Score');
-    hold off;
-   
+    %% Plot each stream
+    for eachstream = 1:length(whichstreams)
+        currstream = char(whichstreams(eachstream));
+        currstreamtitle = char(streamtitles(eachstream));
+        
+        % Prep x axis variables
+        currxlength = length(data(whichfile).(currstream));
+        currxmins = (length(data(whichfile).(currstream))/data(whichfile).(whichfs))/60; % Find total number of minutes per session - helper variable to determine ticks
+        currxticklabels = 0:5:floor(currxmins/5)*5;
+        currxticks = floor(currxticklabels.*60.*data(whichfile).(whichfs)); % Determine x axis ticks - add ticks every 5 minutes
+    
+        % Plot normalized signal
+        nexttile;
+        hold on;
+        plot(data(whichfile).(currstream), 'Color', signormcolor);
+        xlim([0 currxlength]);
+        xticks(currxticks);
+        xticklabels(currxticklabels);
+        ylim([ymin ymax]);
+        yticks(yticklocs);
+        title(currstreamtitle);
+        xlabel('Minute');
+        ylabel('Z Score');
+        hold off;
+    end
+
     % Add a main title for the entire tiled layout
-    title(normtrace, maintitle);
+    title(normtraces, maintitle);
 
     if saveoutput == 1
-        set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75]);
+        set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntiles]);
         exportgraphics(gcf,append(plotfilepath, '.png'),'Resolution',300)
     end
 end

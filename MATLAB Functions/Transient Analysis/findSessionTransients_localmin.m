@@ -206,7 +206,7 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                     currrisesamples = length(pretransientdata) - find(pretransientdata >= currriseval,1,'first'); % Find the number of samples from rise start to transient peak
                     currriseloc = currmaxloc-currrisesamples; % Find the location index of the rise start
     
-                    if (currmaxloc + posttransientsamples) > length(data(eachfile).(whichstream)) % Find post-transient data; check if post-transient period is within the length of the session
+                    if (currmaxloc + posttransientsamples) < length(data(eachfile).(whichstream)) % Find post-transient data; check if post-transient period is within the length of the session
                         posttransientdata = data(eachfile).(whichstream)(currmaxloc:(currmaxloc+posttransientsamples));
                     else
                         posttransientdata = data(eachfile).(whichstream)(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
@@ -218,10 +218,10 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
                     currfallloc = currmaxloc+currfallsamples; % Find the location index of the fall end
                  
                     if isempty(currfallsamples) % Catch for if no post-transient fall location is found
-                        disp('WARNING: NO FALL FOUND FOR PEAK')
-                        disp(transientcount)
-                        disp('    Peak index: ')
-                        disp(currmaxloc)
+                        %disp('WARNING: NO FALL FOUND FOR PEAK')
+                        %disp(transientcount)
+                        %disp('    Peak index: ')
+                        %disp(currmaxloc)
                         currfallval = NaN; % NaN out fall variables
                         currfallsamples = NaN;
                         currfallloc = NaN;

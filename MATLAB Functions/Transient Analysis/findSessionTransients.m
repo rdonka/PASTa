@@ -1,5 +1,5 @@
 function [data] = findSessionTransients(data,whichbltype,whichstream,whichthreshold,whichfs,varargin)
-% FINDSESSIONTRANSIENTS_BLMIN   Finds transients for the whole session. Use
+% FINDSESSIONTRANSIENTS         Finds transients for the whole session. Use
 %                               of this main function will set default values
 %                               for parameters not specific as optional inputs.
 %

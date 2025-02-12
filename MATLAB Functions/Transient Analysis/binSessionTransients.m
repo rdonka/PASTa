@@ -4,7 +4,7 @@ function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,
 %                           a bin based on it's location within the
 %                           session.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
 %
 % INPUTS:
 %       DATA:               Data structure; This is a structure that contains 
@@ -136,7 +136,7 @@ function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

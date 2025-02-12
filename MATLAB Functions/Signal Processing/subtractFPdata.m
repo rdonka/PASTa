@@ -135,7 +135,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
         baqscalingtype = inputs.baqscalingtype;
     end
     if isempty(inputs.baqscalingfreq)
-        baqscalingfreq = 5; % Background scaling frequency defaults to 5 Hz
+        baqscalingfreq = 6; % Background scaling frequency defaults to 6 Hz
         inputs.baqscalingfreq = baqscalingfreq;
     else
         baqscalingfreq = inputs.baqscalingfreq;
@@ -276,7 +276,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                 [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
                 [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
 
-                sigFidxs = sigF > baqscalingfreq; % Find indices of frequencies above the set threshold
+                sigFidxs = sigF > baqscalingfreq ; % Find indices of frequencies above the set threshold
                 baqFidxs = baqF > baqscalingfreq; % Find indices of frequencies above the set threshold
 
                 sigPower = sigFFT(sigFidxs).^2; % Compute average power in the selected band

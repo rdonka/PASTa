@@ -269,7 +269,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
             end
 
         %% Scale Background: apply the selected background scaling method.
-            if strcmp('frequency',baqscalingtype)==true % Frequency domain scaling - scales to power
+            if strcmp('frequency_power',baqscalingtype)==true % Frequency domain scaling - scales to power
                 baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
                 sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
 
@@ -287,7 +287,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 
                 baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
                 data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
-            elseif strcmp('frequency_amplitude',baqscalingtype)==true % Frequency domain scaling - scales to amplitude
+            elseif strcmp('frequency',baqscalingtype)==true % Frequency domain scaling - scales to amplitude
                 baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
                 sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
 

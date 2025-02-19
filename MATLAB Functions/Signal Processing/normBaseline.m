@@ -34,8 +34,8 @@ disp(append('   Normalized data will be output to the field: ',whichstream, 'z_n
     for eachfile = 1:length(data)
         disp(append('   NORMALIZING: File ',num2str(eachfile)))
         try
-            BLmean = mean(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend))); % Find the mean of the session baseline
-            BLsd = std(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend))); % Find the standard deviation of the session baseline
+            BLmean = mean(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend)),"omitmissing"); % Find the mean of the session baseline
+            BLsd = std(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend)),"omitmissing"); % Find the standard deviation of the session baseline
     
             data(eachfile).(append(whichstream,'z_normbaseline')) = (data(eachfile).(whichstream) - BLmean)/BLsd; % Z score the whole session to the baseline
         catch

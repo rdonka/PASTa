@@ -311,6 +311,9 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
             data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).inputs = inputs;
             data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
             
+            % Display how many transients were found
+            disp(append('   Total Transients: ',num2str(transientcount)))
+            
             % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
             if outputtransientdata == 1
                 data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);

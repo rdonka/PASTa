@@ -313,6 +313,9 @@ function [data] = findSessionTransients_blmin(data,whichstream,whichthreshold,wh
             % Add inputs and transient quantification to the data structure
             data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).inputs = inputs;
             data(eachfile).(append('sessiontransients_blmin_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
+
+            % Display how many transients were found
+            disp(append('   Total Transients: ',num2str(transientcount)))
             
             % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
             if outputtransientdata == 1

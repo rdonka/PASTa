@@ -324,6 +324,9 @@ function [data] = findSessionTransients_localmin(data,whichstream,whichthreshold
             data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).inputs = inputs;
             data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
             
+            % Display how many transients were found
+            disp(append('   Total Transients: ',num2str(transientcount)))
+
             % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
             if outputtransientdata == 1
                 data(eachfile).(append('sessiontransients_localmin_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);

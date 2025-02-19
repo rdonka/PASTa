@@ -96,7 +96,7 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
     for eachfile = 1:length(data)
 
         eachfiletransients = data(eachfile).(whichtransients).(whichtransientstable);
-
+        
         for eachvariable = 1:length(addvariables)
             currvariable = char(addvariables(eachvariable));
             try 
@@ -105,7 +105,12 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
                 disp(append('WARNING: File number ',num2str(eachfile), ' - failed to add variable: ', currvariable))
             end
         end
-        alltransients = vertcat(alltransients,eachfiletransients);
+
+        if isempty(eachfiletransients)
+            disp(append('   WARNING: Transient quantification table empty for file ', num2str(eachfile)))
+        else
+            alltransients = vertcat(alltransients,eachfiletransients);
+        end
     end
 
     alltransients = movevars(alltransients,addvariables,"Before",1);

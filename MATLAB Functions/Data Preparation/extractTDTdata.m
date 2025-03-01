@@ -112,9 +112,6 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
                 disp(append('     Signal stream: ',currsigname)) % Display current file signal field name
                 disp(append('     Background stream: ',currbaqname)) % Display current file background field name
 
-                k = strfind(alldata.info.blockname,'-'); % Helper variable to pull out subject
-                blockdata(1).Subject = alldata.info.blockname(1:k(1)-1); % Add subject ID to data
-        
                 blockdata.date = alldata.info.date; % Add date to data 
                 blockdata.sessionduration = alldata.info.duration; % Add session duration to data
                 blockdata.starttime = alldata.info.utcStartTime;

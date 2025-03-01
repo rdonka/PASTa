@@ -1,11 +1,11 @@
 function [allffts] = plotFFTpower(data,whichfile,maintitle,whichfs,varargin)
-% PLOTFFTs      Creates frequency magnitude plots of fiber photometry 
+% PLOTFFTPOWER  Creates frequency power plots of fiber photometry 
 %               streams. This function will take the FFTs and plot the 
 %               streams sig, baq, baqscaled, sigsub, and sigfilt. Use this 
 %               function in a loop to make plots for all sessions in the 
 %               data structure.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
 %
 % INPUTS:
 %       DATA:           This is a structure that contains at least the
@@ -24,7 +24,7 @@ function [allffts] = plotFFTpower(data,whichfile,maintitle,whichfs,varargin)
 % OPTIONAL INPUTS:
 %       XMAX:           Frequency cutoff for the x axis. Frequencies above
 %                       this value will be excluded from the plots. To plot
-%                       all frequencies, set to 'actual'. Default: 40.
+%                       all frequencies, set to 'actual'. Default: 100.
 %
 %       SAVEOUTPUT:     Set to 1 to automatically save trace plots as png 
 %                       to the plot file path. Default: 0.
@@ -74,7 +74,7 @@ sigfiltPower = sigfiltFFT.^2;
         saveoutput = inputs.saveoutput;
     end
     if isempty(inputs.xmax)
-        xmax = 30; % Defaults to 30 - cuts off the x axis of the plot at 20 Hz
+        xmax = 100; % Defaults to 30 - cuts off the x axis of the plot at 20 Hz
         inputs.xmax = xmax;
         disp(append('  X axis (frequency) max cut off at: ',num2str(xmax),' hz'))
     elseif strcmp('actual', inputs.xmax)
@@ -102,8 +102,8 @@ sigfiltPower = sigfiltFFT.^2;
     currxticks = 0:currxticksize:xmax;
 
     fftymax = 10^1;
-    fftymin = 10^-12;
-    fftyticks = [10^-12, 10^-6, 10^0];
+    fftymin = 10^-20;
+    fftyticks = [10^-20, 10^-10, 10^0];
 
 %% Plot traces
     close all
@@ -214,7 +214,7 @@ sigfiltPower = sigfiltFFT.^2;
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

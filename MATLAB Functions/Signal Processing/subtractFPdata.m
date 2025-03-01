@@ -44,11 +44,19 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 %                           regression to generate scaled background.
 %                       Default: 'frequency'.
 %
-%   BAQSCALINGFREQ:     Numeric; Only used with 'frequency' baqscaling. 
-%                       Frequency (Hz) threshold for scaling the background 
-%                       to signal channel. Frequencies above this value
-%                       will be included in the scaling factor determination.
+%   BAQSCALINGFREQMIN:  Numeric; Only used with 'frequency' baqscaling. 
+%                       Frequency (Hz) minimum threshold for scaling the 
+%                       background to signal channel. Frequencies above 
+%                       this value will be included in the scaling factor 
+%                       determination.
 %                       Default: 10 Hz.
+%
+%   BAQSCALINGFREQMAX:  Numeric; Only used with 'frequency' baqscaling. 
+%                       Frequency (Hz) maximum threshold for scaling the 
+%                       background to signal channel. Frequencies below 
+%                       this value will be included in the scaling factor 
+%                       determination.
+%                       Default: 100 Hz.
 %
 %   BAQSCALINGPERC:     Numeric; Only used with 'frequency' and 'sigmean' 
 %                       baqscaling. Adjusts the background scaling factor 
@@ -113,7 +121,8 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
         'whichbaqfield',[],...
         'whichfs',[],...
         'baqscalingtype',[],...
-        'baqscalingfreq',[],...
+        'baqscalingfreqmin',[],...
+        'baqscalingfreqmax',[],...
         'baqscalingperc', [],...
         'subtractionoutput',[],...
         'artifactremoval',[],...
@@ -138,11 +147,17 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
     else
         baqscalingtype = inputs.baqscalingtype;
     end
-    if isempty(inputs.baqscalingfreq)
-        baqscalingfreq = 8; % Background scaling frequency defaults to 6 Hz
-        inputs.baqscalingfreq = baqscalingfreq;
+    if isempty(inputs.baqscalingfreqmin)
+        baqscalingfreqmin = 10; % Background scaling frequency min defaults to 10 Hz
+        inputs.baqscalingfreqmin = baqscalingfreqmin;
     else
-        baqscalingfreq = inputs.baqscalingfreq;
+        baqscalingfreqmin = inputs.baqscalingfreqmin;
+    end
+    if isempty(inputs.baqscalingfreqmax)
+        baqscalingfreqmax = 100; % Background scaling frequency max defaults to 100 Hz
+        inputs.baqscalingfreqmax = baqscalingfreqmax;
+    else
+        baqscalingfreqmax = inputs.baqscalingfreqmax;
     end
     if isempty(inputs.baqscalingperc)
         baqscalingperc = 1; % Background scaling percent defaults to 100%
@@ -208,7 +223,7 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
 %% Display subtraction settings
     if suppressdisp == 0
         if strcmp(baqscalingtype,'frequency')==true % Display for frequency background scaling - default
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(baqscalingfreq), 'hz). Subtracted signal will be output as ', subtractionoutput, ' to data.sigsub.'));
+            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(baqscalingfreqmin), 'hz). Subtracted signal will be output as ', subtractionoutput, ' to data.sigsub.'));
         elseif strcmp(baqscalingtype,'sigmean')==true % Display for signal mean background scaling
             disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with signal mean scaling. Subtracted signal will be output as ', subtractionoutput, ' to data.sigsub.'));
             disp(append('WARNING: ','Deviation from PASTa protocol default in baqscalingtype.'));
@@ -290,8 +305,8 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                 [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
                 [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
 
-                sigFidxs = sigF > baqscalingfreq ; % Find indices of frequencies above the set threshold
-                baqFidxs = baqF > baqscalingfreq; % Find indices of frequencies above the set threshold
+                sigFidxs = sigF > baqscalingfreqmin & sigF < baqscalingfreqmax; % Find indices of frequencies above the set min threshold and below the set max threshold
+                baqFidxs = baqF > baqscalingfreqmin & baqF < baqscalingfreqmax; % Find indices of frequencies above the set min threshold and below the set max threshold
 
                 sigPower = sigFFT(sigFidxs).^2; % Compute average power in the selected band
                 baqPower = baqFFT(baqFidxs).^2; % Compute average power in the selected band
@@ -308,8 +323,8 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                 [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
                 [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
 
-                sigFidxs = sigF > baqscalingfreq; % Find indices of frequencies above the set threshold
-                baqFidxs = baqF > baqscalingfreq; % Find indices of frequencies above the set threshold
+                sigFidxs = sigF > baqscalingfreqmin; % Find indices of frequencies above the set threshold
+                baqFidxs = baqF > baqscalingfreqmin; % Find indices of frequencies above the set threshold
 
                 baqscalingfactor = (mean(sigFFT(sigFidxs))/mean(baqFFT(baqFidxs)))*baqscalingperc; % Find power ratio of signal to background for frequencies above the set threshold
                 baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
@@ -402,7 +417,6 @@ function [data] = subtractFPdata(data,whichsigfield,whichbaqfield,whichfs,vararg
                     data(eachfile).sigfilt = filtdata;
                 end
             end
-
 
             %% OPTIONAL: Remove artifact periods from filtered signal
             % Filtering can't include NaNs in streams, so sigsub with artifacts replaced by signal mean is passed to filter. 

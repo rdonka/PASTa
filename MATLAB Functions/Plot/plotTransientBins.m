@@ -124,7 +124,6 @@ function [allbins] = plotTransientBins(data,whichfile,whichstream,whichtransient
     
     % Add a main title for the entire tiled layout
     title(allbins, maintitle);
-    fontsize(allbins,scale=.8)
 
     if saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);

@@ -1,11 +1,11 @@
-function [allffts] = plotFFTs(data,whichfile,maintitle,whichfs,varargin)
-% PLOTFFTs      Creates frequency magnitude plots of fiber photometry 
+function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
+% PLOTFFTMAG    Creates frequency magnitude plots of fiber photometry 
 %               streams. This function will take the FFTs and plot the 
 %               streams sig, baq, baqscaled, sigsub, and sigfilt. Use this 
 %               function in a loop to make plots for all sessions in the 
 %               data structure.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
 %
 % INPUTS:
 %       DATA:           This is a structure that contains at least the
@@ -43,7 +43,7 @@ function [allffts] = plotFFTs(data,whichfile,maintitle,whichfs,varargin)
 % Stored in the PASTa GitHub Repository, see the user guide for additional
 % documentation: https://rdonka.github.io/PASTa/
 
-disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(whichfile)))
+disp(append('PLOTFFTMAG: Plotting frequency magnitude plots for file: ',num2str(whichfile)))
 
 %% Prep FFTs
 [sigFFT,sigF] = preparestreamFFT(data(whichfile).sig,data(whichfile).(whichfs));
@@ -67,7 +67,7 @@ disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(wh
         saveoutput = inputs.saveoutput;
     end
     if isempty(inputs.xmax)
-        xmax = 40; % Defaults to 40 - cuts off the x axis of the plot at 20 Hz
+        xmax = 100; % Defaults to 100 - cuts off the x axis of the plot at 100 Hz
         inputs.xmax = xmax;
         disp(append('  X axis (frequency) max cut off at: ',num2str(xmax),' hz'))
     elseif strcmp('actual', inputs.xmax)
@@ -94,9 +94,9 @@ disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(wh
     currxticksize = floor(xmax/20); % Find total number of minutes per session - helper variable to determine ticks
     currxticks = 0:currxticksize:xmax;
 
-    fftymax = 10^1;
-    fftymin = 10^-7;
-    fftyticks = [10^-6, 10^-3, 10^0];
+    fftymax = 10^2;
+    fftymin = 10^-8;
+    fftyticks = [10^-8, 10^-4, 10^0];
 
 %% Plot traces
     close all
@@ -207,7 +207,7 @@ disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(wh
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

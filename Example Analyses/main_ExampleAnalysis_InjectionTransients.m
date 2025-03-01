@@ -94,13 +94,24 @@ for eachfile = 1:length(data)
 end
 
 %% Plot whole session FFT magnitude plots for each file
-% Use plotFFTs to plot all frequency magnitude plots - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
+% Use plotFFTmag to plot all frequency magnitude plots - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
 for eachfile = 1:length(data)
     maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    allffts = plotFFTs(data,eachfile,maintitle,'fs');
+    allffts = plotFFTmag(data,eachfile,maintitle,'fs','xmax',100);
 
     set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
-    plotfilepath = append(figurepath,'SessionFFTs_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
+    plotfilepath = append(figurepath,'SessionFFTmag_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
+    exportgraphics(gcf,plotfilepath,'Resolution',300)
+end
+
+%% Plot whole session FFT power plots for each file
+% Use plotFFTpower to plot all frequency magnitude plots - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
+for eachfile = 1:length(data)
+    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    allffts = plotFFTpower(data,eachfile,maintitle,'fs','xmax',100);
+
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
+    plotfilepath = append(figurepath,'SessionFFTpower_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
     exportgraphics(gcf,plotfilepath,'Resolution',300)
 end
 

@@ -22,8 +22,7 @@ disp(append('NORM SESSION: Normalizing ',whichstream,' to whole session mean and
 disp(append('   Normalized data will be output to the field: ',whichstream, 'z_normsession'))
     for eachfile = 1:length(data)
         disp(append('     NORMALIZING: File ',num2str(eachfile)))
-        %data(eachfile).(append(whichstream, 'z_normsession')) = zscore(data(eachfile).(whichstream)); % Z score whole session
-        data(eachfile).(append(whichstream, 'z_normsession')) = (data(eachfile).(whichstream)-mean(data(eachfile).(whichstream),"omitmissing"))/std(data(eachfile).(whichstream),"omitmissing");
+        data(eachfile).(append(whichstream, 'z_normsession')) = (data(eachfile).(whichstream)-mean(data(eachfile).(whichstream),"omitnan"))/std(data(eachfile).(whichstream),"omitnan");
     end
 end
 

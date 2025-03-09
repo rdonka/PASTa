@@ -1,32 +1,40 @@
 function [data] = normSession(data,whichstream)
-% NORMSESSION    Normalizes the data stream to zscore based on the whole session.
+% NORMSESSION    Normalizes a specified data stream to z-score based on the entire session.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%   NORMSESSION(DATA, WHICHSTREAM) normalizes the data stream specified by WHICHSTREAM
+%   within the DATA structure to its z-score, using the mean and standard deviation
+%   calculated over the entire session. The normalized data is added to the DATA
+%   structure with the field name '<whichStream>_z_normsession'.
 %
-% INPUTS:
-%       DATA:           Data structure; Must contain at least the stream 
-%                       specified to be normalized.
+% REQUIRED INPUTS:
+%       DATA          - Structure array; each element represents a session
+%                       and must contain the field specified by WHICHSTREAM.
 %
-%       WHICHSTREAM:    String; The name of the field containing the stream 
-%                       to be normalized.
-% OUTPUTS:
-%       DATA:           Data structure; The original data structure with 
-%                       'data.WHICHSTREAMz_normsession' added.
+%       WHICHSTREAM   - String; the name of the field within DATA to be normalized.
 %
-% Written by R M Donka, August 2024.
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+%   OUTPUTS:
+%       DATA           - Structure array; the original DATA structure with an added
+%                       field '<whichStream>_z_normsession' containing the normalized data.
+%
+%   EXAMPLE:
+%       % Assuming 'data' is a structure array with a field 'sigfilt':
+%       data = normSession(data, 'sigfilt');
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
-%% Normalize to whole session
-disp(append('NORM SESSION: Normalizing ',whichstream,' to whole session mean and standard deviation.'))
-disp(append('   Normalized data will be output to the field: ',whichstream, 'z_normsession'))
+%% Normalize to whole session mean and SD
+disp(['NORMSESSION: Normalizing ',whichstream,' to whole session mean and standard deviation.'])
+disp(['   Normalized data will be output to the field: ',whichstream, 'z_normsession'])
     for eachfile = 1:length(data)
         disp(append('     NORMALIZING: File ',num2str(eachfile)))
         data(eachfile).(append(whichstream, 'z_normsession')) = (data(eachfile).(whichstream)-mean(data(eachfile).(whichstream),"omitnan"))/std(data(eachfile).(whichstream),"omitnan");
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

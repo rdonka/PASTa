@@ -1,9 +1,39 @@
 function [data] = normCustom(data,whichfullstream,whichcustomstream)
-% NORMSESSION    Normalizes the whole session data stream based on a
+% NORMCUSTOM    Normalizes the whole session data stream based on a
 %                custom period input as a separate stream field.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%   NORMBASELINE(DATA, WHICHSTREAM, WHICHBLSTART, WHICHBLEND) normalizes 
+%   the data stream specified by WHICHSTREAM within the DATA structure to 
+%   its z-score, using the mean and standard deviation calculated over the 
+%   session baseline defined by WHICHBLSTART and WHICHBLEND. The normalized 
+%   data is added to the DATA structure with the field name 
+%   '<whichStream>_z_normsession'.
 %
+% REQUIRED INPUTS:
+%   DATA                - Structure array; each element represents a session
+%                         and must contain the fields specified by WHICHFULLSTREAM
+%                         and WHICHCUSTOMSTREAM.
+%
+%   WHICHFULLSTREAM     - String; The name of the field containing the full 
+%                         data stream to be normalized.
+%
+%   WHICHCUSTOMSTREAM   - String; The name of the field containing the cut 
+%                         data stream to use as the reference for
+%                         normalization.
+%
+%   OUTPUTS:
+%       DATA:           Structure array; the original DATA structure with an added
+%                       field '<whichStream>_z_normcustom' containing the normalized data.
+%
+%   EXAMPLE:
+%       % Assuming 'data' is a structure array with a field 'sigfilt':
+%       data = normCustom(data, 'sigfilt', 'customsigfilt');
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+
+
 % INPUTS:
 %       DATA:           Data structure; Must contain at least the stream to 
 %                       be normalized, baseline start field, and baseline 

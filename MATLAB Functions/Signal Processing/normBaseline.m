@@ -1,50 +1,57 @@
 function [data] = normBaseline(data,whichstream,whichblstart,whichblend)
-% NORMSESSION    Normalizes the whole session data stream based on a
-%                baseline period.
+% NORMBASELINE    Normalizes a specified data stream to z-score based on the 
+%                 session baseline period.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%   NORMBASELINE(DATA, WHICHSTREAM, WHICHBLSTART, WHICHBLEND) normalizes 
+%   the data stream specified by WHICHSTREAM within the DATA structure to 
+%   its z-score, using the mean and standard deviation calculated over the 
+%   session baseline defined by WHICHBLSTART and WHICHBLEND. The normalized 
+%   data is added to the DATA structure with the field name 
+%   '<whichStream>_z_normsession'.
 %
-% INPUTS:
-%       DATA:           Data structure; Must contain at least the stream to 
-%                       be normalized, baseline start field, and baseline 
-%                       end field.
+% REQUIRED INPUTS:
+%       DATA          - Structure array; each element represents a session and must
+%                       contain the field specified by WHICHSTREAM.
 %
-%       WHICHSTREAM:    String; The name of the field containing the data 
-%                       stream to be normalized.
+%       WHICHSTREAM   - String; the name of the field within DATA to be normalized.
 %
-%       WHICHBLSTART:   String; The name of the field containing the index 
+%       WHICHBLSTART  - String; The name of the field containing the index 
 %                       of the start of the baseline period.
 %
-%       WHICHBLEND:     String; The name of the field containing the index 
+%       WHICHBLEND    - String; The name of the field containing the index 
 %                       of the end of the baseline period.
 %
-% OUTPUTS:
-%       DATA:           Data structure; This is the original data structure 
-%                       with 'data.WHICHSTREAMz_normbaseline' added.
+%   OUTPUTS:
+%       DATA:           Structure array; the original DATA structure with an added
+%                       field '<whichStream>_z_normbaseline' containing the normalized data.
 %
-% Written by R M Donka, August 2024.
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+%   EXAMPLE:
+%       % Assuming 'data' is a structure array:
+%       data = normBaseline(data, 'sigfilt', 'blstart', 'blend');
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 
 %% Normalize to session baseline
-disp(append('NORM BASELINE: Normalizing ',whichstream,' to session baseline mean and standard deviation.'))
-disp(append('   Baseline defined by ',whichblstart,' and ',whichblend,'.'))
-disp(append('   Normalized data will be output to the field: ',whichstream, 'z_normbaseline'))
+disp(['NORMBASELINE: Normalizing ',whichstream,' to session baseline mean and standard deviation.'])
+disp(['   Baseline defined by ',whichblstart,' and ',whichblend,'.'])
+disp(['   Normalized data will be output to the field: ',whichstream, 'z_normbaseline'])
 
     for eachfile = 1:length(data)
-        disp(append('   NORMALIZING: File ',num2str(eachfile)))
+        disp(['   NORMALIZING: File ',num2str(eachfile)])
         try
             BLmean = mean(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend)),"omitnan"); % Find the mean of the session baseline
             BLsd = std(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend)),"omitnan"); % Find the standard deviation of the session baseline
     
             data(eachfile).(append(whichstream,'z_normbaseline')) = (data(eachfile).(whichstream) - BLmean)/BLsd; % Z score the whole session to the baseline
         catch
-            disp(append('WARNING: File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream)) 
+            warning(['WARNING: File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream]) 
         end
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

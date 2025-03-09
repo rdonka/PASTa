@@ -33,7 +33,7 @@ baqstreamnames = {'x05A', '405A'}; % All names of background streams across file
 rawfolderpaths = string({experimentkey.RawFolderPath})'; % Create string array of raw folder paths
 extractedfolderpaths = string({experimentkey.ExtractedFolderPath})'; % Create string array of extracted folder paths
 
-extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames); % extract data
+extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames,'trim',1); % extract data
 
 %% Load data
 % Load previously extracted data blocks and tie to experiment key. 
@@ -394,7 +394,6 @@ risemsbar.CData(1,:) = [0 0 1];  % Blue for Saline
 risemsbar.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 risemsymax]);
-yline(3);
 ylabel('Rise (ms)')
 title('Transient Rise Duration (Whole Session)')
 hold off
@@ -407,9 +406,8 @@ risemsbarpre.CData(1,:) = [0 0 1];  % Blue for Saline
 risemsbarpre.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 risemsymax]);
-yline(3);
 ylabel('Rise (ms)')
-title('Transient Rise Duration (Pre-Injection)')risems
+title('Transient Rise Duration (Pre-Injection)')
 hold off
 
 nexttile
@@ -420,7 +418,6 @@ risemsbarpost.CData(1,:) = [0 0 1];  % Blue for Saline
 risemsbarpost.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 risemsymax]);
-yline(3);
 ylabel('Rise (ms)')
 title('Transient Rise Duration (Post-Injection)')
 hold off
@@ -443,7 +440,6 @@ fallmsbar.CData(1,:) = [0 0 1];  % Blue for Saline
 fallmsbar.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 fallmsymax]);
-yline(3);
 ylabel('Fall (ms)')
 title('Transient Fall Duration (Whole Session)')
 hold off
@@ -456,7 +452,6 @@ fallmsbarpre.CData(1,:) = [0 0 1];  % Blue for Saline
 fallmsbarpre.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 fallmsymax]);
-yline(3);
 ylabel('Fall (ms)')
 title('Transient Fall Duration (Pre-Injection)')
 hold off
@@ -469,7 +464,6 @@ fallmsbarpost.CData(1,:) = [0 0 1];  % Blue for Saline
 fallmsbarpost.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 fallmsymax]);
-yline(3);
 ylabel('Fall (ms)')
 title('Transient Fall Duration (Post-Injection)')
 hold off
@@ -492,7 +486,6 @@ AUCbar.CData(1,:) = [0 0 1];  % Blue for Saline
 AUCbar.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 AUCymax]);
-yline(3);
 ylabel('AUC')
 title('Transient AUC (Whole Session)')
 hold off
@@ -505,7 +498,6 @@ AUCbarpre.CData(1,:) = [0 0 1];  % Blue for Saline
 AUCbarpre.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 AUCymax]);
-yline(3);
 ylabel('AUC')
 title('Transient AUC (Pre-Injection)')
 hold off
@@ -518,7 +510,6 @@ AUCbarpost.CData(1,:) = [0 0 1];  % Blue for Saline
 AUCbarpost.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 AUCymax]);
-yline(3);
 ylabel('AUC')
 title('Transient AUC (Post-Injection)')
 hold off
@@ -528,7 +519,7 @@ plotfilepath = append(figurepath,'OverallTransientBar_AUC','.png');
 exportgraphics(gcf,plotfilepath,'Resolution',300)
 
 % Bar graph of transient IEIs by treatment condition (Saline vs Morphine)
-IEIsymax = ceil(max([overalltransientsummary.IEIs, overalltransientsummary.IEIs_pre, overalltransientsummary.IEIs_post]))+200;
+IEIsymax = ceil(max([overalltransientsummary.IEIs, overalltransientsummary.IEIs_pre, overalltransientsummary.IEIs_post]))+2;
 
 close all
 IEIsplot = tiledlayout(1,3,'TileSpacing','compact');
@@ -541,7 +532,6 @@ IEIsbar.CData(1,:) = [0 0 1];  % Blue for Saline
 IEIsbar.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 IEIsymax]);
-yline(3);
 ylabel('Inter Event Interval (s)')
 title('Transient IEI (Whole Session)')
 hold off
@@ -554,7 +544,6 @@ IEIsbarpre.CData(1,:) = [0 0 1];  % Blue for Saline
 IEIsbarpre.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 IEIsymax]);
-yline(3);
 ylabel('Inter Event Interval (s)')
 title('Transient IEI (Pre-Injection)')
 hold off
@@ -567,7 +556,6 @@ IEIsbarpost.CData(1,:) = [0 0 1];  % Blue for Saline
 IEIsbarpost.CData(2,:) = [1 0 0];  % Red for Morphine
 xlim([0.5 2.5]);  % Or [0.7 2.3], etc., as desired
 ylim([0 IEIsymax]);
-yline(3);
 ylabel('Inter Event Interval (s)')
 title('Transient IEI (Post-Injection)')
 hold off

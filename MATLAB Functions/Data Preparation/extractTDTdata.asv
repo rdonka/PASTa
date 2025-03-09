@@ -63,13 +63,14 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 %
 %   See also: TDTbin2mat
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
     %% Prepare Settings
     % Prepare default values
-    defaultparameters = configDefaultParameters();
+    defaultparameters = configDefaultParameters(); % For more details on default parameter values, see help configDefaultParameters.
 
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details

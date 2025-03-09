@@ -63,7 +63,7 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 %
 %   See also: TDTbin2mat
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 

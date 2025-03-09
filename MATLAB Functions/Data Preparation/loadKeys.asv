@@ -46,40 +46,34 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
-%% Load the Subject Key and File Key CSV files as tables
-% If 'subjectkeyname' is non-empty, merge the subject and file keys. Otherwise, just load the file key.
-
-    if strcmp(subjectkeyname, "") == 0 % Subject key is provided, so read both and then attempt to join
+%% Load in the subject key and file key csv files as tables
+    if strcmp(subjectkeyname, "") == 0 % If the subject key name is not empty, match it to the file key 
         subjectkey = readtable(subjectkeyname, 'Decimal',',', 'Delimiter',','); % Load subject key
         filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',','); % Load file key
-        try 
-            % Merge the file key and subject key into one table, then convert to struct
-            [experimentkey] = table2struct(join(filekey, subjectkey));
+        try
+            [experimentkey] = table2struct(join(filekey, subjectkey)); % Merge the subject and file keys into data structure called experimentkey
         catch
-            % If join fails, likely the subject IDs in file key don't appear in subject key
-            fprintf('ERROR: Could not join file key [%s] and subject key [%s].\n', filekeyname, subjectkeyname);
-            fprintf('       Check that all "Subject" values in the file key exist in the subject key.\n\n');
+            fprintf(1,'ERROR joining file key and subject key. The key variable for the right table must contain all values in the key variable for the left table.');
+            disp(' ');
+            disp('Check that all subject IDs contained in the file key are contained in the subject key.');
             disp('Unique Subject IDs in Subject Key:');
             disp(unique(subjectkey.SubjectID));
             disp('Unique Subject IDs in File Key:');
             disp(unique(filekey.SubjectID));
-
-            % Return error
-            error('loadKeys:JoinError', 'Failed to join the subject and file key tables.');
         end
-    else % No subject key provided, so only read the file key
+    else % If the subejct key name is empty, only load the file key    
         filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',',');
         [experimentkey] = table2struct(filekey);
     end
     
-    % Append the computer user path and folder name to each record.
-    % The 'Folder' field is appended to the end of 'RawFolderPath' and 'ExtractedFolderPath', while COMPUTERUSERPATH is prepended to both
-    for eachfile = 1:length(experimentkey) % Prepend user path and append folder name
-        [experimentkey(eachfile).RawFolderPath] = strcat(computeruserpath, experimentkey(eachfile).RawFolderPath, experimentkey(eachfile).Folder);
-        [experimentkey(eachfile).ExtractedFolderPath] = strcat(computeruserpath, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).Folder);
+    % Add full filepath to the experiment key by combining the parent folder path and the specific computer user path
+    for eachfile = 1:length(experimentkey)
+        [experimentkey(eachfile).RawFolderPath] = strcat(computeruserpath, experimentkey(eachfile).RawFolderPath, experimentkey(eachfile).Folder); % Raw file path
+        [experimentkey(eachfile).ExtractedFolderPath] = strcat(computeruserpath, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).Folder); % Output path for the figures
     end
 end
 
+% -------------------------------------------------------------------------
 % Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by

@@ -166,7 +166,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     hold off;
     
     % Add a main title for the entire tiled layout
-    title(alltraces, maintitle);
+    title(alltraces, maintitle, 'Interpreter', 'none');
 
     if saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);

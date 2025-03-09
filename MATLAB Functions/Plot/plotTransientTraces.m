@@ -1,4 +1,4 @@
-function [alltransienttracebins] = plotTransientTracesBins(data,whichfile,maintitle,whichfs,whichtransients,varargin)
+function [alltransienttraces] = plotTransientTraces(data,whichfile,maintitle,whichfs,whichtransients,varargin)
 % PLOTTRANSIENTTRACESBINS    Plots traces of each transient by bin.
 %
 % Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
@@ -33,7 +33,7 @@ function [alltransienttracebins] = plotTransientTracesBins(data,whichfile,mainti
 %                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine.png'
 %
 % OUTPUT:
-%       ALLTRANSIENTTRACEBINS: A plot object containing subplots for each
+%       ALLTRANSIENTTRACES:    A plot object containing subplots for each
 %                              bin.
 %
 % Stored in the PASTa GitHub Repository, see the user guide for additional
@@ -45,7 +45,7 @@ function [alltransienttracebins] = plotTransientTracesBins(data,whichfile,mainti
         'plotfilepath',[]);
     inputs = parseArgsLite(varargin,inputs);
 
-    disp(append('PLOTTRANSIENTTRACESBINS: Plotting session traces for file: ',num2str(whichfile)))
+    disp(append('PLOTTRANSIENTTRACES: Plotting all transient traces for file: ',num2str(whichfile)))
 
     % Prepare defaults and check for optional inputs
     if isempty(inputs.saveoutput)
@@ -65,49 +65,47 @@ function [alltransienttracebins] = plotTransientTracesBins(data,whichfile,mainti
     sigsubcolor = '#00C296';
     sigfiltcolor = '#4CBB17';
     
-%% Prep axis variables
-    nbins = data(whichfile).(whichtransients).BinSettings.nbins;
-    binfieldname = append('Bin_',num2str(data(whichfile).(whichtransients).BinSettings.binlengthmins));
-    
+%% Prep axis variables 
     currxlength = length(data(whichfile).(whichtransients).transientstreamdata);
-    currxseconds = currxlength/data(whichfile).fs; % Find total number of minutes per session - helper variable to determine ticks
+    currxseconds = currxlength/data(whichfile).(whichfs); % Find total number of minutes per session - helper variable to determine ticks
     currxticklabels = 0:.5:currxseconds;
-    currxticks = currxticklabels.*data(whichfile).fs; % Determine x axis ticks - add ticks every 5 minutes
+    currxticks = currxticklabels.*data(whichfile).(whichfs); % Determine x axis ticks - add ticks every 5 minutes
 
     ymax = ceil(max(data(whichfile).(whichtransients).transientstreamdata, [], 'all')+(0.1*max(data(whichfile).(whichtransients).transientstreamdata, [], 'all')));
     ymin = floor(min(data(whichfile).(whichtransients).transientstreamdata, [], 'all')-(0.1*min(data(whichfile).(whichtransients).transientstreamdata, [], 'all')));
     yticksize = round((ymax-ymin)/4,0); % Find size of ticks to generate 5 y axis ticks total
     curryticks = ymin:yticksize:ymax;
+    
+    if contains(data(whichfile).(whichtransients).inputs.whichstream, 'z') == 1
+        currylabel = 'Z Score';
+    else
+        currylabel = 'df/f';
+    end
 
 %% Plot traces
     close all
 
     % Create tiled layout
-    alltransienttracebins = tiledlayout(ceil(nbins/5), 5, 'Padding','compact', 'TileSpacing','compact');
+    alltransienttraces = tiledlayout(1, 1, 'Padding','compact', 'TileSpacing','compact');
 
-    % Plot raw signal
-    for eachbin = 1:nbins
-        bintransients = find(data(whichfile).(whichtransients).transientquantification.(binfieldname) == eachbin);
-        nexttile;
-        set(gca, 'ColorOrder', lines(length(bintransients)), 'NextPlot', 'replacechildren');
-        hold on;
-        plot(data(whichfile).(whichtransients).transientstreamdata(bintransients,:)');
-        xlim([0 currxlength]);
-        xticks(currxticks);
-        xticklabels(currxticklabels);
-        ylim([ymin ymax]);
-        yticks(curryticks);
-        title(append('Bin ', num2str(eachbin)));
-        xlabel('Seconds');
-        ylabel('Z Score');
-        hold off;
-    end
+    nexttile;
+    set(gca, 'ColorOrder', lines(height(data(whichfile).(whichtransients).transientstreamdata)), 'NextPlot', 'replacechildren');
+    hold on;
+    plot(data(whichfile).(whichtransients).transientstreamdata');
+    xlim([0 currxlength]);
+    xticks(currxticks);
+    xticklabels(currxticklabels);
+    ylim([ymin ymax]);
+    yticks(curryticks);
+    xlabel('Seconds');
+    ylabel(currylabel);
+    hold off;
    
     % Add a main title for the entire tiled layout
-    title(alltransienttracebins, maintitle);
+    title(alltransienttraces, maintitle);
 
     if saveoutput == 1
-        set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 1.75*ntraces]);
+        set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 8]);
         exportgraphics(gcf,append(plotfilepath, '.png'),'Resolution',300)
     end
 end

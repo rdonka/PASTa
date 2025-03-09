@@ -12,11 +12,20 @@ function [artifactremovaldata] = removeStreamArtifacts(datastream,whichstream,fs
 %       FS              - Numeric; Sampling rate of the data stream (Hz).
 %
 % OPTIONAL INPUT NAME-VALUE PAIRS:
-%       'outlierthresholdk'     - (default=3) Multiplier for outlier threshold detection.
-%       'artifactremovalwindow'        - (default=0.3) Seconds before and after an artifact to replace with NaNs.
-%       'artifactampthresh_max' - (default=8) Standard deviation threshold for high artifacts.
-%       'artifactampthresh_min' - (default=8) Standard deviation threshold for low artifacts.
-%       'bucketsizeSecs'        - (default=30) Time window (s) for amplitude and mean calculations.
+%       'outlierthresholdk'     - Numeric, Integer; Multiplier for outlier 
+%                                 threshold detection. Default: 3
+%
+%       'artifactremovalwindow' - Numeric; Seconds before and after an 
+%                                 artifact to replace with NaNs. Default: 0.3
+%
+%       'artifactampthresh_max' - Numeric; Standard deviation threshold for 
+%                                 high artifacts. Default: 8
+%
+%       'artifactampthresh_min' - Numeric; Standard deviation threshold for 
+%                                 low artifacts. Default: 8
+%
+%       'bucketsizeSecs'        - Numeric; Bucket time window length 
+%                                 (seconds) for amplitude and mean calculations.
 %
 % OUTPUTS:
 %       ARTIFACTREMOVALDATA - Struct containing:

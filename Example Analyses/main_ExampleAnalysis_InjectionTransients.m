@@ -72,7 +72,7 @@ sigfield = 'sig';
 baqfield = 'baq';
 fsfield = 'fs';
 
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
+[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'artifactremoval',1); % adds sigsub and sigfilt to data frame
 
 %% Plot whole session streams for each file
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.

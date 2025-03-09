@@ -40,12 +40,12 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 %                               treated as background.
 %
 %  OPTIONAL INPUT NAME-VALUE PAIRS:
-%       'trim'        - (numeric, default=5) Number of seconds to trim  
-%                       from the start and end of each recording.
+%       'trim'        - Numeric; Number of seconds to trim from the start 
+%                       and end of each recording. Default: 5
 % 
-%       'skipexisting'- (0 or 1, default=1) If 1, skip extracting any
+%       'skipexisting'-  Numeric (0 or 1); If 1, skip extracting any
 %                       session for which an output file already exists.
-%                       If 0, re-extract and overwrite.
+%                       If 0, re-extract and overwrite. Default: 1
 %
 %   EXAMPLE:
 %       % Suppose you have 3 TDT blocks for which you want to extract data:

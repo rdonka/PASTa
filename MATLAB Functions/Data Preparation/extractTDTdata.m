@@ -1,66 +1,75 @@
 function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames,varargin)
-% EXTRACTTDTDATA    Extracts and saves raw fiber photometry data collected
-%                   via Tucker Davis Technologies program Synapse, which
-%                   saves raw data into a block structure.
+% EXTRACTTDTDATA  Extract and save fiber photometry data from TDT blocks
+%                 (Synapse, Tucker Davis Technologies).
 %
-% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
+%   EXTRACTTDTDATA(RAWFOLDERPATHS, EXTRACTEDFOLDERPATHS, SIGSTREAMNAMES, 
+%   BAQSTREAMNAMES, 'PARAM1', VAL1, 'PARAM2', VAL2, ...) reads raw TDT block 
+%   data from the folders specified in RAWFOLDERPATHS, extracts signal and 
+%   background streams, trims the data, and saves the results to 
+%   EXTRACTEDFOLDERPATHS in MATLAB .mat files.
 %
-% INPUTS:
-%   RAWFOLDERPATHS:     String array; contains the full paths to the folder 
-%                       location of the raw data blocks to be extracted. 
-%                       The string array should contain one column with 
-%                       each full path in a separate row. If using the
-%                       loadKeys function, this can be created from the
-%                       experiment key. 
-%                       For example:
-%                       rawfolderpaths = string({experimentkey.RawFolderPath})';
+%   It searches for one matching "signal" stream (from SIGSTREAMNAMES) and
+%   one matching "background" stream (from BAQSTREAMNAMES) in each TDT
+%   block. If multiple possible stream names are provided, the function
+%   attempts to match any of them. The final extracted data structure 
+%   is saved as: 
+%         <ExtractedFolderPath>_extracted.mat
 %
-%   EXTRACTEDFOLDERPATHS: String array; contains the full paths to the folder 
-%                       location in which to save the extracted MATLAB 
-%                       structs for each block to be extracted. The string 
-%                       array should contain one column with each full path 
-%                       in a separate row. If using the loadKeys function, 
-%                       this can be created from the experiment key. 
-%                       For example:
-%                       extractedfolderpaths = string({experimentkey.ExtractedFolderPath})';
+% REQUIRED INPUTS:
+%       RAWFOLDERPATHS        - String array of raw TDT block folder paths.
+%                               The string array should contain one column 
+%                               with each full path in a separate row. If 
+%                               using the loadKeys function, this can be 
+%                               created from the experiment key. For example:
+%                                   rawfolderpaths = string({experimentkey.RawFolderPath})';
 %
-%   SIGSTREAMNAMES:     Cell array; contains strings with the names of
-%                       the streams to be treated as signal.
-%                       NOTE: Only one stream per file can be treated as
-%                       signal. If different files have different signal
-%                       stream names, include all signal stream name
-%                       variations in the cell array.
-%                       For example: sigstreamnames = {'x65A', '465A', 'x465A'};
+%       EXTRACTEDFOLDERPATHS  - String array of corresponding output paths 
+%                               where extracted data is saved. If using the 
+%                               loadKeys function, this can be created from 
+%                               the experiment key. For example: 
+%                                   extractedfolderpaths = string({experimentkey.ExtractedFolderPath})';
 %
-%   BAQSTREAMNAMES:     Cell array; contains strings with the names of
-%                       the streams to be treated as background. 
-%                       NOTE: Only one stream per file can be loaded to
-%                       background. If different files have different 
-%                       background stream names, include all background 
-%                       stream name variations in the cell array.
-%                       For example: baqstreamnames = {'x05A', '405A', 'x405A'};
+%       SIGSTREAMNAMES        - Cell array of possible stream names for 
+%                               the "signal" channel (e.g. {'x65A','465A'}). 
+%                               NOTE: Only one stream per file can be
+%                               treated as signal.
 %
-% OPTIONAL INPUTS:
-%   TRIM:               Numeric; Specified number of seconds to trim at the 
-%                       beginning and end of the session.
-%                       Default: 5
+%       BAQSTREAMNAMES        - Cell array of possible stream names for the 
+%                               "background" channel (e.g. {'x05A','405A'}).
+%                               NOTE: Only one stream per file can be
+%                               treated as background.
 %
-%   SKIPEXISTING:       Numeric; A binary variable. If set to 1, blocks 
-%                       that have already been extracted will be skipped.
-%                       If set to 0, pre-existing extracted blocks will be
-%                       re-extracted.
-%                       Default: 1
+%  OPTIONAL INPUT NAME-VALUE PAIRS:
+%       'trim'        - (numeric, default=5) Number of seconds to trim  
+%                       from the start and end of each recording.
+% 
+%       'skipexisting'- (0 or 1, default=1) If 1, skip extracting any
+%                       session for which an output file already exists.
+%                       If 0, re-extract and overwrite.
 %
-% OUTPUTS:
-%       Saves the blockdata data structure to the ExtractedFolderPath with
-%       the naming convention "ORIGINALFOLDERNAME_extracted.mat'
+%   EXAMPLE:
+%       % Suppose you have 3 TDT blocks for which you want to extract data:
+%       rawPaths       = ["C:\Data\Rat1\Block-1", ...
+%                         "C:\Data\Rat1\Block-2", ...
+%                         "C:\Data\Rat1\Block-3"];
+%       extractedPaths = ["C:\Data\Rat1\Extracted\Block-1", ...
+%                         "C:\Data\Rat1\Extracted\Block-2", ...
+%                         "C:\Data\Rat1\Extracted\Block-3"];
+%       sigNames       = {'x65A','465A','x465A'};
+%       baqNames       = {'x05A','405A','x405A'};
 %
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+%       extractTDTdata(rawPaths, extractedPaths, sigNames, baqNames, ...
+%           'trim', 10, 'skipexisting', 0);
+%
+%   See also: TDTbin2mat
+%
+% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
     %% Prepare Settings
     % Prepare default values
-    defaultparameters = configDefaultParameters();
+    defaultparameters = configDefaultParameters(); % For more details on default parameter values, see help configDefaultParameters.
 
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
@@ -86,26 +95,35 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 
     %% Extract Raw Data
     for eachfile = 1:length(rawfolderpaths)
-        blockdata = struct(); % Prepare block data structure
-        blockdata.RawFolderPath = char(rawfolderpaths(eachfile)); % Pull out raw folder path
-        blockdata.ExtractedFolderPath = char(extractedfolderpaths(eachfile)); % Pull out extracted folder path
+        % Prepare a new block data structure for this file
+        blockdata = struct();
+        blockdata.RawFolderPath = char(rawfolderpaths(eachfile));
+        blockdata.ExtractedFolderPath = char(extractedfolderpaths(eachfile));
 
-        outfile = strcat(blockdata.ExtractedFolderPath, '_extracted.mat');  % Construct the name for the extracted file
+        % Construct output file name (where the extracted data will be saved)
+        extractedMatFile = strcat(blockdata.ExtractedFolderPath, '_extracted.mat');
         
-        if params.skipexisting == 1 && isfile(outfile) % If skipexisting is set to 1, skip already extracted files
-            fprintf('Skipping file #%d (already exists): %s\n', eachfile, outfile);
+        % If set to skip existing files, check whether the output .mat already exists
+        if params.skipexisting == 1 && isfile(extractedMatFile)
+            fprintf('Skipping file #%d (already exists): %s\n', eachfile, extractedMatFile);
             continue
-        else % Extract block data
+        else
+            % Attempt to load and process the TDT block
             try
                 fprintf('Extracting file #%d: %s\n', eachfile, blockdata.RawFolderPath); % Display which file is loading
-                alldata=TDTbin2mat(blockdata.RawFolderPath); % Load in all data using TDTbin2mat - see function for details.
+
+                % Read in the entire TDT block data using TDTbin2mat - see function for details.
+                alldata=TDTbin2mat(blockdata.RawFolderPath);
         
-                streams = string(fieldnames(alldata.streams)); % Find all stream names
-                epocs = string(fieldnames(alldata.epocs)); % Find all epoc names
+                % Identify all stream and epoc fields
+                streams = string(fieldnames(alldata.streams)); % Find all stream names for the current file
+                epocs = string(fieldnames(alldata.epocs)); % Find all epoc names for the current file
                 
+                % Find the signal and background stream names for the current file
                 currsigname = char(streams(ismember(streams,sigstreamnames))); % Extract the name of the signal field for the current file
                 currbaqname = char(streams(ismember(streams,baqstreamnames))); % Extract the name of the background field for the current file
 
+                % Display warning if no matching signal or background was found
                 if isempty(currsigname)
                     warning('No valid SIGNAL stream found for file #%d.', eachfile);
                 end
@@ -116,26 +134,34 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
                 disp(append('     Signal stream: ',currsigname)) % Display current file signal field name
                 disp(append('     Background stream: ',currbaqname)) % Display current file background field name
 
+                % Pull out timing/metadata
                 blockdata.date = alldata.info.date; % Add date to data 
                 blockdata.sessionduration = alldata.info.duration; % Add session duration to data
                 blockdata.starttime = alldata.info.utcStartTime;
                 blockdata.stoptime = alldata.info.utcStopTime;
-        
-                blockdata.fs = alldata.streams.(currsigname).fs; % Add sampling rate for each file to double check for consistency
                 
+                % Add the sampling rate for the signal stream
+                blockdata.fs = alldata.streams.(currsigname).fs;
+
+                % Trim the data at the beginning and end, as specified
                 trimsamples = round(params.trim*blockdata.fs); % Find number of samples to trim from beginning and end of session
                 blockdata.sig = double(alldata.streams.(currsigname).data((trimsamples+1):end-trimsamples)); % Add signal to the data structure and trim
                 blockdata.baq = double(alldata.streams.(currbaqname).data((trimsamples+1):end-trimsamples)); % Add background to the data structure and trim
 
-                for eachepoc = 1:length(epocs) % Adjust each epoc for trimming; Uses epoc onset
+                % Adjust epoc event times for the trimmed data based on epoc onset
+                for eachepoc = 1:length(epocs)
                     thisepoc = char(epocs(eachepoc));
                     blockdata.(thisepoc) = round(((alldata.epocs.(thisepoc).onset-alldata.time_ranges(1)).*blockdata.fs)-(trimsamples));
                 end
+
+                % Add a record of which function + parameters were used
                 blockdata.extractFunction  = mfilename;
                 blockdata.params = params;
             
-                save(outfile,'-struct', 'blockdata'); % Save the extracted data structure to the extracted folder path location
-            catch ME % If errors occur, usually the issue is that files cannot be located. Check paths. Loop continues to the next file.
+                % Save the extracted data struct as <ExtractedFolderPath>_extracted.mat
+                save(extractedMatFile,'-struct', 'blockdata');
+
+            catch ME % % If there's an error (e.g., path not found), log it and continue.
                 fprintf('ERROR extracting file #%d. Verify raw and extract file paths.\n', eachfile);
                 fprintf('   Raw path: %s\n', blockdata.RawFolderPath);
                 fprintf('   Error ID: %s\n', ME.identifier);

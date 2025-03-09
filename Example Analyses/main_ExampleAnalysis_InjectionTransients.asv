@@ -33,7 +33,7 @@ baqstreamnames = {'x05A', '405A'}; % All names of background streams across file
 rawfolderpaths = string({experimentkey.RawFolderPath})'; % Create string array of raw folder paths
 extractedfolderpaths = string({experimentkey.ExtractedFolderPath})'; % Create string array of extracted folder paths
 
-extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames,'trim',1); % extract data
+extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames); % extract data
 
 %% Load data
 % Load previously extracted data blocks and tie to experiment key. 
@@ -45,11 +45,8 @@ extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames
 preinjectionlength = 15; % Minutes pre injection
 postinjectionlength = 60; % Minutes post injection
 for eachfile = 1:length(rawdata)
-    sessionstart = rawdata(eachfile).injt(1) - (floor(preinjectionlength*60*rawdata(eachfile).fs)); % Find start index
-    sessionend = rawdata(eachfile).injt(2) + (floor(postinjectionlength*60*rawdata(eachfile).fs)); % Find end index
-
-    rawdata(eachfile).sessionstart = sessionstart; % Save start index to rawdata structure field
-
+    rawdata(eachfile).sessionstart = rawdata(eachfile).injt(1) - (floor(preinjectionlength*60*rawdata(eachfile).fs)); % Find and save start index to rawdata structure field
+    sessionend = rawdata(eachfile).injt(2) + (floor(postinjectionlength*60*rawdata(eachfile).fs)); % Find end index and check that it's within the length of the full session
     if length(rawdata(eachfile).sig) >= sessionend % Save end index to rawdata structure field
         rawdata(eachfile).sessionend = sessionend;
     else  % If the found end index is greater than the length of the signal, use the length of the signal
@@ -75,7 +72,7 @@ sigfield = 'sig';
 baqfield = 'baq';
 fsfield = 'fs';
 
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
+[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'artifactremoval',1); % adds sigsub and sigfilt to data frame
 
 %% Plot whole session streams for each file
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.

@@ -45,11 +45,8 @@ extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames
 preinjectionlength = 15; % Minutes pre injection
 postinjectionlength = 60; % Minutes post injection
 for eachfile = 1:length(rawdata)
-    sessionstart = rawdata(eachfile).injt(1) - (floor(preinjectionlength*60*rawdata(eachfile).fs)); % Find start index
-    sessionend = rawdata(eachfile).injt(2) + (floor(postinjectionlength*60*rawdata(eachfile).fs)); % Find end index
-
-    rawdata(eachfile).sessionstart = sessionstart; % Save start index to rawdata structure field
-
+    rawdata(eachfile).sessionstart = rawdata(eachfile).injt(1) - (floor(preinjectionlength*60*rawdata(eachfile).fs)); % Find and save start index to rawdata structure field
+    sessionend = rawdata(eachfile).injt(2) + (floor(postinjectionlength*60*rawdata(eachfile).fs)); % Find end index and check that it's within the length of the full session
     if length(rawdata(eachfile).sig) >= sessionend % Save end index to rawdata structure field
         rawdata(eachfile).sessionend = sessionend;
     else  % If the found end index is greater than the length of the signal, use the length of the signal

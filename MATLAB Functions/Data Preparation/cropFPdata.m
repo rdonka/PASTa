@@ -1,86 +1,106 @@
 function [data] = cropFPdata(data,whichcropstart,whichcropend,whichstreams,varargin)
-% TRIMDATA    Crops all specified data streams from the index in whichcropstart to the
-%             index in whichcropend, and adjusts TTLs by the amount cropped by whichcropstart.
+% CROPFPDATA    Crop specified data streams and adjust epocs for fiber photometry data.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%   CROPFPDATA(DATA, WHICHCROPSTART, WHICHCROPEND, WHICHSTREAMS, 'WHICHEPOCS', {'epoc1. 'epoc2'})
+%   trims data streams between WHICHCROPSTART and WHICHCROPEND indices and 
+%   adjusts specified epocs by the cropped amount.
 %
-% INPUTS:
-%       DATA:           Data structure; A data structure containing at 
-%                       least the specified input fields.
+% REQUIRED INPUTS:
+%       DATA            - Struct array containing at least the specified 
+%                         input fields.
 %
-%       WHICHCROPSTART: String; The name of the field containing the 
-%                       location of the start of the session; everything
-%                       before will be cropped. For example: 'sessionstart'
+%       WHICHCROPSTART  - String; Field name for cropping start index.
+%                         Example: 'sessionstart'
 %
-%       WHICHCROPEND:   String; The name of the field containing the 
-%                       location of the end of the session; everything
-%                       after will be cropped. For example: 'sessionend'
+%       WHICHCROPEND    - String; Field name for cropping end index.
+%                         Example: 'sessionend'
 %
-%       WHICHSTREAMS:   Cell array; Contains the names of all the
-%                       streams to be cropped.
-%                       For example: whichstreams = {'sig', 'baq'};
-% OPTIONAL INPUTS:
-%       WHICHEPOCS:     A cell array containing the names of all the epocs
-%                       to be adjusted due to cropping - subtract the (start
-%                       loc - 1) from each specified epoc.
-%                       For example: whichepocs = {'injt', 'trialstart', 'trialend'};
+%       WHICHSTREAMS    - Cell array of strings; Names of data streams to crop.
+%                         Example: {'sig', 'baq'}
+%
+% OPTIONAL INPUT NAME-VALUE PAIRS:
+%       'whichepocs'    - Cell array of epoc field names to adjust for cropping.
+%                         Example: {'injt', 'trialstart', 'trialend'}
 %
 % OUTPUTS:
-%       DATA:           Data structure; The original data structure with 
-%                       the specified data streams containing the cropped 
-%                       data and the specified epocs adjusted.
+%       DATA            - Modified data structure with cropped streams
+%                         and adjusted epocs (if specified).
 %
-% Written by R M Donka, February 2024
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
-
+% EXAMPLE:
+%       data = cropFPdata(data, 'sessionstart', 'sessionend', {'sig', 'baq'}, ...
+%                         'whichepocs', {'injt', 'trialstart'});
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
     
     %% Prepare Settings
     % Import required and optional inputs into a structure
-    inputs = struct(...
-        'whichepocs',[]);
+    p = inputParser;
+    addParameter(p, 'whichepocs', {}, @(x) iscell(x) && all(cellfun(@ischar, x)));
+    parse(p, varargin{:});
 
-    inputs = parseArgsLite(varargin,inputs);
+    % Retrieve parsed inputs into params structure
+    params = p.Results;
 
-    if isempty(inputs.whichepocs) == true
-        disp('CROPPPING DATA: No epocs specified for adjustment.')
+    % Main display and function inputs
+    if isempty(params.whichepocs)
+        disp('CROPFPDATA: No epocs specified for adjustment.');
     else
-        disp('CROPPPING DATA: Specified epocs will be adjusted.')
-        disp('EPOCS:') % Display specified epocs
-        disp(inputs.whichepocs)
+        disp('CROPFPDATA: Specified epocs will be adjusted.');
+        disp('   EPOCS:');
+        disp(params.whichepocs);
     end
 
-    %% Trim data
-    for eachfile = 1:length(data)
+    % %% Prepare Settings
+    % % Import required and optional inputs into a structure
+    % inputs = struct(...
+    %     'whichepocs',[]);
+    % 
+    % inputs = parseArgsLite(varargin,inputs);
+    % 
+    %     % Import required and optional inputs into a structure
+    % p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
+    % addParameter(p, 'trim', defaultparameters.trim, @(x) validateattributes(x, {'numeric'}, {'nonnegative', 'integer'})); % trim: input must be a numeric value, nonnegative, and integer
+    % addParameter(p, 'skipexisting', defaultparameters.skipexisting, @(x) any(x == [0 1])); % skipexisting: input must be 0 or 1
+    % parse(p, varargin{:});
+
+   
+
+    %% Crop data
+    for eachfile = 1:length(data) 
         disp(append('   Cropping File Number: ',num2str(eachfile)))
     
-        startloc = data(eachfile).(whichcropstart); % Extract session start location - everything before will be cropped
-        endloc = data(eachfile).(whichcropend); % Extract session end location - everything after will be cropped
+        startloc = data(eachfile).(whichcropstart); % Start index of the session
+        endloc = data(eachfile).(whichcropend); % End index of the session
     
-        for eachstream = 1:length(whichstreams) % Trim each stream
-            stream = char(whichstreams(eachstream));
+        % Loop through each specified stream and crop it
+        for eachstream = 1:length(whichstreams)
+            stream = char(whichstreams(eachstream)); % Get stream name as a string
             try 
-                data(eachfile).(stream) = data(eachfile).(stream)(startloc:endloc);
+                data(eachfile).(stream) = data(eachfile).(stream)(startloc:endloc);  % Crop the data based on start and end indices
             catch
-                disp(append('WARNING: File Number ',num2str(eachfile), ' - failed to crop stream: ', stream))
+                warning(['File ',num2str(eachfile),' - failed to crop stream: ',stream])  % Display warning if the stream cannot be cropped
             end
         end
         
-        if isempty(inputs.whichepocs) == false % If WHICHEPOCS is used, adjust each epoc by the number of samples cropped at the start of the session
-            whichepocs = inputs.whichepocs;
+        % Adjust specified epocs, if provided
+        if isempty(params.whichepocs) == false
+            whichepocs = params.whichepocs;
             for eachepoc = 1:length(whichepocs)
-                epoc = char(whichepocs(eachepoc));
+                epoc = char(whichepocs(eachepoc)); % Get epoc name
                 try 
-                    data(eachfile).(epoc) = data(eachfile).(epoc)-(startloc-1);
+                    data(eachfile).(epoc) = data(eachfile).(epoc)-(startloc-1); % Adjust the epoc timing by shifting it based on the cropped start index
                 catch
-                    disp(append('WARNING: File Number ',num2str(eachfile), ' - failed to adjust epoc: ', epoc))
+                    warning(['File ',num2str(eachfile),' - failed to adjust epoc: ',epoc]) % Display warning if the epoc cannot be adjusted
                 end
             end
         end
     end
 end
 
-% Copyright (C) 2024 Rachel Donka
+% Copyright (C) 2025 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

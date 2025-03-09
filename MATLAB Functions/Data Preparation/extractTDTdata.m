@@ -70,7 +70,7 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 
     %% Prepare Settings
     % Prepare default values
-    defaultparameters = configDefaultParameters(); % For more details on default parameter values, see help configDefaultParameters.
+    defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
 
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
@@ -78,14 +78,14 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
     addParameter(p, 'skipexisting', defaultparameters.skipexisting, @(x) any(x == [0 1])); % skipexisting: input must be 0 or 1
     parse(p, varargin{:});
 
-    % Retrieve parsed inputs into variables
+    % Retrieve parsed inputs into params structure
     params = p.Results;
 
     % Main display and function inputs
     if params.skipexisting == 0
-        disp('EXTRACTING TDT DATA: all blocks will be extracted.')
+        disp('EXTRACTTDTDATA: all blocks will be extracted.')
     elseif params.skipexisting == 1
-        disp('EXTRACTING TDT DATA: pre-extracted blocks will be skipped.')
+        disp('EXTRACTTDTDATA: pre-extracted blocks will be skipped.')
     end
 
     disp('  PARAMETERS:') % Display all input parameters values

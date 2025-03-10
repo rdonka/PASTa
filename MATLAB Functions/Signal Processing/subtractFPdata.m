@@ -8,18 +8,21 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 %   function outputs the data as either delta F/F ('dff') or delta F ('df').
 %
 %
-%   REQUIRED INPUTS:
+% REQUIRED INPUTS:
 %       DATA            - Struct array; each element contains fields for
 %                         signal and background fluorescence data, as well
 %                         as the sampling rate.
+%
 %       WHICHSIGFIELD   - String; name of the field in DATA containing the
 %                         "signal" data stream (e.g., 'sig').
+%
 %       WHICHBAQFIELD   - String; name of the field in DATA containing the
 %                         "background" data stream (e.g., 'baq').
+%
 %       WHICHFS         - String; name of the field in DATA containing the
 %                         sampling rate (e.g., 'fs').
 %
-%   OPTIONAL INPUT NAME-VALUE PAIRS:
+% PTIONAL INPUT NAME-VALUE PAIRS:
 %       'baqscalingtype'     - String; method for scaling the background
 %                              fluorescence before subtraction. Options are:
 %                              'frequency' (default), 'sigmean', 'OLS',

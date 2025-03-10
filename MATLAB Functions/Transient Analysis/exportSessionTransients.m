@@ -1,101 +1,84 @@
 function [alltransients] = exportSessionTransients(data,whichtransients,exportfilepath,addvariables,varargin)
-% EXPORTSESSIONTRANSIENTS   Creates a table of all transients across all
-%                           sessions in the data structure and exports to a
-%                           csv file. Used in conjunction with
-%                           FINDSESSIONTRANSIENTS.
+% EXPORTSESSIONTRANSIENTS  Compiles all transients across sessions into a table and exports to a CSV file.
 %
-% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
+%   EXPORTSESSIONTRANSIENTS(DATA, WHICHTRANSIENTS, EXPORTFILEPATH, ADDVARIABLES, 'PARAM1', VAL1, ...)
+%   aggregates transient data from multiple sessions and exports the compiled table to a specified CSV file.
 %
-% INPUTS:
-%       DATA:               Data structure; This is a structure that contains 
-%                           at least the output from FINDSESSIONTRANSIENTS
+% REQUIRED INPUTS:
+%   DATA            - Structure array; must contain at least the output 
+%                     from FINDSESSIONTRANSIENTS.
 %
-%       WHICHTRANSIENTS:    String; The name of the parent field containing 
-%                           the table of transients that you want to export. 
-%                           For example, 'sessiontransients_blmin_3SD'.
+%   WHICHTRANSIENTS - String; name of the field containing the table of 
+%                     transients to export (e.g., 'sessiontransients_blmin_3SD').
 %
-%       EXPORTFILEPATH:     String; Path to the folder location where the
-%                           created table should be saved to. NOTE: The
-%                           path must end in a forward slash.
+%   EXPORTFILEPATH  - String; path to the folder where the CSV file will be
+%                     saved. Note: The path must end with a forward slash.
 %
-%       ADDVARIABLES:       Cell array containing any additional variables
-%                           from the data structure to be added to the
-%                           transients table. Variables will be added to
-%                           every row of the output structure. Cell array
-%                           inputs must be the names of fields in the data
-%                           structure. At a minimum, this should contain
-%                           the subject ID. If multiple sessions per
-%                           subject are included in the data structure,
-%                           make sure a session ID variable is also
-%                           included. 
-%                           For example: {'Subject', 'SessionID', 'Treatment'}
-%                       
-% OPTIONAL INPUTS:
-%       WHICHTRANSIENTSTABLE: String; The name of the field within WHICHTRANSIENTS
-%                           that contains the quantification of individual 
-%                           transient events. This input only needs to be
-%                           specified if not using the format output from
-%                           the FINDSESSIONTRANSIENTS functions.
-%                           Default: 'transientquantification'.
+%   ADDVARIABLES    - Cell array of strings; names of additional variables 
+%                     from the data structure to include in the transients 
+%                     table. These variables will be added to every row of 
+%                     the output table. At a minimum, this should include 
+%                     the subject ID. If multiple sessions per subject are 
+%                     included, ensure a session ID variable is also included.
+%                         For example: {'Subject', 'SessionID', 'Treatment'}.
 %
+% OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
+%   'whichtransientstable' - String; name of the field within WHICHTRANSIENTS 
+%                            that contains the quantification of individual 
+%                            transient events. This input only needs to be 
+%                            specified if not using the format output from 
+%                            the FINDSESSIONTRANSIENTS functions.
+%                            Default: 'transientquantification'.
 %
-%       FILENAME:           String; Custom name for the output csv file. If
-%                           not specified, the file name will be generated
-%                           as 'WHICHTRANSIENTS_AllSessionExport_DAY-MONTH-YEAR.csv'
+%   'filename'             - String; custom name for the output CSV file. 
+%                            If not specified, the file name will be 
+%                            generated as 'WHICHTRANSIENTS_AllSessionExport_DAY-MONTH-YEAR.csv'.
 %
 % OUTPUTS:
-%       This function outputs a csv file with all transients for all
-%       sessions in the data structure. The file will be output at the
-%       specified file path. If the function is called into an object, the
-%       table ALLTRANSIENTS will also be saved to an object in the MATLAB
-%       workspace. 
-%       For example: alltransients = exportSessionTransients(...)
+%   ALLTRANSIENTS   - Table; compiled table of all transients across all 
+%                     sessions in the data structure. This table is also 
+%                     saved as a CSV file at the specified export file path.
 %
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+% EXAMPLE USAGE:
+%   alltransients = exportSessionTransients(data, 'sessiontransients_blmin_3SD', exportfilepath, {'Subject', 'SessionID'}, 'filename', 'transients_export.csv');
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
 %% Prepare Settings
-% Import required and optional inputs into a structure
-    inputs = struct(...
-        'whichtransients',[],...
-        'exportfilepath',[],...
-        'addvariables',[],...
-        'whichtransientstable', [],...
-        'filename',[]);
-    inputs = parseArgsLite(varargin,inputs);
+    % Prepare default values
+    defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
+
+    % Import required and optional inputs into a structure
+    p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
+    addParameter(p, 'whichtransientstable', defaultparameters.whichtransientstable, @(x) ischar(x) || isstring(x)); % whichtransientstable: string with the name of the transients table
+    addParameter(p, 'filename', defaultparameters.filename); % filename: string with the custom filename
+
+    parse(p, varargin{:});
+
+    % Retrieve parsed inputs into params structure
+    params = p.Results;
+
+    % Set filename automatically if not specified
+    if isempty(params.filename)
+        params.filename = append(whichtransients,'_AllSessionExport_',string(datetime("today")),'.csv');
+    end
     
-    % Prepare defaults and check for optional inputs
-    inputs.whichtransients = whichtransients;
-    inputs.exportfilepath = exportfilepath;
-    inputs.addvariables = addvariables;
+    % Display
+    disp(['EXPORTSESSIONTRANSIENTS: Exporting transients from ', whichtransients, ' to a csv file.']) % Function display
+    disp(['     File will be output to the folder location: ', exportfilepath]) % Display file path location
 
-
-    if isempty(inputs.whichtransientstable) % Field containing transient quantification
-        whichtransientstable = 'transientquantification';
-        inputs.whichtransientstable = whichtransientstable;
-    else
-        whichtransientstable = inputs.whichtransientstable;
-    end
-
-    if isempty(inputs.filename) % Field containing transient max location
-        filename = append(whichtransients,'_AllSessionExport_',string(datetime("today")),'.csv');
-        inputs.filename = filename;
-    else
-        filename = inputs.filename;
-    end
-
-    disp(append('EXPORT SESSION TRANSIENTS: Exporting transients from ', whichtransients, ' to a csv file.')) % Function display
-    disp(append('     File will be output to the folder location: ', exportfilepath)) % Display file path location
-
-    disp('INPUTS:') % Display all input values
-    disp(inputs)
+    disp('   PARAMETERS:') % Display all input values
+    disp(params)
 
     %% Prepare Transients for Export
     alltransients = table; % Prepare empty table
 
     for eachfile = 1:length(data)
 
-        eachfiletransients = data(eachfile).(whichtransients).(whichtransientstable);
+        eachfiletransients = data(eachfile).(whichtransients).(params.whichtransientstable);
         
         for eachvariable = 1:length(addvariables)
             currvariable = char(addvariables(eachvariable));
@@ -114,7 +97,7 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
     end
 
     alltransients = movevars(alltransients,addvariables,"Before",1);
-    writetable(alltransients,append(exportfilepath,filename));
+    writetable(alltransients,append(exportfilepath,params.filename));
 end
 
 % Copyright (C) 2025 Rachel Donka

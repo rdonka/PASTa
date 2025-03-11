@@ -105,7 +105,7 @@ end
 % Use plotFFTpower to plot all frequency magnitude plots - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
 for eachfile = 1:length(data)
     maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    allffts = plotFFTpower(data,eachfile,maintitle,'fs','xmax',100);
+    allffts = plotFFTpower(data,eachfile,maintitle,'fs');
 
     set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
     plotfilepath = append(figurepath,'SessionFFTpower_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
@@ -137,6 +137,25 @@ for eachfile = 1:length(data)
         data(eachfile).(append(currstream,'_injcropped')) = data(eachfile).(currstream)(includeindices); % Add new fields ending in '_trimmed' to data structure
     end 
 end
+
+%% Plot whole session normalized streams for each file
+% Use plotNormTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
+streams = {'sigfiltz_normsession', 'sigfiltz_normbaseline'};
+streamtitles = {'Normalized to Whole Session', 'Normalized to Baseline'};
+
+for eachfile = 1:length(data)
+    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    normtraces = plotNormTraces(data,eachfile,streams,'fs',maintitle,streamtitles);
+    for eachtile = 1:2
+        nexttile(eachtile)
+        xline(data(eachfile).injt(1),'--','Injection','Color','#C40300','FontSize',8)
+    end    
+
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 5]);
+    plotfilepath = append(figurepath,'SessionNormTraces_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
+    exportgraphics(gcf,plotfilepath,'Resolution',300)
+end
+
 
 %% Find session transients
 % Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.

@@ -1,67 +1,75 @@
 function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
-% PLOTTRACES    Plots whole session fiber photometry traces. This function
-%               will plot the streams sig, baq, baqscaled, sigsub, and
-%               sigfilt. Use this function in a loop to plot streams for
-%               all sessions in the data structure.
+% PLOTTRACES  Plot whole-session fiber photometry traces.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
+%   PLOTTRACES(DATA, WHICHFILE, MAINTITLE, 'PARAM1', VAL1, ...) plots the
+%   specified data streams for a given session, including 'sig', 'baq',
+%   'baqscaled', 'sigsub', and 'sigfilt'. This function can be used within
+%   a loop to plot streams for all sessions in the data structure.
 %
-% INPUTS:
-%       DATA:           This is a structure that contains at least the
-%                       streams to be plotted.
+% REQUIRED INPUTS:
+%   DATA        - Structure array; must contain the streams to be plotted.
 %
-%       WHICHFILE:      The file number to plot (this can be set in a for
-%                       loop to plot all files).
+%   WHICHFILE   - Integer; index of the file (session) to plot. This can be
+%                 set within a loop to plot all files.
 %
-%       MAINTITLE:      The main title for the overall plot to display
-%                       above the individual tiles. For example,
-%                       '427 - Treatment: Morphine'
+%   MAINTITLE   - String; main title for the overall plot, displayed above
+%                 the individual subplots. For example, '427 - Treatment:
+%                 Morphine'.
 %
-% OPTIONAL INPUTS:
-%       SAVEOUTPUT:     Set to 1 to automatically save trace plots as png 
-%                       to the plot file path. Default: 0.
+% OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
+%   'saveoutput'    - Logical; set to true to automatically save trace plots
+%                     as PNG files to the specified plot file path.
+%                     Default: false.
 %
-%       PLOTFILEPATH:   Required if SAVEOUTPUT is set to 1. The specific 
-%                       path to save the plot to. Note that this must be 
-%                       the entire path from computer address to folder, 
-%                       ending in the filename for the specific plot.
-%                       For example: 
-%                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine.png'
+%   'plotfilepath'  - String; required if 'saveoutput' is set to true.
+%                     Specifies the full path, including the filename, where
+%                     the plot should be saved. For example:
+%                     'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine.png'.
 %
-% OUTPUT:
-%       ALLTRACES:      A plot object containing subplots for each input
-%                       stream.
+% OUTPUTS:
+%   ALLTRACES   - Figure handle; handle to the figure containing subplots
+%                 for each input stream.
 %
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+% EXAMPLE USAGE:
+%   % Plot traces for the first session without saving:
+%   plotTraces(data, 1, 'Subject 427 - Baseline Session');
+%
+%   % Plot and save traces for the second session:
+%   plotTraces(data, 2, 'Subject 427 - Treatment Session', 'saveoutput', true, 'plotfilepath', 'C:\Plots\Session2.png');
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
-%% Prepare Inputs
-    inputs = struct(...
-        'saveoutput',[],...
-        'plotfilepath',[]);
-    inputs = parseArgsLite(varargin,inputs);
+    %% Prepare Settings
+    % Prepare default values
+    defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
 
-    disp(append('PLOTTRACES: Plotting session traces for file: ',num2str(whichfile)))
+    % Import required and optional inputs into a structure
+    p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
+    addParameter(p, 'saveoutput', defaultparameters.saveoutput, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % saveoutput: input must be logical or numeric (either 0 or 1); set to 1 to save plot automatically
+    addParameter(p, 'plotfilepath', defaultparameters.plotfilepath, @(x) ischar(x) || isstring(x)); % plotfilepath: defaults to empty unless input is specified
 
-    % Prepare defaults and check for optional inputs
-    if isempty(inputs.saveoutput)
-        saveoutput = 0; % Defaults to 0 - skip saving plots
-        inputs.saveoutput = saveoutput;
-    else
-        saveoutput = inputs.saveoutput;
+    parse(p, varargin{:});
+
+    % Retrieve parsed inputs into params structure
+    params = p.Results;
+    
+    % Display
+    disp(['PLOTTRACES: Plotting session traces for file: ',num2str(whichfile)])
+
+    if isempty(params.plotfilepath) & params.saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
+        error('SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
     end
 
-    if isempty(inputs.plotfilepath) & saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
-        disp('   ERROR: SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
-    end
-
-%% Prep colors
+    %% Prep colors
     sigcolor = '#0092FF';
     baqcolor = '#8200C8';
     sigsubcolor = '#00C296';
     sigfiltcolor = '#4CBB17';
     
-%% Prep axis variables
+    %% Prep axis variables
     currxlength = length(data(whichfile).sig);
     currxmins = (length(data(whichfile).sig)/data(whichfile).fs)/60; % Find total number of minutes per session - helper variable to determine ticks
     currxticklabels = 0:5:floor(currxmins/5)*5;
@@ -87,7 +95,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     yticksizesigfilt = round((ymaxsigfilt-yminsigfilt)/4,1); % Find size of ticks to generate 5 y axis ticks total
     currytickssigfilt = yminsigfilt:yticksizesigfilt:ymaxsigfilt;
 
-%% Plot traces
+    %% Plot traces
     close all
     ntraces = 5;
 
@@ -168,9 +176,9 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Add a main title for the entire tiled layout
     title(alltraces, maintitle, 'Interpreter', 'none');
 
-    if saveoutput == 1
+    if params.saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);
-        exportgraphics(gcf,append(plotfilepath, '.png'),'Resolution',300)
+        exportgraphics(gcf,append(params.plotfilepath, '.png'),'Resolution',300)
     end
 end
 

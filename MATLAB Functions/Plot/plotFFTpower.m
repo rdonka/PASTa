@@ -1,49 +1,75 @@
 function [allffts] = plotFFTpower(data,whichfile,maintitle,whichfs,varargin)
-% PLOTFFTPOWER  Creates frequency power plots of fiber photometry 
-%               streams. This function will take the FFTs and plot the 
-%               streams sig, baq, baqscaled, sigsub, and sigfilt. Use this 
-%               function in a loop to make plots for all sessions in the 
-%               data structure.
+% PLOTFFTPOWER  Creates frequency power plots of fiber photometry streams.
+%               This function computes and plots the Fast Fourier Transform (FFT)
+%               of specified data streams, including 'sig', 'baq', 'baqscaled',
+%               'sigsub', and 'sigfilt'. It is designed to be used in a loop to
+%               generate plots for all sessions in the data structure.
 %
-% Copyright (C) 2025 Rachel Donka. Licensed under the GNU General Public License v3.
+%   [ALLFFTS] = PLOTFFTPOWER(DATA, WHICHFILE, MAINTITLE, WHICHFS, 'PARAM1', VAL1, ...)
+%   computes and plots the FFT power spectra for the specified data streams in
+%   the given session.
 %
-% INPUTS:
-%       DATA:           This is a structure that contains at least the
-%                       streams to be plotted.
+% REQUIRED INPUTS:
+%   DATA        - Structure array; contains the data streams to be plotted.
 %
-%       WHICHFILE:      The file number to plot (this can be set in a for
-%                       loop to plot all files).
+%   WHICHFILE   - Numeric; index specifying the session (file) to plot.
 %
-%       MAINTITLE:      The main title for the overall plot to display
-%                       above the individual tiles. For example,
-%                       '427 - Treatment: Morphine'
+%   MAINTITLE   - String; main title for the overall plot, displayed above 
+%                 the individual subplots. (e.g., '427 - Treatment: Morphine').
 %
-%       WHICHFS:        The name of the field containing the sampling rate
-%                       of the streams (fs).
+%   WHICHFS     - String; name of the field containing the sampling rate of
+%                 the streams (e.g., 'fs').
 %
-% OPTIONAL INPUTS:
-%       XMAX:           Frequency cutoff for the x axis. Frequencies above
-%                       this value will be excluded from the plots. To plot
-%                       all frequencies, set to 'actual'. Default: 100.
+% OPTIONAL INPUT NAME-VALUE PAIRS:
+%   'xmax'          - Numeric; frequency cutoff for the x-axis. Frequencies 
+%                     above this value will be excluded from the plots. To 
+%                     plot all frequencies, set to 'actual'. Default: 100.
 %
-%       SAVEOUTPUT:     Set to 1 to automatically save trace plots as png 
-%                       to the plot file path. Default: 0.
+%   'saveoutput'    - Logical; set to true to automatically save trace plots 
+%                     as PNG files to the specified plot file path. 
+%                     Default: false.
 %
-%       PLOTFILEPATH:   Required if SAVEOUTPUT is set to 1. The specific 
-%                       path to save the plot to. Note that this must be 
-%                       the entire path from computer address to folder, 
-%                       ending in the filename for the specific plot.
-%                       For example: 
-%                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionFFTs_427_Morphine.png'
+%   'plotfilepath'  - String; required if 'saveoutput' is set to true. 
+%                     Specifies the full path, including the filename, 
+%                     where the plot should be saved (e.g.,
+%                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionFFTpower_427_Morphine.png').
 %
-% OUTPUT:
-%       ALLFFTS:      A plot object containing subplots for each input
-%                       stream.
+% OUTPUT
+%   ALLFFTS     - Figure object; contains subplots for each input stream's
+%                 FFT power spectrum.
 %
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
+% EXAMPLE USAGE:
+%   % Plot FFT power spectra for session 1 with a frequency cutoff of 50 Hz
+%   plotFFTpower(data, 1, 'Subject 427 - Session 1', 'fs', 'xmax', 50);
+%
+%   See also: plotFFTmag
+%
+% Author:  Rachel Donka (2025)
+% License: GNU General Public License v3. See end of file for details.
+% Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
+% For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
-disp(append('PLOTFFTS: Plotting frequency magnitude plots for file: ',num2str(whichfile)))
+    %% Prepare Settings
+    % Prepare default values
+    defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
+
+    % Import required and optional inputs into a structure
+    p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
+    addParameter(p, 'xmax', 100,@(x) (isnumeric(x) && isscalar(x) && (x > 0)) || (ischar(x) && strcmp(x, 'actual'))); % xmax: Must either be numeric and greater than 0, or set to 'actual'
+    addParameter(p, 'saveoutput', defaultparameters.saveoutput, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % saveoutput: input must be logical or numeric (either 0 or 1); set to 1 to save plot automatically
+    addParameter(p, 'plotfilepath', defaultparameters.plotfilepath, @(x) ischar(x) || isstring(x)); % plotfilepath: defaults to empty unless input is specified
+
+    parse(p, varargin{:});
+
+    % Retrieve parsed inputs into params structure
+    params = p.Results;
+    
+    % Display
+    disp(['PLOTFFTPOWER: Plotting FFT power spectra plots for file: ',num2str(whichfile)])
+
+    if isempty(params.plotfilepath) & params.saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
+        error('SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
+    end
 
 %% Prep FFTs
 [sigFFT,sigF] = preparestreamFFT(data(whichfile).sig,data(whichfile).(whichfs));
@@ -59,36 +85,6 @@ sigsubPower = sigsubFFT.^2;
 sigfiltPower = sigfiltFFT.^2;
 
 
-%% Prepare Inputs
-    inputs = struct(...
-        'saveoutput',[],...
-        'plotfilepath',[],...
-        'xmax',[]);
-    inputs = parseArgsLite(varargin,inputs);
-
-    % Prepare defaults and check for optional inputs
-    if isempty(inputs.saveoutput)
-        saveoutput = 0; % Defaults to 0 - skip saving plots
-        inputs.saveoutput = saveoutput;
-    else
-        saveoutput = inputs.saveoutput;
-    end
-    if isempty(inputs.xmax)
-        xmax = 100; % Defaults to 30 - cuts off the x axis of the plot at 20 Hz
-        inputs.xmax = xmax;
-        disp(append('  X axis (frequency) max cut off at: ',num2str(xmax),' hz'))
-    elseif strcmp('actual', inputs.xmax)
-        xmax = max(sigF);
-        disp(append('  X axis (frequency) max set to actual max: ',num2str(xmax),' hz'))
-    else
-        xmax = inputs.xmax;
-        disp(append('  X axis (frequency) max cut off at: ',num2str(xmax),' hz'))
-    end
-
-    if isempty(inputs.plotfilepath) & saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
-        disp(' ERROR: SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
-    end
-
 %% Prep colors
     sigcolor = '#0092FF';
     baqcolor = '#8200C8';
@@ -97,9 +93,15 @@ sigfiltPower = sigfiltFFT.^2;
     sigfiltcolor = '#4CBB17';
     
 %% Prep axis variables
-    currxlength = sum(sigF<xmax);
-    currxticksize = floor(xmax/20); % Find total number of minutes per session - helper variable to determine ticks
-    currxticks = 0:currxticksize:xmax;
+
+    if strcmp('actual', params.xmax)
+        params.xmax = max(sigF);
+        disp(['  X axis (frequency) max set to actual max: ',num2str(params.xmax),' hz'])
+    end
+
+    currxlength = sum(sigF<params.xmax);
+    currxticksize = floor(params.xmax/20); % Find total number of minutes per session - helper variable to determine ticks
+    currxticks = 0:currxticksize:params.xmax;
 
     fftymax = 10^1;
     fftymin = 10^-20;
@@ -118,7 +120,7 @@ sigfiltPower = sigfiltFFT.^2;
     hold on;
     plot(sigF(1:currxlength), sigPower(1:currxlength), 'Color', sigcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -133,7 +135,7 @@ sigfiltPower = sigfiltFFT.^2;
     hold on;
     plot(baqF(1:currxlength), baqPower(1:currxlength), 'Color', baqcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -149,7 +151,7 @@ sigfiltPower = sigfiltFFT.^2;
     plot(sigF(1:currxlength), sigPower(1:currxlength), 'Color', sigcolor);
     plot(baqF(1:currxlength), baqPower(1:currxlength), 'Color', baqcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -165,7 +167,7 @@ sigfiltPower = sigfiltFFT.^2;
     plot(sigF(1:currxlength), sigPower(1:currxlength), 'Color', sigcolor);
     plot(baqscaledF(1:currxlength), baqscaledPower(1:currxlength), 'Color', baqscaledcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -180,7 +182,7 @@ sigfiltPower = sigfiltFFT.^2;
     hold on;
     plot(sigsubF(1:currxlength), sigsubPower(1:currxlength), 'Color', sigsubcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -195,7 +197,7 @@ sigfiltPower = sigfiltFFT.^2;
     hold on;
     plot(sigfiltF(1:currxlength), sigfiltPower(1:currxlength), 'Color', sigfiltcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -208,9 +210,9 @@ sigfiltPower = sigfiltFFT.^2;
     % Add a main title for the entire tiled layout
     title(allffts, maintitle, 'Interpreter', 'none');
 
-    if saveoutput == 1
+    if params.saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);
-        exportgraphics(gcf,append(plotfilepath, '.png'),'Resolution',300)
+        exportgraphics(gcf,append(params.plotfilepath, '.png'),'Resolution',300)
     end
 end
 

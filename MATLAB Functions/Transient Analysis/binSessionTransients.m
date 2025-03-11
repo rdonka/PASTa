@@ -60,7 +60,7 @@ function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
-%% Prepare Settings
+    %% Prepare Settings
     % Prepare default values
     defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
 

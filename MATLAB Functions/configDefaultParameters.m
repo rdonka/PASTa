@@ -62,6 +62,26 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.exportSessionTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
     allparameters.exportSessionTransients.filename = ''; % Empty file name to trigger automatic naming
 
+    % plotTraces
+    allparameters.plotTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
+    % plotNormTraces
+    allparameters.plotNormTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotNormTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
+    % plotFFTpower
+    allparameters.plotFFTpower.xmax = 100; % X axis cutoff (hz) for plots
+    allparameters.plotFFTpower.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotFFTpower.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
+    % plotFFTmag
+    allparameters.plotFFTmag.xmax = 100; % X axis cutoff (hz) for plots
+    allparameters.plotFFTmag.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotFFTmag.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
+
+
 % If a specific function is requested, return only its parameters
     if nargin > 0 && isfield(allparameters, callerFunction)
         defaultparameters = allparameters.(callerFunction);

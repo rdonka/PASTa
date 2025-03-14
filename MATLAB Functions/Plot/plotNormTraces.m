@@ -141,7 +141,7 @@ function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maint
     end
 
     % Add a main title for the entire tiled layout
-    title(normtraces, maintitle);
+    title(normtraces, maintitle, 'Interpreter', 'none');
 
     if params.saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntiles]);

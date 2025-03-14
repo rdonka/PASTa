@@ -70,9 +70,9 @@ function [alltransienttracebins] = plotTransientTracesBins(data,whichfile,mainti
     binfieldname = append('Bin_',num2str(data(whichfile).(whichtransients).BinSettings.binlengthmins));
     
     currxlength = length(data(whichfile).(whichtransients).transientstreamdata);
-    currxseconds = currxlength/data(whichfile).fs; % Find total number of minutes per session - helper variable to determine ticks
+    % currxseconds = currxlength/data(whichfile).(whichfs); % Find total number of minutes per session - helper variable to determine ticks
     currxticklabels = 0:.5:currxseconds;
-    currxticks = currxticklabels.*data(whichfile).fs; % Determine x axis ticks - add ticks every 5 minutes
+    currxticks = currxticklabels.*data(whichfile).(whichfs); % Determine x axis ticks - add ticks every 5 minutes
 
     ymax = ceil(max(data(whichfile).(whichtransients).transientstreamdata, [], 'all')+(0.1*max(data(whichfile).(whichtransients).transientstreamdata, [], 'all')));
     ymin = floor(min(data(whichfile).(whichtransients).transientstreamdata, [], 'all')-(0.1*min(data(whichfile).(whichtransients).transientstreamdata, [], 'all')));
@@ -104,7 +104,7 @@ function [alltransienttracebins] = plotTransientTracesBins(data,whichfile,mainti
     end
    
     % Add a main title for the entire tiled layout
-    title(alltransienttracebins, maintitle);
+    title(alltransienttracebins, maintitle, 'Interpreter', 'none');
 
     if saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 1.75*ntraces]);

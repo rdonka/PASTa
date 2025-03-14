@@ -198,7 +198,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     hold off;
     
     % Add a main title for the entire tiled layout
-    title(allffts, maintitle);
+    title(allffts, maintitle, 'Interpreter', 'none');
 
     if saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);

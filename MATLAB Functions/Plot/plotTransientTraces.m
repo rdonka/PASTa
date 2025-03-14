@@ -102,7 +102,7 @@ function [alltransienttraces] = plotTransientTraces(data,whichfile,maintitle,whi
     hold off;
    
     % Add a main title for the entire tiled layout
-    title(alltransienttraces, maintitle);
+    title(alltransienttraces, maintitle, 'Interpreter', 'none');
 
     if saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 8]);

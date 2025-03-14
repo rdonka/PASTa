@@ -123,7 +123,7 @@ function [allbins] = plotTransientBins(data,whichfile,whichstream,whichtransient
      end
     
     % Add a main title for the entire tiled layout
-    title(allbins, maintitle);
+    title(allbins, maintitle, 'Interpreter', 'none');
 
     if saveoutput == 1
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);

@@ -8,11 +8,11 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
 %   background streams, trims the data, and saves the results to 
 %   EXTRACTEDFOLDERPATHS in MATLAB .mat files.
 %
-%   It searches for one matching "signal" stream (from SIGSTREAMNAMES) and
-%   one matching "background" stream (from BAQSTREAMNAMES) in each TDT
-%   block. If multiple possible stream names are provided, the function
-%   attempts to match any of them. The final extracted data structure 
-%   is saved as: 
+%   For each TDT block, the matching "signal" stream is selected from 
+%   SIGSTREAMNAMES, and the matching "background" stream is selected from 
+%   BAQSTREAMNAMES. If multiple possible stream names exist across session,
+%   all possible names should be provided in SIGSTREAMNAMES and 
+%   BAQSTREAMNAMES. The final extracted data structure is saved as: 
 %         <ExtractedFolderPath>_extracted.mat
 %
 % REQUIRED INPUTS:

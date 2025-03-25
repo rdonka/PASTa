@@ -1,10 +1,11 @@
 function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
 % LOADKEYS  Combine subject key and file key into a single data structure, 
-%           appending the provided computer user path to relevant fields.
+%           appending the provided rootdirectory to create full paths to
+%           stored data locations.
 %
 %   [EXPERIMENTKEY] = LOADKEYS(ROOTDIRECTORY, SUBJECTKEYNAME, FILEKEYNAME)
-%   reads two CSV files: a subject key and a file key, merges them on a
-%   shared column (typically "SubjectID"), and then appends ROOTDIRECTORY
+%   reads two CSV files: a subject key and a file key, merges them on the
+%   shared column "SubjectID", and then appends ROOTDIRECTORY
 %   to the folder paths in the file key. This produces a single struct 
 %   (EXPERIMENTKEY) ready for downstream analysis.
 %
@@ -21,7 +22,7 @@ function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
 %
 %       FILEKEYNAME       - String. The name (or full path) of the file key
 %                           CSV file (e.g. 'myFileKey.csv'). Must contain 
-%                           'Subject', 'Folder', 'RawFolderPath', and 
+%                           'SubjectID', 'BlockFolder', 'RawFolderPath', and 
 %                           'ExtractedFolderPath' columns at minimum.
 %                           Paths in 'RawFolderPath' and 'ExtractedFolderPath'
 %                           should each end with a slash/backslash.
@@ -33,13 +34,12 @@ function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
 %                           while the 'Folder' name is appended to both. 
 %
 %   EXAMPLE:
-%       % Suppose your top-level path is: rootdirectory = 'C:\Users\rmdon\';
-%       % You have the subject key and file key CSVs:
+%       rootdirectory = 'C:\Users\rmdon\';
 %       subjKey = 'subjectKey.csv';
 %       fileKey = 'fileKey.csv';
 %
 %       % Load them into one experiment key structure:
-%       experimentkey = loadKeys(compPath, subjKey, fileKey);
+%       experimentkey = loadKeys(rootdirectory, subjKey, fileKey);
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -47,7 +47,7 @@ function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
 %% Load the Subject Key and File Key CSV files as tables
-% If 'subjectkeyname' is non-empty, merge the subject and file keys. Otherwise, just load the file key.
+% If 'subjectkeyname' is non-empty, merge the subject and file keys by the field "SubjectID". Otherwise, just load the file key.
 
     if strcmp(subjectkeyname, "") == 0 % Subject key is provided, so read both and then attempt to join
         subjectkey = readtable(subjectkeyname, 'Decimal',',', 'Delimiter',','); % Load subject key
@@ -73,10 +73,10 @@ function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
     end
     
     % Append the root directory and folder name to each record.
-    % The 'Folder' field is appended to the end of 'RawFolderPath' and 'ExtractedFolderPath', while ROOTDIRECTORY is prepended to both
-    for eachfile = 1:length(experimentkey) % Prepend user path and append folder name
-        [experimentkey(eachfile).RawFolderPath] = strcat(rootdirectory, experimentkey(eachfile).RawFolderPath, experimentkey(eachfile).Folder);
-        [experimentkey(eachfile).ExtractedFolderPath] = strcat(rootdirectory, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).Folder);
+    % The 'BlockFolder' field is appended to the end of 'RawFolderPath' and 'ExtractedFolderPath', while ROOTDIRECTORY is prepended to both
+    for eachfile = 1:length(experimentkey) % Prepend user path and append block folder name
+        [experimentkey(eachfile).RawFolderPath] = strcat(rootdirectory, experimentkey(eachfile).RawFolderPath, experimentkey(eachfile).BlockFolder);
+        [experimentkey(eachfile).ExtractedFolderPath] = strcat(rootdirectory, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).BlockFolder);
     end
 end
 

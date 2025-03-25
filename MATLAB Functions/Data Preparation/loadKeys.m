@@ -1,15 +1,15 @@
-function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
+function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
 % LOADKEYS  Combine subject key and file key into a single data structure, 
 %           appending the provided computer user path to relevant fields.
 %
-%   [EXPERIMENTKEY] = LOADKEYS(COMPUTERUSERPATH, SUBJECTKEYNAME, FILEKEYNAME)
+%   [EXPERIMENTKEY] = LOADKEYS(ROOTDIRECTORY, SUBJECTKEYNAME, FILEKEYNAME)
 %   reads two CSV files: a subject key and a file key, merges them on a
-%   shared column (typically "SubjectID"), and then appends COMPUTERUSERPATH
+%   shared column (typically "SubjectID"), and then appends ROOTDIRECTORY
 %   to the folder paths in the file key. This produces a single struct 
 %   (EXPERIMENTKEY) ready for downstream analysis.
 %
 %   REQUIRED INPUTS:
-%       COMPUTERUSERPATH  - String. The top-level directory path unique to
+%       ROOTDIRECTORY     - String. The top-level directory path unique to
 %                           your system. For example: 'C:\Users\rmdon\'.
 %                           Must end with a slash/backslash.
 %
@@ -28,12 +28,12 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
 %
 % OUTPUTS:
 %       EXPERIMENTKEY     - A struct array combining file and subject key
-%                           data. The 'computeruserpath' is prepended to 
+%                           data. The 'rootdirectory' is prepended to 
 %                           each row's 'RawFolderPath' and 'ExtractedFolderPath',
 %                           while the 'Folder' name is appended to both. 
 %
 %   EXAMPLE:
-%       % Suppose your top-level path is: computeruserpath = 'C:\Users\rmdon\';
+%       % Suppose your top-level path is: rootdirectory = 'C:\Users\rmdon\';
 %       % You have the subject key and file key CSVs:
 %       subjKey = 'subjectKey.csv';
 %       fileKey = 'fileKey.csv';
@@ -72,11 +72,11 @@ function [experimentkey] = loadKeys(computeruserpath,subjectkeyname,filekeyname)
         [experimentkey] = table2struct(filekey);
     end
     
-    % Append the computer user path and folder name to each record.
-    % The 'Folder' field is appended to the end of 'RawFolderPath' and 'ExtractedFolderPath', while COMPUTERUSERPATH is prepended to both
+    % Append the root directory and folder name to each record.
+    % The 'Folder' field is appended to the end of 'RawFolderPath' and 'ExtractedFolderPath', while ROOTDIRECTORY is prepended to both
     for eachfile = 1:length(experimentkey) % Prepend user path and append folder name
-        [experimentkey(eachfile).RawFolderPath] = strcat(computeruserpath, experimentkey(eachfile).RawFolderPath, experimentkey(eachfile).Folder);
-        [experimentkey(eachfile).ExtractedFolderPath] = strcat(computeruserpath, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).Folder);
+        [experimentkey(eachfile).RawFolderPath] = strcat(rootdirectory, experimentkey(eachfile).RawFolderPath, experimentkey(eachfile).Folder);
+        [experimentkey(eachfile).ExtractedFolderPath] = strcat(rootdirectory, experimentkey(eachfile).ExtractedFolderPath, experimentkey(eachfile).Folder);
     end
 end
 

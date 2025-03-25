@@ -5,25 +5,25 @@
 
 %% Set up paths and analysis keys
 % Set up user path inputs
-computeruserpath =  'C:\Users\rmdon\'; % Computer user unique portion of file path
+rootdirectory =  'C:\Users\rmdon\'; % Computer user unique portion of file path
 analysisfolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Analysis\'; % Folder to output analysis csv files to
 figurefolder = 'Box\PASTaExampleFiles\Example Analyses\Injection Transients\Figures\'; % Folder to output figures to
 
-% Create full paths with computeruserpath appended
-analysispath = append(computeruserpath,analysisfolder); 
-figurepath = append(computeruserpath,figurefolder);
+% Create full paths with rootdirectory appended
+analysispath = append(rootdirectory,analysisfolder); 
+figurepath = append(rootdirectory,figurefolder);
 
 % Add GitHub Repositories and data folders to MATLAB path
-addpath(genpath(append(computeruserpath,'Onedrive\Desktop\GitHub_Repositories\PASTa\'))); % Path for GitHub repository
-addpath(genpath(append(computeruserpath,'Box\PASTaExampleFiles\'))); % Path for analysis files - this is where the keys are saved\\
+addpath(genpath(append(rootdirectory,'Onedrive\Desktop\GitHub_Repositories\PASTa\'))); % Path for GitHub repository
+addpath(genpath(append(rootdirectory,'Box\PASTaExampleFiles\'))); % Path for analysis files - this is where the keys are saved\\
 
 % Load in experiment key names - Subject Key and File Key
 subjectkeyname = 'SubjectKey_ExampleAnalysis_MorphineTransients.csv'; % Name of csv file containing subject information; set to '' if not using a Subject Key
 filekeyname = 'FileKey_ExampleAnalysis_MorphineTransients.csv'; % Name of csv file containing session information and paths
 
 %% Load keys
-% Load subject key and file key into a data structure and append computeruserpath to RawFolderPath and ExtractedFolderPaths
-[experimentkey] = loadKeys(computeruserpath, subjectkeyname, filekeyname);
+% Load subject key and file key into a data structure and append rootdirectory to RawFolderPath and ExtractedFolderPaths
+[experimentkey] = loadKeys(rootdirectory, subjectkeyname, filekeyname);
 
 %% Extract data
 % Extract raw data from blocks using the function 'extractTDTdata' to extract raw data blocks.
@@ -72,7 +72,7 @@ sigfield = 'sig';
 baqfield = 'baq';
 fsfield = 'fs';
 
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'artifactremoval',1); % adds sigsub and sigfilt to data frame
+[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'baqscalingtype','IRLS'); % adds sigsub and sigfilt to data frame
 
 %% Plot whole session streams for each file
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.

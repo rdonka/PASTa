@@ -26,8 +26,9 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 %       'baqscalingtype'     - String; method for scaling the background
 %                              fluorescence before subtraction. Options are:
 %                              'frequency' (default), 'sigmean', 'OLS',
-%                              'detrendedOLS', 'smoothedOLS', 'IRLS'. See
-%                              PASTa user guide signal processing section
+%                              'detrendedOLS', 'smoothedOLS', 'biexpOLS',
+%                              'biexpQuartFit, and 'IRLS'. See PASTa user 
+%                              guide signal processing section
 %                              for more details.
 %
 %       'baqscalingfreqmin'  - Numeric; minimum frequency (Hz) for scaling
@@ -106,7 +107,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
 
     % Add optional name-value pair arguments with validation
-    addParameter(p, 'baqscalingtype', defaultparameters.baqscalingtype, @(x) ischar(x) && ismember(x, {'frequency', 'sigmean', 'OLS', 'detrendedOLS', 'smoothedOLS', 'IRLS'})); % baqscalingtype: input subtraction type must be one of 6 options
+    addParameter(p, 'baqscalingtype', defaultparameters.baqscalingtype, @(x) ischar(x) && ismember(x, {'frequency', 'sigmean', 'OLS', 'detrendedOLS', 'smoothedOLS', 'biexpOLS', 'biexpQuartFit', 'IRLS'})); % baqscalingtype: input subtraction type must be one of 6 options
     addParameter(p, 'baqscalingfreqmin', defaultparameters.baqscalingfreqmin, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingfreqmin: input must be numeric and positive
     addParameter(p, 'baqscalingfreqmax', defaultparameters.baqscalingfreqmax, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingfreqmax: input must be numeric and positive
     addParameter(p, 'baqscalingperc', defaultparameters.baqscalingperc, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingperc: input must be numeric and positive
@@ -169,7 +170,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 
 %% Subtract and Filter Data
     for eachfile = 1:length(data)
-        data(eachfile).inputs_subtractFPdata = params; % Add inputs to data frame
+        data(eachfile).params_subtractFPdata = params; % Add inputs to data frame
 
         if params.suppressdisp == 0
             fprintf('Subtracting file number: %.f \n',eachfile) % Display which file is being subtracted
@@ -267,11 +268,46 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
                 baqscaled=bls(1).*baq+bls(2);
                 data(eachfile).baqsmoothed = baq; % Add detrended signal to data
                 data(eachfile).sigsmoothed = sig; % Add detrended background to data
+            elseif strcmp('biexpOLS', params.baqscalingtype)==true | strcmp('biexpQuartFit', params.baqscalingtype)==true
+                % Fit biexponential decay and divide traces by fitted curve
+                biexp = @(b, x) b(1)*exp(-b(2)*x) + b(3)*exp(-b(4)*x) + b(5); % Biexponential model: A1*exp(-k1*t) + A2*exp(-k2*t) + C
+                baqb0 = [range(baq), 0.001, range(baq)/2, 0.0001, min(baq)]; % Initial parameter guesses for signal and background
+                sigb0 = [range(sig), 0.001, range(sig)/2, 0.0001, min(sig)];
+                lb = [0, 1e-6, 0, 1e-6, -Inf];  % Lower bounds
+                ub = [Inf, 1, Inf, 1, Inf];     % Upper bounds
+                opts = optimset('Display', 'off');
+                xvals = 1:length(sig);
+                try
+                    baqbiexpfit = lsqcurvefit(biexp, baqb0, xvals, baq, lb, ub, opts); % Fit biexponential decay curves
+                    sigbiexpfit = lsqcurvefit(biexp, sigb0, xvals, sig, lb, ub, opts);
+
+                    baqbiexpfitcurve = biexp(baqbiexpfit, xvals); 
+                    sigbiexpfitcurve = biexp(sigbiexpfit, xvals);
+
+                    baqbiexpfitcurve(baqbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
+                    sigbiexpfitcurve(sigbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
+
+                    baq = baq ./ baqbiexpfitcurve; % Remove biexponential curve from streams
+                    sig = sig ./ sigbiexpfitcurve;
+                catch
+                    warning('File ', num2str(eachfile), ': Biexponential fitting failed; using uncorrected trace');
+                end
+                data(eachfile).baqbiexpcorrected = baq; % Add biexponential decay corrected streams to data structure
+                data(eachfile).sigbiexpcorrected = sig;
+                
+                if strcmp('biexpOLS', params.baqscalingtype)==true % Use OLS to scale corrected background to corrected signal
+                    bls = polyfit(baq, sig, 1);
+                    baqscaled = bls(1).*baq + bls(2);            
+                elseif strcmp('biexpQuartFit', params.baqscalingtype)==true % Use Quartile Fit to scale corrected background to corrected signal
+                    A = iqr(sig) / iqr(baq);
+                    B = median(sig) - A * median(baq);
+                    baqscaled = A * baq + B;
+                end
             elseif strcmp('IRLS',params.baqscalingtype)==true % IRLS regression scaling; See Keevers et al 2024, https://www.researchsquare.com/article/rs-3549461/v2
                 IRLS_coeffs = reshape(flipud(robustfit(baq, sig, 'bisquare', 1.4, 'on')), [1, 2]);
                 baqscaled = polyval(IRLS_coeffs,baq);
             else
-                disp(append('ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLS, detrendedOLS, smoothedOLS, or IRLS.'));
+                disp(append('ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLS, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.'));
             end
             data(eachfile).(append(whichbaqfield,'scaled')) =  baqscaled; % Add scaled background to data frame
 

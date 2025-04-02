@@ -52,7 +52,7 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 %       DATA            - Structure array; each element corresponds to a session and includes
 %                         the following added fields:
 %                           - sessiontransients_<WHICHBLTYPE>_<THRESHOLDLABEL>: A structure containing:
-%                               - inputs: Structure of input parameters used for transient detection.
+%                               - params: Structure of input parameters used for transient detection.
 %                               - transientquantification: Table of quantified variables for each transient,
 %                                 including amplitude, rise time, fall time, width, and AUC.
 %                               - transientstreamlocs: Table of pre-transient baseline, transient peak,
@@ -75,7 +75,7 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
     % Prepare default values
     defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
 
-    % Import required and optional inputs into a structure
+    % Import required and optional params into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
 
     % Add optional name-value pair arguments with validation
@@ -88,7 +88,7 @@ function [data] = findSessionTransients(data,whichbltype,whichstream,whichthresh
 
     parse(p, varargin{:});
 
-    % Retrieve parsed inputs into params structure
+    % Retrieve parsed params into params structure
     params = p.Results;
 
 %% Call findSessionTransients subfunctions: findSessionTransients_blmin, findSessionTransients_blmean, or findSessionTransients_localmin

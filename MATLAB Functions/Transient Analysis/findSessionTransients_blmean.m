@@ -46,7 +46,7 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
 %       DATA            - Structure array; each element corresponds to a session and includes
 %                         the following added fields:
 %                           - sessiontransients_blmean_<THRESHOLDLABEL>: A structure containing:
-%                               - inputs: Structure of input parameters used for transient detection.
+%                               - params: Structure of input parameters used for transient detection.
 %                               - transientquantification: Table of quantified variables for each transient,
 %                                 including amplitude, rise time, fall time, width, and AUC.
 %                               - transientstreamlocs: Table of pre-transient baseline, transient peak,
@@ -63,8 +63,8 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
 %% Prepare Settings
-% Import required and optional inputs into a structure
-    inputs = struct(...
+% Import required and optional params into a structure
+    params = struct(...
         'whichstream',whichstream,...
         'whichthreshold',whichthreshold,...
         'whichfs',whichfs,...
@@ -268,8 +268,8 @@ function [data] = findSessionTransients_blmean(data,whichstream,whichthreshold,w
                 transientquantification.compoundeventnum(eachtransient) = currcompoundeventnum;
             end
 
-            % Add inputs and transient quantification to the data structure
-            data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).inputs = inputs;
+            % Add params and transient quantification to the data structure
+            data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).params = params;
             data(eachfile).(append('sessiontransients_blmean_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
             
             % Display how many transients were found

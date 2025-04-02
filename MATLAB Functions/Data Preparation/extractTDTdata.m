@@ -156,8 +156,8 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
                 end
 
                 % Add a record of which function + parameters were used
-                blockdata.extractFunction  = mfilename;
-                blockdata.params = params;
+                blockdata.params.(mfilename) = params;
+                blockdata.params.(mfilename).extractFunction  = mfilename;
             
                 % Save the extracted data struct as <ExtractedFolderPath>_extracted.mat
                 save(extractedMatFile,'-struct', 'blockdata');

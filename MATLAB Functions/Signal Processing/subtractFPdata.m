@@ -123,54 +123,87 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 
     parse(p, varargin{:});
 
-    % Retrieve parsed inputs into params structure
-    params = p.Results;
+    % Retrieve all parsed inputs into params structure
+    allparams = p.Results;
+
+    % Initialize usedParams with always-used fields
+    params = struct();
+    params.baqscalingtype = allparams.baqscalingtype;
+    params.subtractionoutput = allparams.subtractionoutput;
+    params.artifactremoval = allparams.artifactremoval;
+    params.filtertype = allparams.filtertype;
+    params.suppressdisp = allparams.suppressdisp;
+    
+    % Conditionally add 'frequency' baqscalingtype specific params
+    if strcmp(params.baqscalingtype, 'frequency')
+        params.baqscalingfreqmin = allparams.baqscalingfreqmin;
+        params.baqscalingfreqmax = allparams.baqscalingfreqmax;
+        params.baqscalingperc = allparams.baqscalingperc;
+    end
+    
+    % Conditionally add filtertype specific params
+    if ~strcmp(params.filtertype, 'nofilter') % If no filter is specified, skip all filter parameters
+        params.padding = allparams.padding;
+        params.paddingperc = allparams.paddingperc;
+        params.filterorder = allparams.filterorder;
+        if strcmp(params.filtertype, 'bandpass') || strcmp(params.filtertype, 'highpass')
+            params.highpasscutoff = allparams.highpasscutoff;
+        end
+        if strcmp(params.filtertype, 'bandpass') || strcmp(params.filtertype, 'lowpass')
+            params.lowpasscutoff = allparams.lowpasscutoff;
+        end
+    end
 
     % Main display and function inputs
     if params.suppressdisp == 0
-        if strcmp(params.baqscalingtype,'frequency')==true % Display for frequency background scaling - default
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.'));
-        elseif strcmp(params.baqscalingtype,'sigmean')==true % Display for signal mean background scaling
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with signal mean scaling. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.'));
-            disp(append('WARNING: ','Deviation from PASTa protocol default in baqscalingtype.'));
-        elseif strcmp(params.baqscalingtype,'OLS')==true % Display for ordinary least squares regression background scaling
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.'));
-            disp(append('WARNING: ','Deviation from PASTa protocol default in baqscalingtype.'));
-        elseif strcmp(params.baqscalingtype,'detrendedOLS')==true % Display for linear detrending and ordinary least squares regression background scaling
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with detrending and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.'));
-            disp(append('WARNING: ','Deviation from PASTa protocol default in baqscalingtype.'));
-        elseif strcmp(params.baqscalingtype,'smoothedOLS')==true % Display for time domain subtraction
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with lowess smoothing and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.'));
-            disp(append('WARNING: ','Deviation from PASTa protocol default in baqscalingtype.'));
-        elseif strcmp(params.baqscalingtype,'IRLS')==true % Display for time domain subtraction
-            disp(append('SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.'));
-            disp(append('WARNING: ','Deviation from PASTa protocol default in baqscalingtype.'));
-        else
-            disp(append('ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLD, detrendedOLS, smoothedOLS, or IRLS.'));
+        switch params.baqscalingtype
+            case 'frequency' % Display for frequency background scaling - default
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            case 'sigmean' % Display for signal mean background scaling
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with signal mean scaling. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            case 'OLS' % Display for ordinary least squares regression background scaling
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            case 'detrendedOLS' % Display for linear detrending and ordinary least squares regression background scaling
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with detrending and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            case 'smoothedOLS' % Display for time domain subtraction
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with lowess smoothing and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            case 'biexpOLS' % Display for time domain subtraction
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            case 'biexpQuartFit' % Display for time domain subtraction
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and quartile fit. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            case 'IRLS' % Display for time domain subtraction
+                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+                warning('Deviation from PASTa protocol default in baqscalingtype.');
+            otherwise
+                error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLD, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);
         end
 
         if strcmp(params.filtertype,'nofilter')==true % Display for filter settings
-            disp(append('WARNING: filtertype manually set to nofilter - NO FILTER APPLIED'));
+            warning('filtertype manually set to nofilter - NO FILTER APPLIED');
         else
-            disp(append('Filter type set to ', params.filtertype, '. Subtracted and filtered signal will be output as data.sigfilt.'));
+            disp(['   Filter type set to ', params.filtertype, '. Subtracted and filtered signal will be output as data.sigfilt.']);
             if params.padding == 1 % Padding application display
-                disp('   NOTE: Padding applied prior to filtering and removed from final output.')
+                disp('     Padding applied prior to filtering and removed from final output.')
             end
         end
+        
         if params.artifactremoval == 1 % Display if artifact removal is turned on
-            disp(append('Artifact removal set to 1 - artifacts will be automatically detected and replaced with NaNs in subtracted and filtered outputs.'));
+            disp('Artifact removal set to 1 - artifacts will be automatically detected and replaced with NaNs in subtracted and filtered outputs.');
         end
 
         disp('   PARAMETERS:') % Display all input values
         disp(params)
-
-        disp('    Parameters using default values:'); % Display input parameters values set to default values
-        disp(p.UsingDefaults);
     end
 
 %% Subtract and Filter Data
     for eachfile = 1:length(data)
-        data(eachfile).params_subtractFPdata = params; % Add inputs to data frame
+        data(eachfile).params.(mfilename) = params; % Add inputs to data frame
 
         if params.suppressdisp == 0
             fprintf('Subtracting file number: %.f \n',eachfile) % Display which file is being subtracted
@@ -178,19 +211,24 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
         
         % Prepare sampling rate
         fs = data(eachfile).(whichfs);
-        
+
         % Prepare filters
-        if strcmp(params.filtertype,'bandpass')==true
-            highpasscutoffval = round(params.highpasscutoff/floor(fs/2),6);
-            lowpasscutoffval = round(params.lowpasscutoff/floor(fs/2),6);
-            [a,b] = butter(params.filterorder,highpasscutoffval,'high');
-            [c,d] = butter(params.filterorder,lowpasscutoffval,'low');
-        elseif strcmp(params.filtertype, 'highpass')==true
-            highpasscutoffval = round(params.highpasscutoff/floor(fs/2),6);
-            [a,b] = butter(params.filterorder,highpasscutoffval,'high');
-        elseif strcmp(params.filtertype, 'lowpass')==true
-            lowpasscutoffval = round(params.lowpasscutoff/floor(fs/2),6);
-            [c,d] = butter(params.filterorder,lowpasscutoffval,'low');
+        nyquist = floor(fs/2);
+
+        switch params.filtertype
+            case 'bandpass'
+                highpasscutoffval = round(params.highpasscutoff/nyquist,6);
+                lowpasscutoffval = round(params.lowpasscutoff/nyquist,6);
+                [b_high,a_high] = butter(params.filterorder,highpasscutoffval,'high');
+                [b_low,a_low] = butter(params.filterorder,lowpasscutoffval,'low');
+            case 'highpass'
+                highpasscutoffval = round(params.highpasscutoff/nyquist,6);
+                [b_high,a_high] = butter(params.filterorder,highpasscutoffval,'high');
+            case 'lowpass'
+                lowpasscutoffval = round(params.lowpasscutoff/nyquist,6);
+                [b_low,a_low] = butter(params.filterorder,lowpasscutoffval,'low');
+            case 'nofilter'
+                % No filter design needed
         end
 
         try
@@ -200,131 +238,161 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
                 baq = data(eachfile).(whichbaqfield);
                 sig = data(eachfile).(whichsigfield);
             elseif length(data(eachfile).(whichsigfield))>length(data(eachfile).(whichbaqfield)) % If the length of signal is greater, set temps to length of 405
-                disp('   WARNING: Length of signal greater than length of background stream. Signal data adjusted to match background length.')
+                warning('   Length of signal greater than length of background stream. Signal data adjusted to match background length.')
                 baq = data(eachfile).(whichbaqfield);
                 sig = data(eachfile).(whichsigfield)(1:length(data(eachfile).(whichbaqfield)));
             elseif length(data(eachfile).(whichsigfield))<length(data(eachfile).(whichbaqfield)) % If the length of 405 is greater, set temps to length of 465
-                disp('   WARNING: Length of background greater than length of signal stream. Background data adjusted to match signal length.')
+                warning('   Length of background greater than length of signal stream. Background data adjusted to match signal length.')
                 sig = data(eachfile).(whichsigfield);
                 baq = data(eachfile).(whichbaqfield)(1:length(data(eachfile).(whichsigfield)));
             end
 
         %% Scale Background: apply the selected background scaling method.
-            if strcmp('frequency',params.baqscalingtype)==true % Frequency domain scaling - scales to power
-                baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
-                sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
+            switch params.baqscalingtype
+                case 'frequency' % Frequency domain scaling - scales to power
+                    baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
+                    sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
+    
+                    [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
+                    [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
+    
+                    sigFidxs = sigF > params.baqscalingfreqmin & sigF < params.baqscalingfreqmax; % Find indices of frequencies above the set min threshold and below the set max threshold
+                    baqFidxs = baqF > params.baqscalingfreqmin & baqF < params.baqscalingfreqmax; % Find indices of frequencies above the set min threshold and below the set max threshold
+    
+                    sigPower = sigFFT(sigFidxs).^2; % Compute average power in the selected band
+                    baqPower = baqFFT(baqFidxs).^2; % Compute average power in the selected band
+    
+                    powerRatio = mean(sigPower) / mean(baqPower); % Find the ratio of mean powers between signal and background (same as RMS)
+                    baqscalingfactor = sqrt(powerRatio) * params.baqscalingperc;  % or remove baqscalingperc if not needed
+    
+                    baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
+                    data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
+    
+                    if baqscalingfactor > 3 % Display a warning if the baqscaling factor is high
+                        warning(['Possible over scaling. baqscalingfactor = ',num2str(baqscalingfactor)])
+                    end
+                case 'frequency_amplitude' % Frequency domain scaling - scales to amplitude
+                    baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
+                    sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
+    
+                    [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
+                    [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
+    
+                    sigFidxs = sigF > params.baqscalingfreqmin; % Find indices of frequencies above the set threshold
+                    baqFidxs = baqF > params.baqscalingfreqmin; % Find indices of frequencies above the set threshold
+    
+                    baqscalingfactor = (mean(sigFFT(sigFidxs))/mean(baqFFT(baqFidxs)))*params.baqscalingperc; % Find power ratio of signal to background for frequencies above the set threshold
+                    baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
+                    data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data\
 
-                [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
-                [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
-
-                sigFidxs = sigF > params.baqscalingfreqmin & sigF < params.baqscalingfreqmax; % Find indices of frequencies above the set min threshold and below the set max threshold
-                baqFidxs = baqF > params.baqscalingfreqmin & baqF < params.baqscalingfreqmax; % Find indices of frequencies above the set min threshold and below the set max threshold
-
-                sigPower = sigFFT(sigFidxs).^2; % Compute average power in the selected band
-                baqPower = baqFFT(baqFidxs).^2; % Compute average power in the selected band
-
-                powerRatio = mean(sigPower) / mean(baqPower); % Find the ratio of mean powers between signal and background (same as RMS)
-                baqscalingfactor = sqrt(powerRatio) * params.baqscalingperc;  % or remove baqscalingperc if not needed
-
-                baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
-                data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
-
-                if baqscalingfactor > 3 % Display a warning if the baqscaling factor is high
-                    disp(append('   WARNING: Possible over scaling. baqscalingfactor = ',num2str(baqscalingfactor)))
-                end
-            elseif strcmp('frequency_amplitude',params.baqscalingtype)==true % Frequency domain scaling - scales to amplitude
-                baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
-                sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
-
-                [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
-                [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
-
-                sigFidxs = sigF > params.baqscalingfreqmin; % Find indices of frequencies above the set threshold
-                baqFidxs = baqF > params.baqscalingfreqmin; % Find indices of frequencies above the set threshold
-
-                baqscalingfactor = (mean(sigFFT(sigFidxs))/mean(baqFFT(baqFidxs)))*params.baqscalingperc; % Find power ratio of signal to background for frequencies above the set threshold
-                baqscaled = (baq_centered*baqscalingfactor) + mean(sig); % Adjust back to same units as raw signal
-
-                data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
-            elseif strcmp('sigmean',params.baqscalingtype)==true % Signal mean time domain scaling
-                baqscalingfactor = (mean(sig)/(mean(baq)))*params.baqscalingperc; % Find the scaling factor for background to signal based on the ratio of the means
-                baqscaled = baq*baqscalingfactor;
-                data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
-            elseif strcmp('OLS',params.baqscalingtype)==true % OLS regression scaling; Per GuPPY, see Sherathiya et al 2021, https://www.nature.com/articles/s41598-021-03626-9
-                bls=polyfit(baq,sig,1);
-                baqscaled=bls(1).*baq+bls(2);      
-            elseif strcmp('detrendedOLS',params.baqscalingtype)==true % Linear detrend and OLS regression scaling
-                sigmean = mean(sig);
-                baq = detrend(baq); % Detrend background
-                sig = detrend(sig)+sigmean; % Detrend signal
-                bls = polyfit(baq,sig,1); % Fit background to signal with least-squares linear regression
-                baqscaled = (bls(1).*baq)+ bls(2); % Fit to signal
-                data(eachfile).baqdetrend = baq; % Add detrended signal to data
-                data(eachfile).sigdetrend = sig; % Add detrended background to data
-            elseif strcmp('smoothedOLS',params.baqscalingtype)==true % Lowess smoothing and OLS regression scaling; Per pMAT, see Bruno et al 2021, https://www.sciencedirect.com/science/article/abs/pii/S0091305720307413?via=ihub#f0020
-                baq=smooth(baq,0.002,'lowess')'; 
-                sig=smooth(sig,0.002,'lowess')';
-                bls=polyfit(baq(1:end),sig(1:end),1);
-                baqscaled=bls(1).*baq+bls(2);
-                data(eachfile).baqsmoothed = baq; % Add detrended signal to data
-                data(eachfile).sigsmoothed = sig; % Add detrended background to data
-            elseif strcmp('biexpOLS', params.baqscalingtype)==true | strcmp('biexpQuartFit', params.baqscalingtype)==true
-                % Fit biexponential decay and divide traces by fitted curve
-                biexp = @(b, x) b(1)*exp(-b(2)*x) + b(3)*exp(-b(4)*x) + b(5); % Biexponential model: A1*exp(-k1*t) + A2*exp(-k2*t) + C
-                baqb0 = [range(baq), 0.001, range(baq)/2, 0.0001, min(baq)]; % Initial parameter guesses for signal and background
-                sigb0 = [range(sig), 0.001, range(sig)/2, 0.0001, min(sig)];
-                lb = [0, 1e-6, 0, 1e-6, -Inf];  % Lower bounds
-                ub = [Inf, 1, Inf, 1, Inf];     % Upper bounds
-                opts = optimset('Display', 'off');
-                xvals = 1:length(sig);
-                try
-                    baqbiexpfit = lsqcurvefit(biexp, baqb0, xvals, baq, lb, ub, opts); % Fit biexponential decay curves
-                    sigbiexpfit = lsqcurvefit(biexp, sigb0, xvals, sig, lb, ub, opts);
-
-                    baqbiexpfitcurve = biexp(baqbiexpfit, xvals); 
-                    sigbiexpfitcurve = biexp(sigbiexpfit, xvals);
-
-                    baqbiexpfitcurve(baqbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
-                    sigbiexpfitcurve(sigbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
-
-                    baq = baq ./ baqbiexpfitcurve; % Remove biexponential curve from streams
-                    sig = sig ./ sigbiexpfitcurve;
-                catch
-                    warning('File ', num2str(eachfile), ': Biexponential fitting failed; using uncorrected trace');
-                end
-                data(eachfile).baqbiexpcorrected = baq; % Add biexponential decay corrected streams to data structure
-                data(eachfile).sigbiexpcorrected = sig;
-                
-                if strcmp('biexpOLS', params.baqscalingtype)==true % Use OLS to scale corrected background to corrected signal
+                    if baqscalingfactor > 3 % Display a warning if the baqscaling factor is high
+                        warning(['Possible over scaling. baqscalingfactor = ',num2str(baqscalingfactor)])
+                    end
+                case 'sigmean' % Signal mean time domain scaling
+                    baqscalingfactor = (mean(sig)/(mean(baq))); % Find the scaling factor for background to signal based on the ratio of the means
+                    baqscaled = baq*baqscalingfactor;
+                    data(eachfile).baqscalingfactor = baqscalingfactor; % Add constant baqscalingfactor to data
+                case 'OLS' % OLS regression scaling; Per GuPPY, see Sherathiya et al 2021, https://www.nature.com/articles/s41598-021-03626-9
+                    bls=polyfit(baq,sig,1);
+                    baqscaled=bls(1).*baq+bls(2);      
+                case 'detrendedOLS' % Linear detrend and OLS regression scaling
+                    sigmean = mean(sig);
+                    baq = detrend(baq); % Detrend background
+                    sig = detrend(sig)+sigmean; % Detrend signal
+                    bls = polyfit(baq,sig,1); % Fit background to signal with least-squares linear regression
+                    baqscaled = (bls(1).*baq)+ bls(2); % Fit to signal
+                    data(eachfile).baqdetrend = baq; % Add detrended signal to data
+                    data(eachfile).sigdetrend = sig; % Add detrended background to data
+                case 'smoothedOLS' % Lowess smoothing and OLS regression scaling; Per pMAT, see Bruno et al 2021, https://www.sciencedirect.com/science/article/abs/pii/S0091305720307413?via=ihub#f0020
+                    baq=smooth(baq,0.002,'lowess')'; 
+                    sig=smooth(sig,0.002,'lowess')';
+                    bls=polyfit(baq(1:end),sig(1:end),1);
+                    baqscaled=bls(1).*baq+bls(2);
+                    data(eachfile).baqsmoothed = baq; % Add detrended signal to data
+                    data(eachfile).sigsmoothed = sig; % Add detrended background to data
+                case 'biexpOLS' % Biexponential decay removal and OLS regression scaling; Per PhAT
+                    % Fit biexponential decay and divide traces by fitted curve
+                    biexp = @(b, x) b(1)*exp(-b(2)*x) + b(3)*exp(-b(4)*x) + b(5); % Biexponential model: A1*exp(-k1*t) + A2*exp(-k2*t) + C
+                    baqb0 = [range(baq), 0.001, range(baq)/2, 0.0001, min(baq)]; % Initial parameter guesses for signal and background
+                    sigb0 = [range(sig), 0.001, range(sig)/2, 0.0001, min(sig)];
+                    lb = [0, 1e-6, 0, 1e-6, -Inf];  % Lower bounds
+                    ub = [Inf, 1, Inf, 1, Inf];     % Upper bounds
+                    opts = optimset('Display', 'off');
+                    xvals = 1:length(sig);
+                    try
+                        baqbiexpfit = lsqcurvefit(biexp, baqb0, xvals, baq, lb, ub, opts); % Fit biexponential decay curves
+                        sigbiexpfit = lsqcurvefit(biexp, sigb0, xvals, sig, lb, ub, opts);
+    
+                        baqbiexpfitcurve = biexp(baqbiexpfit, xvals); 
+                        sigbiexpfitcurve = biexp(sigbiexpfit, xvals);
+    
+                        baqbiexpfitcurve(baqbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
+                        sigbiexpfitcurve(sigbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
+    
+                        baq = baq ./ baqbiexpfitcurve; % Remove biexponential curve from streams
+                        sig = sig ./ sigbiexpfitcurve;
+                    catch
+                        warning(['File ', num2str(eachfile), ': Biexponential fitting failed; using uncorrected trace']);
+                    end
+                    data(eachfile).baqbiexpcorrected = baq; % Add biexponential decay corrected streams to data structure
+                    data(eachfile).sigbiexpcorrected = sig;
+ 
                     bls = polyfit(baq, sig, 1);
-                    baqscaled = bls(1).*baq + bls(2);            
-                elseif strcmp('biexpQuartFit', params.baqscalingtype)==true % Use Quartile Fit to scale corrected background to corrected signal
+                    baqscaled = bls(1).*baq + bls(2);           
+                case 'biexpQuartFit'  % Biexponential decay removal and quartile fit scaling; Per PhAT
+                    % Fit biexponential decay and divide traces by fitted curve
+                    biexp = @(b, x) b(1)*exp(-b(2)*x) + b(3)*exp(-b(4)*x) + b(5); % Biexponential model: A1*exp(-k1*t) + A2*exp(-k2*t) + C
+                    baqb0 = [range(baq), 0.001, range(baq)/2, 0.0001, min(baq)]; % Initial parameter guesses for signal and background
+                    sigb0 = [range(sig), 0.001, range(sig)/2, 0.0001, min(sig)];
+                    lb = [0, 1e-6, 0, 1e-6, -Inf];  % Lower bounds
+                    ub = [Inf, 1, Inf, 1, Inf];     % Upper bounds
+                    opts = optimset('Display', 'off');
+                    xvals = 1:length(sig);
+                    try
+                        baqbiexpfit = lsqcurvefit(biexp, baqb0, xvals, baq, lb, ub, opts); % Fit biexponential decay curves
+                        sigbiexpfit = lsqcurvefit(biexp, sigb0, xvals, sig, lb, ub, opts);
+    
+                        baqbiexpfitcurve = biexp(baqbiexpfit, xvals); 
+                        sigbiexpfitcurve = biexp(sigbiexpfit, xvals);
+    
+                        baqbiexpfitcurve(baqbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
+                        sigbiexpfitcurve(sigbiexpfitcurve < 1e-6) = 1e-6; % Protect against divide by zero
+    
+                        baq = baq ./ baqbiexpfitcurve; % Remove biexponential curve from streams
+                        sig = sig ./ sigbiexpfitcurve;
+                    catch
+                        warning(['File ', num2str(eachfile), ': Biexponential fitting failed; using uncorrected trace']);
+                    end
+                    data(eachfile).baqbiexpcorrected = baq; % Add biexponential decay corrected streams to data structure
+                    data(eachfile).sigbiexpcorrected = sig;
+
                     A = iqr(sig) / iqr(baq);
                     B = median(sig) - A * median(baq);
                     baqscaled = A * baq + B;
-                end
-            elseif strcmp('IRLS',params.baqscalingtype)==true % IRLS regression scaling; See Keevers et al 2024, https://www.researchsquare.com/article/rs-3549461/v2
-                IRLS_coeffs = reshape(flipud(robustfit(baq, sig, 'bisquare', 1.4, 'on')), [1, 2]);
-                baqscaled = polyval(IRLS_coeffs,baq);
-            else
-                disp(append('ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLS, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.'));
+                case 'IRLS' % IRLS regression scaling; See Keevers et al 2024, https://www.researchsquare.com/article/rs-3549461/v2
+                    IRLS_coeffs = reshape(flipud(robustfit(baq, sig, 'bisquare', 1.4, 'on')), [1, 2]);
+                    baqscaled = polyval(IRLS_coeffs,baq);
+                otherwise
+                    error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLS, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);
             end
+
             data(eachfile).(append(whichbaqfield,'scaled')) =  baqscaled; % Add scaled background to data frame
 
         %% Subtract data
-            if strcmp(params.subtractionoutput,'dff')==true % Output delta F/F
-                data(eachfile).sigsub = (sig-baqscaled)./baqscaled*100;
-            elseif strcmp(params.subtractionputput,'df')==true % Output delta F
-                data(eachfile).sigsub = (sig-baqscaled);
-            else
-                disp(append('ERROR: Subtraction Output type issue - subtractionoutput set to ', subtractionoutput, '. Function inputs limited to df or dff.'));
+            switch params.subtractionoutput
+                case'dff' % Output delta F/F
+                    data(eachfile).sigsub = (sig-baqscaled)./baqscaled*100;
+                case 'df' % Output delta F
+                    data(eachfile).sigsub = (sig-baqscaled);
+                otherwise
+                    error(['ERROR: Subtraction output type issue - subtractionoutput set to ', params.subtractionoutput, '. Function inputs limited to df or dff.']);
             end
            
         %% OPTIONAL: Remove Artifacts
             if params.artifactremoval == 1
                 artifactremovaldata = removeStreamArtifacts([data(eachfile).sigsub],'sigsub',fs);
                 if artifactremovaldata.numartifacts > 0
-                    disp(append('   WARNING File ',num2str(eachfile),': ',num2str(artifactremovaldata.numartifacts),' artifacts found.'))
+                    warning(['File ',num2str(eachfile),': ',num2str(artifactremovaldata.numartifacts),' artifacts found.'])
                 end
                 data(eachfile).sigsubraw = data(eachfile).sigsub; % Raw unadjusted sigsub is added as sigsub_raw
                 data(eachfile).sigsubAR = artifactremovaldata.sigsubAR; % sigsub with artifacts replaced the NaNs is added as a separate field
@@ -334,39 +402,34 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
             end
 
         %% Filter subtracted signal
-            if strcmp(params.filtertype, 'nofilter')==true % Skip filtering
-            else
+            if ~strcmp(params.filtertype, 'nofilter')
+                sigsub = data(eachfile).sigsub;
+
                 if params.padding==1 % Filter with padding
-                    nsamplesedge = floor(length(data(eachfile).sigsub)*params.paddingperc); % Padding: determine number of samples to append to start and end
-                    firstsamples = [flip(data(eachfile).sigsub(1:nsamplesedge),2)]; % Padding: Extract data to append to beginning of signal
-                    lastsamples = [flip(data(eachfile).sigsub(length(data(eachfile).sigsub)-(nsamplesedge-1):length(data(eachfile).sigsub)),2)]; % Padding: Extract data to append to end of signal
-                    sigsubdata = [firstsamples data(eachfile).sigsub lastsamples]; % Padding: Create padded data
-                    
-                    % Apply filter
-                    if strcmp(params.filtertype,'bandpass') 
-                        filtdata = filtfilt(a,b,sigsubdata); % Apply the highpass
-                        filtdata = filtfilt(c,d,filtdata); % Apply the lowpass
-                    elseif strcmp(params.filtertype,'highpass')
-                        filtdata = filtfilt(a,b,sigsubdata); % Apply the highpass
-                    elseif strcmp(params.filtertype,'lowpass')
-                        filtdata = filtfilt(c,d,sigsubdata); % Apply the highpass
-                    else
-                        disp('WARNING: Filter type undefined - no filter applied.')
-                    end
-                    data(eachfile).sigfilt = filtdata(nsamplesedge+1:length(filtdata)-nsamplesedge); % Padding: Remove padding from beginning and end
-                else % Filter without padding
-                    if strcmp(params.filtertype,'bandpass')
-                        filtdata = filtfilt(a,b,data(eachfile).sigsub); % Apply the highpass
-                        filtdata = filtfilt(c,d,filtdata); % Apply the lowpass
-                    elseif strcmp(params.filtertype,'highpass')
-                        filtdata = filtfilt(a,b,data(eachfile).sigsub); % Apply the highpass
-                    elseif strcmp(params.filtertype,'lowpass')
-                        filtdata = filtfilt(c,d,data(eachfile).sigsub); % Apply the highpass
-                    else
-                        disp('WARNING: Filter type undefined - no filter applied.')
-                    end
-                    data(eachfile).sigfilt = filtdata;
+                    nsamplesedge = floor(length(sigsub)*params.paddingperc); % Determine number of samples to append to start and end
+                    firstsamples = flip(sigsub(1:nsamplesedge),2); % Extract data to append to beginning of signal
+                    lastsamples = flip(sigsub(end-nsamplesedge+1:end),2); % Extract data to append to end of signal
+                    sigsub = [firstsamples, sigsub, lastsamples]; % Create padded data
                 end
+
+                switch params.filtertype
+                    case 'bandpass'
+                        sigfilt = filtfilt(b_high,a_high,sigsub);  % Apply high-pass filter
+                        sigfilt = filtfilt(b_low,a_low, sigfilt);  % Apply low-pass
+                    case 'highpass'
+                        sigfilt = filtfilt(b_high,a_high,sigsub);  % Apply high-pass
+                    case 'lowpass'
+                        sigfilt = filtfilt(b_low,a_low, sigsub);  % Apply low-pass
+                    otherwise
+                        warning('Filter type "%s" not recognized. No filter applied.', params.filtertype);
+                end
+
+                % Remove padding if it was applied
+                if params.padding == 1
+                    sigfilt = sigfilt(nsamplesedge + 1 : end - nsamplesedge);
+                end
+
+                data(eachfile).sigfilt = sigfilt; % Add filtered stream to data
             end
 
             %% OPTIONAL: Remove artifact periods from filtered signal
@@ -383,7 +446,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
             end
 
         catch
-        disp(['WARNING: subtractFPdata without success - file ' num2str(eachfile)]); % Error message to display
+            warning(['subtractFPdata without success - file ' num2str(eachfile)]); % Error message to display
         continue;
         end
     end

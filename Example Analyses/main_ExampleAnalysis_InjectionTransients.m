@@ -33,7 +33,7 @@ baqstreamnames = {'x05A', '405A'}; % All names of background streams across file
 rawfolderpaths = string({experimentkey.RawFolderPath})'; % Create string array of raw folder paths
 extractedfolderpaths = string({experimentkey.ExtractedFolderPath})'; % Create string array of extracted folder paths
 
-extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames); % extract data
+extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,baqstreamnames,'skipexisting',0); % extract data
 
 %% Load data
 % Load previously extracted data blocks and tie to experiment key. 
@@ -72,7 +72,7 @@ sigfield = 'sig';
 baqfield = 'baq';
 fsfield = 'fs';
 
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield,'baqscalingtype','IRLS'); % adds sigsub and sigfilt to data frame
+[data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
 
 %% Plot whole session streams for each file
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.

@@ -46,7 +46,7 @@ disp(['   Normalized data will be output to the field: ',whichstream, 'z_normbas
     
             data(eachfile).(append(whichstream,'z_normbaseline')) = (data(eachfile).(whichstream) - BLmean)/BLsd; % Z score the whole session to the baseline
         catch
-            warning(['WARNING: File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream]) 
+            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream]) 
         end
     end
 end

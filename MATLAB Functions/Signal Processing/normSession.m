@@ -29,8 +29,12 @@ function [data] = normSession(data,whichstream)
 disp(['NORMSESSION: Normalizing ',whichstream,' to whole session mean and standard deviation.'])
 disp(['   Normalized data will be output to the field: ',whichstream, 'z_normsession'])
     for eachfile = 1:length(data)
-        disp(append('     NORMALIZING: File ',num2str(eachfile)))
-        data(eachfile).(append(whichstream, 'z_normsession')) = (data(eachfile).(whichstream)-mean(data(eachfile).(whichstream),"omitnan"))/std(data(eachfile).(whichstream),"omitnan");
+        try
+            disp(append('     NORMALIZING: File ',num2str(eachfile)))
+            data(eachfile).(append(whichstream, 'z_normsession')) = (data(eachfile).(whichstream)-mean(data(eachfile).(whichstream),"omitnan"))/std(data(eachfile).(whichstream),"omitnan");
+         catch
+            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream]) 
+        end
     end
 end
 

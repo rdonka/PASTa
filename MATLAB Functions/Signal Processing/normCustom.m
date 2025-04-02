@@ -57,19 +57,19 @@ function [data] = normCustom(data,whichfullstream,whichcustomstream)
 % documentation: https://rdonka.github.io/PASTa/
 
 %% Normalize to session baseline
-disp(append('NORM CUSTOM: Normalizing ',whichfullstream,' to mean and standard deviation of customized period of session.'))
-disp(append('   Mean and SD defined by ',whichcustomstream,'.'))
-disp(append('   Normalized data will be output to the field: ',whichfullstream, 'z_normcustom'))
+disp(['NORM CUSTOM: Normalizing ',whichfullstream,' to mean and standard deviation of customized period of session.'])
+disp('   Mean and SD defined by ',whichcustomstream,'.')
+disp(['   Normalized data will be output to the field: ',whichfullstream, 'z_normcustom'])
 
     for eachfile = 1:length(data)
-        disp(append('   NORMALIZING: File ',num2str(eachfile)))
+        disp(['   NORMALIZING: File ',num2str(eachfile)])
         try
             BLmean = mean(data(eachfile).(whichcustomstream)); % Find the mean of the session baseline
             BLsd = std(data(eachfile).(whichcustomstream)); % Find the standard deviation of the session baseline
     
             data(eachfile).(append(whichfullstream,'z_normcustom')) = (data(eachfile).(whichfullstream) - BLmean)/BLsd; % Z score the whole session to the baseline
         catch
-            disp(append('WARNING: File ',num2str(eachfile), ' - failed to normalize stream: ', whichfullstream)) 
+            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', whichfullstream]) 
         end
     end
 end

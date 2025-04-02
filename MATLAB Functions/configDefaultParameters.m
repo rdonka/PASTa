@@ -35,7 +35,6 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.subtractFPdata.filterorder = 3; % Filter order defaults to 3rd order
     allparameters.subtractFPdata.highpasscutoff = 0.0051; % High pass frequency cuttoff defaults to 0.0051 Hz
     allparameters.subtractFPdata.lowpasscutoff = 2.2860; % Low pass frequency cuttoff defaults to 2.2860 Hz
-    allparameters.subtractFPdata.suppressdisp = 0;  % Display text defaults to showing
 
     % removeStreamArtifacts
     allparameters.removeStreamArtifacts.outlierthresholdk = 10; % Outlier detection threshold; k = 3 or 4 is a common choice for outlier detection

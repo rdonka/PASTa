@@ -65,9 +65,6 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 %       'lowpasscutoff'      - Numeric; low-pass filter cutoff frequency (Hz).
 %                              Default: 2.2860
 %
-%       'suppressdisp'       - Logical (0 or 1); set to 1 to suppress 
-%                              command window displays. Default: 0 (false)
-%
 %   OUTPUT:
 %       DATA   - Struct array; the input DATA structure with additional fields:
 %              - 'baqscaled': scaled background fluorescence data.
@@ -119,7 +116,6 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
     addParameter(p, 'filterorder', defaultparameters.filterorder, @(x) validateattributes(x, {'numeric'}, {'positive', 'integer'})); % filterorder: input must be a positive integer
     addParameter(p, 'highpasscutoff', defaultparameters.highpasscutoff, @(x) validateattributes(x, {'numeric'}, {'positive'})); % highpasscutoff: input must be numeric and positive
     addParameter(p, 'lowpasscutoff', defaultparameters.lowpasscutoff, @(x) validateattributes(x, {'numeric'}, {'positive'})); % lowpasscutoff: input must be numeric and positive
-    addParameter(p, 'suppressdisp', defaultparameters.suppressdisp, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % suppressdisp: input must be logical or numeric (either 0 or 1)
 
     parse(p, varargin{:});
 
@@ -132,7 +128,6 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
     params.subtractionoutput = allparams.subtractionoutput;
     params.artifactremoval = allparams.artifactremoval;
     params.filtertype = allparams.filtertype;
-    params.suppressdisp = allparams.suppressdisp;
     
     % Conditionally add 'frequency' baqscalingtype specific params
     if strcmp(params.baqscalingtype, 'frequency')
@@ -155,59 +150,55 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
     end
 
     % Main display and function inputs
-    if params.suppressdisp == 0
-        switch params.baqscalingtype
-            case 'frequency' % Display for frequency background scaling - default
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-            case 'sigmean' % Display for signal mean background scaling
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with signal mean scaling. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            case 'OLS' % Display for ordinary least squares regression background scaling
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            case 'detrendedOLS' % Display for linear detrending and ordinary least squares regression background scaling
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with detrending and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            case 'smoothedOLS' % Display for time domain subtraction
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with lowess smoothing and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            case 'biexpOLS' % Display for time domain subtraction
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            case 'biexpQuartFit' % Display for time domain subtraction
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and quartile fit. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            case 'IRLS' % Display for time domain subtraction
-                disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
-                warning('Deviation from PASTa protocol default in baqscalingtype.');
-            otherwise
-                error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLD, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);
-        end
-
-        if strcmp(params.filtertype,'nofilter')==true % Display for filter settings
-            warning('filtertype manually set to nofilter - NO FILTER APPLIED');
-        else
-            disp(['   Filter type set to ', params.filtertype, '. Subtracted and filtered signal will be output as data.sigfilt.']);
-            if params.padding == 1 % Padding application display
-                disp('     Padding applied prior to filtering and removed from final output.')
-            end
-        end
-        
-        if params.artifactremoval == 1 % Display if artifact removal is turned on
-            disp('Artifact removal set to 1 - artifacts will be automatically detected and replaced with NaNs in subtracted and filtered outputs.');
-        end
-
-        disp('   PARAMETERS:') % Display all input values
-        disp(params)
+    switch params.baqscalingtype
+        case 'frequency' % Display for frequency background scaling - default
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+        case 'sigmean' % Display for signal mean background scaling
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with signal mean scaling. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'OLS' % Display for ordinary least squares regression background scaling
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'detrendedOLS' % Display for linear detrending and ordinary least squares regression background scaling
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with detrending and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'smoothedOLS' % Display for time domain subtraction
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with lowess smoothing and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'biexpOLS' % Display for time domain subtraction
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'biexpQuartFit' % Display for time domain subtraction
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and quartile fit. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'IRLS' % Display for time domain subtraction
+            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        otherwise
+            error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLD, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);
     end
+
+    if strcmp(params.filtertype,'nofilter')==true % Display for filter settings
+        warning('filtertype manually set to nofilter - NO FILTER APPLIED');
+    else
+        disp(['   Filter type set to ', params.filtertype, '. Subtracted and filtered signal will be output as data.sigfilt.']);
+        if params.padding == 1 % Padding application display
+            disp('     Padding applied prior to filtering and removed from final output.')
+        end
+    end
+    
+    if params.artifactremoval == 1 % Display if artifact removal is turned on
+        disp('Artifact removal set to 1 - artifacts will be automatically detected and replaced with NaNs in subtracted and filtered outputs.');
+    end
+
+    disp('   PARAMETERS:') % Display all input values
+    disp(params)
 
 %% Subtract and Filter Data
     for eachfile = 1:length(data)
         data(eachfile).params.(mfilename) = params; % Add inputs to data frame
 
-        if params.suppressdisp == 0
-            fprintf('Subtracting file number: %.f \n',eachfile) % Display which file is being subtracted
-        end
+        fprintf('Subtracting file number: %.f \n',eachfile) % Display which file is being subtracted
         
         % Prepare sampling rate
         fs = data(eachfile).(whichfs);

@@ -160,32 +160,38 @@ end
 %% Find session transients
 % Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
 for eachfile = 1:length(data)
-    data(eachfile).threshold3SD = 3;
-    data(eachfile).threshold3SDsigfilt = 3*std(data(eachfile).sigfilt_injcropped(1:data(eachfile).injt(1)));
+    data(eachfile).SDthreshold = 2.6;
+    data(eachfile).SDthresholdsigfilt = 2.6*std(data(eachfile).sigfilt_injcropped(1:data(eachfile).injt(1)));
 end
 
 % Find session transients based on pre-peak baseline window minimum - reccomended as the first pass choice for transient analysis
-[data] = findSessionTransients(data,'blmin','sigfiltz_normbaseline_injcropped','threshold3SD','fs'); % Z scored data (normalized to pre-injection mean)
-[data] = findSessionTransients(data,'blmin','sigfilt_injcropped','threshold3SDsigfilt','fs'); % df/f data (threshold calculated as 3*SD of the pre-injection period)
+[data] = findSessionTransients(data,'blmin','sigfiltz_normbaseline_injcropped','SDthreshold','fs'); % Z scored data (normalized to pre-injection mean)
+[data] = findSessionTransients(data,'blmin','sigfilt_injcropped','SDthresholdsigfilt','fs'); % df/f data (threshold calculated as 3*SD of the pre-injection period)
 
 % Find session transients based on pre-peak baseline window mean
-[data] = findSessionTransients(data,'blmean','sigfiltz_normbaseline_injcropped','threshold3SD','fs');
-[data] = findSessionTransients(data,'blmean','sigfilt_injcropped','threshold3SDsigfilt','fs');
+[data] = findSessionTransients(data,'blmean','sigfiltz_normbaseline_injcropped','SDthreshold','fs');
+[data] = findSessionTransients(data,'blmean','sigfilt_injcropped','SDthresholdsigfilt','fs');
 
 % Find session transients based on pre-peak local minimum (last minumum before the peak in the baseline window)
-[data] = findSessionTransients(data,'localmin','sigfiltz_normbaseline_injcropped','threshold3SD','fs');
-[data] = findSessionTransients(data,'localmin','sigfilt_injcropped','threshold3SDsigfilt','fs');
+[data] = findSessionTransients(data,'localmin','sigfiltz_normbaseline_injcropped','SDthreshold','fs');
+[data] = findSessionTransients(data,'localmin','sigfilt_injcropped','SDthresholdsigfilt','fs');
 
 
 % Bin session transients
-[data] = binSessionTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmin_threshold3SD');
-[data] = binSessionTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_threshold3SD');
-[data] = binSessionTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_localmin_threshold3SD');
+[data] = binSessionTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmin_SDthreshold');
+[data] = binSessionTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmin_SDthresholdsigfilt');
+
+[data] = binSessionTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold');
+[data] = binSessionTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt');
+
+[data] = binSessionTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_localmin_SDthreshold');
+[data] = binSessionTransients(data,'sigfilt_injcropped','fs','sessiontransients_localmin_SDthresholdsigfilt');
+
 
 
 % Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'Subject','TreatNum','InjType'};
-alltransients = exportSessionTransients(data,'sessiontransients_blmin_threshold3SD',analysispath,addvariables);
+alltransients = exportSessionTransients(data,'sessiontransients_blmin_SDthreshold',analysispath,addvariables);
 
 %% Plot session bin traces with detected transients for each file
 % Use plotTransientBins to plot session bins with detected transients for each file.

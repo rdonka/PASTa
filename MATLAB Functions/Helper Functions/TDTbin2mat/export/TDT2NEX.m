@@ -28,7 +28,7 @@ fprintf('exporting %s to %s\n', BLOCKPATH, nex5FilePath);
 nexFile = nexCreateFileData(24414.0625);
 
 % add streams
-stores = fields(data.streams);
+stores = fieldnames(data.streams);
 for store = 1:length(stores)
     this_store = data.streams.(stores{store});
     fprintf('adding %s\n', stores{store});
@@ -50,7 +50,7 @@ end
 
 % add epocs
 if ~isempty(data.epocs)
-    stores = fields(data.epocs);
+    stores = fieldnames(data.epocs);
     for store = 1:length(stores)
         this_store = data.epocs.(stores{store});
         fprintf('adding %s\n', this_store.name);
@@ -70,7 +70,7 @@ end
 
 % add snippets
 if ~isempty(data.snips)
-    stores = fields(data.snips);
+    stores = fieldnames(data.snips);
     for store = 1:length(stores)
         this_store = data.snips.(stores{store});
         fprintf('adding %s\n', this_store.name);

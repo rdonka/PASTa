@@ -61,6 +61,8 @@ function data = TDTbin2mat(BLOCK_PATH, varargin)
 %                       recorded while the strobe was enabled.
 %                   example:
 %                       data = TDTbin2mat(BLOCK_PATH, 'COMBINE', {'StS1'});
+%      'DMY'        boolean, force dd/MM/yyyy date format for Notes file (Synapse
+%                       preference)
 %
 
 % defaults
@@ -76,9 +78,10 @@ T2       = 0;
 TYPE     = 1:5;
 VERBOSE  = 0;
 SORTNAME = 'TankSort';
+DMY      = false;
 
 VALID_PARS = {'BITWISE','CHANNEL','HEADERS','NODATA','RANGES','STORE', ...
-    'T1','T2','TYPE','VERBOSE','SORTNAME','COMBINE'};
+    'T1','T2','TYPE','VERBOSE','SORTNAME','COMBINE','DMY'};
 
 % parse varargin
 for ii = 1:2:length(varargin)
@@ -420,10 +423,14 @@ if ~useOutsideHeaders
             end
 
             if bDoOnce
-                if ~isempty(strfind(data.info.Start, '-'))
-                    yearfmt = 'yyyy-mm-dd';
+                if DMY
+                    yearfmt = 'dd/mm/yyyy';
                 else
-                    yearfmt = 'mm/dd/yyyy';
+                    if ~isempty(strfind(data.info.Start, '-'))
+                        yearfmt = 'yyyy-mm-dd';
+                    else
+                        yearfmt = 'mm/dd/yyyy';
+                    end
                 end
                 if ~isempty(strfind(data.info.Start, 'm'))
                     timefmt = 'HH:MM:SSPM';
@@ -573,7 +580,7 @@ if ~useOutsideHeaders
             name = char(typecast(uniqueCodes(x), 'uint8'));
 
             bSkipDisabled = 0;
-            if ~isempty(fields(blockNotes))
+            if ~isempty(fieldnames(blockNotes))
                 for i = 1:numel(blockNotes)
                     temp = blockNotes(i);
                     if strcmp(temp.StoreName, name)
@@ -858,7 +865,7 @@ if ~useOutsideHeaders
     clear epocs;
     
     % if there is a custom sort name but this store ID isn't included, ignore it altogether
-    fff = fields(headerStruct.stores);
+    fff = fieldnames(headerStruct.stores);
     for xxx = 1:numel(fff)
         varName = fff{xxx};
         if strcmpi(headerStruct.stores.(varName).typeStr, 'snips')
@@ -870,7 +877,7 @@ if ~useOutsideHeaders
         end
     end
     
-    fff = fields(headerStruct.stores);
+    fff = fieldnames(headerStruct.stores);
     for xxx = 1:numel(fff)
         
         varName = fff{xxx};
@@ -902,7 +909,7 @@ if ~useOutsideHeaders
     end
 else
     % if headers were provided, do store filter here:
-    fff = fields(headerStruct.stores);
+    fff = fieldnames(headerStruct.stores);
     for n = 1:length(fff)
         keep = 1;
         temp_name = headerStruct.stores.(fff{n}).name;
@@ -942,7 +949,7 @@ if numRanges > 0
 end
 
 % loop through all possible stores
-storeNames = fields(headerStruct.stores);
+storeNames = fieldnames(headerStruct.stores);
 
 % do full time filter here
 for ii = 1:numel(storeNames)
@@ -1452,7 +1459,7 @@ if ismember(4, TYPE)
             if ~strcmp(STORE, '') && ~strcmp(STORE, sevNames{ii}), continue; end
         end
         if isstruct(data.streams)
-            indexC = strfind(fields(data.streams), sevNames{ii});
+            indexC = strfind(fieldnames(data.streams), sevNames{ii});
             bFound = ~all(cellfun('isempty',indexC));
         else
             bFound = 0;
@@ -1460,7 +1467,7 @@ if ismember(4, TYPE)
         if ~bFound
             d = SEV2mat(BLOCK_PATH, 'EVENTNAME', sevNames{ii}, 'CHANNEL', CHANNEL, 'VERBOSE', VERBOSE, 'RANGES', validTimeRange);
             if ~isempty(d)
-                fff = fields(d);
+                fff = fieldnames(d);
                 for jj = 1:numel(fff)
                     if isfield(d.(fff{jj}), 'name')
                         if strcmp(d.(fff{jj}).name, sevNames{ii})

@@ -161,7 +161,7 @@ end
 % Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
 for eachfile = 1:length(data)
     data(eachfile).SDthreshold = 2.6;
-    data(eachfile).SDthresholdsigfilt = 2.6*std(data(eachfile).sigfilt_injcropped(1:data(eachfile).injt(1)));
+    %data(eachfile).SDthresholdsigfilt = 2.6*std(data(eachfile).sigfilt_injcropped(1:data(eachfile).injt(1)));
 end
 
 % Find session transients based on pre-peak baseline window minimum - reccomended as the first pass choice for transient analysis

@@ -172,7 +172,6 @@ end
 [data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold');
 [data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt');
 
-
 % Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'SubjectID','TreatNum','InjType'};
 alltransients_Z = exportTransients(data,'sessiontransients_blmean_SDthreshold',analysispath,addvariables);

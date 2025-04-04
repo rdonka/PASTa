@@ -28,20 +28,21 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
 %                                   Default: 'blmean'.
 %
 %       'preminstartms'           - Numeric; start time (ms) of the pre-transient baseline window.
-%                                   Default: 800 ms.
+%                                   Default: 1000 ms.
 %
 %       'preminendms'             - Numeric; end time (ms) of the pre-transient baseline window.
-%                                   Default: 100 ms.
+%                                   Default: 200 ms.
 %
 %       'posttransientms'         - Numeric; duration (ms) after the transient peak for analysis.
 %                                   Default: 2000 ms.
 %
-%       'compoundtransientwindowms' - Numeric; window (ms) to search before and after each event
-%                                     for compound transients. Default: 2000 ms.
 %
 %       'quantificationheight'    - Numeric; height (as a fraction of peak amplitude) at which to
 %                                   characterize rise time, fall time, peak width, and area under
 %                                   the curve (AUC). Must be between 0 and 1. Default: 0.5.
+%
+%       'compoundtransientwindowms' - Numeric; window (ms) to search before and after each event
+%                                     for compound transients. Default: 2000 ms.
 %
 %       'outputtransientdata'     - Logical; if true (1), outputs cut data streams for each transient
 %                                   event. If false (0), skips this output.

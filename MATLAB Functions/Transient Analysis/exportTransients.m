@@ -1,12 +1,12 @@
-function [alltransients] = exportSessionTransients(data,whichtransients,exportfilepath,addvariables,varargin)
-% EXPORTSESSIONTRANSIENTS  Compiles all transients across sessions into a table and exports to a CSV file.
+function [alltransients] = exportTransients(data,whichtransients,exportfilepath,addvariables,varargin)
+% EXPORTTRANSIENTS  Compiles all transients across sessions into a table and exports to a CSV file.
 %
-%   EXPORTSESSIONTRANSIENTS(DATA, WHICHTRANSIENTS, EXPORTFILEPATH, ADDVARIABLES, 'PARAM1', VAL1, ...)
+%   EXPORTTRANSIENTS(DATA, WHICHTRANSIENTS, EXPORTFILEPATH, ADDVARIABLES, 'PARAM1', VAL1, ...)
 %   aggregates transient data from multiple sessions and exports the compiled table to a specified CSV file.
 %
 % REQUIRED INPUTS:
 %   DATA            - Structure array; must contain at least the output 
-%                     from FINDSESSIONTRANSIENTS.
+%                     from FINDTRANSIENTS.
 %
 %   WHICHTRANSIENTS - String; name of the field containing the table of 
 %                     transients to export (e.g., 'sessiontransients_blmin_3SD').
@@ -40,7 +40,7 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
 %                     saved as a CSV file at the specified export file path.
 %
 % EXAMPLE USAGE:
-%   alltransients = exportSessionTransients(data, 'sessiontransients_blmin_3SD', exportfilepath, {'Subject', 'SessionID'}, 'filename', 'transients_export.csv');
+%   alltransients = exportTransients(data, 'sessiontransients_blmin_3SD', exportfilepath, {'Subject', 'SessionID'}, 'filename', 'transients_export.csv');
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -67,7 +67,7 @@ function [alltransients] = exportSessionTransients(data,whichtransients,exportfi
     end
     
     % Display
-    disp(['EXPORTSESSIONTRANSIENTS: Exporting transients from ', whichtransients, ' to a csv file.']) % Function display
+    disp(['EXPORTTRANSIENTS: Exporting transients from ', whichtransients, ' to a csv file.']) % Function display
     disp(['     File will be output to the folder location: ', exportfilepath]) % Display file path location
 
     disp('   PARAMETERS:') % Display all input values

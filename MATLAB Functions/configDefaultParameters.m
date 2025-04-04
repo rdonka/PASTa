@@ -44,22 +44,25 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.removeStreamArtifacts.bucketsizeSecs = 30; % Bucket size (seconds) for session amplitude and mean calculations
 
     % findSessionTransients
-    allparameters.findSessionTransients.preminstartms = 800; % Pre-transient baseline ms start
-    allparameters.findSessionTransients.preminendms = 100; % Pre-transient baseline ms end
-    allparameters.findSessionTransients.posttransientms = 2000; % Post-transient fall window
-    allparameters.findSessionTransients.compoundtransientwindowms = 2000; % Window size to search before and after each event for compound transients
-    allparameters.findSessionTransients.quantificationheight = 0.5; % Height for quantification of transients (rise/fall/AUC)
-    allparameters.findSessionTransients.outputtransientdata = 1; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
-    
+    allparameters.findTransients.bltype = 'blmean'; % Default to baseline mean method
+    allparameters.findTransients.preminstartms = 1000; % Pre-transient baseline ms start
+    allparameters.findTransients.preminendms = 200; % Pre-transient baseline ms end
+    allparameters.findTransients.posttransientms = 2000; % Post-transient fall window
+    allparameters.findTransients.compoundtransientwindowms = 2000; % Window size to search before and after each event for compound transients
+    allparameters.findTransients.quantificationheight = 0.5; % Height for quantification of transients (rise/fall/AUC)
+    allparameters.findTransients.outputtransientdata = 1; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
+    allparameters.findTransients.outputpremaxS = 5; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
+    allparameters.findTransients.outputpostmaxS = 8; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
+
     % binSessionTransients
-    allparameters.binSessionTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
-    allparameters.binSessionTransients.whichmaxlocs = 'maxloc'; % Name of field in transient quantificaiton table with the max peak locations
-    allparameters.binSessionTransients.binlengthmins = 5; % Bin length (mins) for transient analysis
-    allparameters.binSessionTransients.nbinsoverride = 0; % Mannual override to set number of bins; Set to 0 to calculate number of bins based on length of session    
+    allparameters.binTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
+    allparameters.binTransients.whichmaxlocs = 'maxloc'; % Name of field in transient quantificaiton table with the max peak locations
+    allparameters.binTransients.binlengthmins = 5; % Bin length (mins) for transient analysis
+    allparameters.binTransients.nbinsoverride = 0; % Mannual override to set number of bins; Set to 0 to calculate number of bins based on length of session    
 
     % exportSessionTransients
-    allparameters.exportSessionTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
-    allparameters.exportSessionTransients.filename = ''; % Empty file name to trigger automatic naming
+    allparameters.exportTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
+    allparameters.exportTransients.filename = ''; % Empty file name to trigger automatic naming
 
     % plotTraces
     allparameters.plotTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath

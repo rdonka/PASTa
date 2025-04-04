@@ -1,7 +1,7 @@
-function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,varargin)
-% BINSESSIONTRANSIENTS  Assigns each transient to a time bin within the session.
+function [data] = binTransients(data,whichstream,whichfs,whichtransients,varargin)
+% BINTRANSIENTS  Assigns each transient to a time bin within the session.
 %
-%   BINSESSIONTRANSIENTS(DATA, WHICHSTREAM, WHICHFS, WHICHTRANSIENTS, 'PARAM1', VAL1, ...)
+%   BINTRANSIENTS(DATA, WHICHSTREAM, WHICHFS, WHICHTRANSIENTS, 'PARAM1', VAL1, ...)
 %   adds a 'Bin' variable to the transient quantification table, assigning
 %   each transient to a bin based on its occurrence within the session.
 %
@@ -50,10 +50,10 @@ function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,
 %                         specified table of transients.
 %
 % EXAMPLE:
-%   data = binSessionTransients(data, 'sigz_normsession', 'fs', 'sessiontransients_blmin_3SD', ...
+%   data = binTransients(data, 'sigz_normsession', 'fs', 'sessiontransients_blmin_3SD', ...
 %       'binlengthmins', 10);
 %
-% See also: findSessionTransients
+% See also: findTransients
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -77,7 +77,7 @@ function [data] = binSessionTransients(data,whichstream,whichfs,whichtransients,
     params = p.Results;
     
     % Display
-    disp(['BINSESSIONTRANSIENTS: Add bin variable to transient quantification table. Binning transients from ', whichtransients, ' into ', num2str(params.binlengthmins), ' minute bins.']) % Display bin length
+    disp(['BINTRANSIENTS: Add bin variable to transient quantification table. Binning transients from ', whichtransients, ' into ', num2str(params.binlengthmins), ' minute bins.']) % Display bin length
     disp('   PARAMETERS:') % Display all parameters
     disp(params)
 

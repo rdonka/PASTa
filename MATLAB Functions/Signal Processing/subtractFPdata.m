@@ -1,28 +1,28 @@
-function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, varargin)
+function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, varargin)
 % SUBTRACTFPDATA    Subtracts background fluorescence from signal and applies
 %                   filtering to fiber photometry data.
 %
-%   DATA = SUBTRACTFPDATA(DATA, WHICHSIGFIELD, WHICHBAQFIELD, WHICHFS, 'PARAM1', VAL1, ...)
+%   DATA = SUBTRACTFPDATA(DATA, SIGFIELDNAME, BAQFIELDNAME, FSFIELDNAME, 'PARAM1', VAL1, ...)
 %   processes the fluorescence data by subtracting the specified background
 %   channel from the signal channel and applying a Butterworth filter. The
 %   function outputs the data as either delta F/F ('dff') or delta F ('df').
 %
 %
 % REQUIRED INPUTS:
-%       DATA            - Struct array; each element contains fields for
-%                         signal and background fluorescence data, as well
-%                         as the sampling rate.
+%       DATA           - Struct array; each element contains fields for
+%                        signal and background fluorescence data, as well
+%                        as the sampling rate.
 %
-%       WHICHSIGFIELD   - String; name of the field in DATA containing the
-%                         "signal" data stream (e.g., 'sig').
+%       SIGFIELDNAME   - String; name of the field in DATA containing the
+%                        "signal" data stream (e.g., 'sig').
 %
-%       WHICHBAQFIELD   - String; name of the field in DATA containing the
-%                         "background" data stream (e.g., 'baq').
+%       BAQFIELDNAME   - String; name of the field in DATA containing the
+%                        "background" data stream (e.g., 'baq').
 %
-%       WHICHFS         - String; name of the field in DATA containing the
-%                         sampling rate (e.g., 'fs').
+%       FSFIELDNAME    - String; name of the field in DATA containing the
+%                        sampling rate (e.g., 'fs').
 %
-% PTIONAL INPUT NAME-VALUE PAIRS:
+% OPTIONAL INPUT NAME-VALUE PAIRS:
 %       'baqscalingtype'     - String; method for scaling the background
 %                              fluorescence before subtraction. Options are:
 %                              'frequency' (default), 'sigmean', 'OLS',
@@ -65,7 +65,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 %       'lowpasscutoff'      - Numeric; low-pass filter cutoff frequency (Hz).
 %                              Default: 2.2860
 %
-%   OUTPUT:
+% OUTPUT:
 %       DATA   - Struct array; the input DATA structure with additional fields:
 %              - 'baqscaled': scaled background fluorescence data.
 %              - 'sigsub': subtracted signal (delta F or delta F/F).
@@ -73,7 +73,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 %              - 'inputs_subtractFPdata': structure containing input parameters.
 %              - Additional fields related to artifact removal if enabled.
 %
-%   EXAMPLES:
+% EXAMPLES:
 %       % Example 1: Basic subtraction with default settings
 %       data = subtractFPdata(data, 'sig', 'baq', 'fs');
 %
@@ -83,7 +83,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
 %                             'filtertype', 'lowpass', ...
 %                             'lowpasscutoff', 1.5);
 %
-%   NOTES:
+% NOTES:
 %       - Ensure that the signal and background fields in DATA have the same
 %         length. If they differ, the function will adjust accordingly and
 %         issue a warning.
@@ -152,27 +152,27 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
     % Main display and function inputs
     switch params.baqscalingtype
         case 'frequency' % Display for frequency background scaling - default
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with frequency domain scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with frequency domain scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
         case 'sigmean' % Display for signal mean background scaling
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with signal mean scaling. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with signal mean scaling. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'OLS' % Display for ordinary least squares regression background scaling
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'detrendedOLS' % Display for linear detrending and ordinary least squares regression background scaling
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with detrending and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with detrending and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'smoothedOLS' % Display for time domain subtraction
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with lowess smoothing and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with lowess smoothing and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'biexpOLS' % Display for time domain subtraction
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with biexponential decay removal and ordinary least-squares regression (OLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'biexpQuartFit' % Display for time domain subtraction
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with biexponential decay removal and quartile fit. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with biexponential decay removal and quartile fit. Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'IRLS' % Display for time domain subtraction
-            disp(['SUBTRACTFPDATA: ','Subtracting ',whichbaqfield, ' from ',whichsigfield, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         otherwise
             error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLD, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);
@@ -201,7 +201,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
         fprintf('Subtracting file number: %.f \n',eachfile) % Display which file is being subtracted
         
         % Prepare sampling rate
-        fs = data(eachfile).(whichfs);
+        fs = data(eachfile).(fsfieldname);
 
         % Prepare filters
         nyquist = floor(fs/2);
@@ -225,24 +225,24 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
         try
         %% Prepare data: Check length match of signal and background
             % Check length of streams and make temp stream variables
-            if length(data(eachfile).(whichsigfield))==length(data(eachfile).(whichbaqfield)) % If the length of 405 and 465 are equal, set temps to raw values
-                baq = data(eachfile).(whichbaqfield);
-                sig = data(eachfile).(whichsigfield);
-            elseif length(data(eachfile).(whichsigfield))>length(data(eachfile).(whichbaqfield)) % If the length of signal is greater, set temps to length of 405
+            if length(data(eachfile).(sigfieldname))==length(data(eachfile).(baqfieldname)) % If the length of 405 and 465 are equal, set temps to raw values
+                baq = data(eachfile).(baqfieldname);
+                sig = data(eachfile).(sigfieldname);
+            elseif length(data(eachfile).(sigfieldname))>length(data(eachfile).(baqfieldname)) % If the length of signal is greater, set temps to length of 405
                 warning('   Length of signal greater than length of background stream. Signal data adjusted to match background length.')
-                baq = data(eachfile).(whichbaqfield);
-                sig = data(eachfile).(whichsigfield)(1:length(data(eachfile).(whichbaqfield)));
-            elseif length(data(eachfile).(whichsigfield))<length(data(eachfile).(whichbaqfield)) % If the length of 405 is greater, set temps to length of 465
+                baq = data(eachfile).(baqfieldname);
+                sig = data(eachfile).(sigfieldname)(1:length(data(eachfile).(baqfieldname)));
+            elseif length(data(eachfile).(sigfieldname))<length(data(eachfile).(baqfieldname)) % If the length of 405 is greater, set temps to length of 465
                 warning('   Length of background greater than length of signal stream. Background data adjusted to match signal length.')
-                sig = data(eachfile).(whichsigfield);
-                baq = data(eachfile).(whichbaqfield)(1:length(data(eachfile).(whichsigfield)));
+                sig = data(eachfile).(sigfieldname);
+                baq = data(eachfile).(baqfieldname)(1:length(data(eachfile).(sigfieldname)));
             end
 
         %% Scale Background: apply the selected background scaling method.
             switch params.baqscalingtype
                 case 'frequency' % Frequency domain scaling - scales to power
-                    baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
-                    sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
+                    baq_centered = baq - mean(data(eachfile).(baqfieldname)); % Center background at 0
+                    sig_centered = sig - mean(data(eachfile).(sigfieldname)); % Center signal at 0
     
                     [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
                     [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
@@ -263,8 +263,8 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
                         warning(['Possible over scaling. baqscalingfactor = ',num2str(baqscalingfactor)])
                     end
                 case 'frequency_amplitude' % Frequency domain scaling - scales to amplitude
-                    baq_centered = baq - mean(data(eachfile).(whichbaqfield)); % Center background at 0
-                    sig_centered = sig - mean(data(eachfile).(whichsigfield)); % Center signal at 0
+                    baq_centered = baq - mean(data(eachfile).(baqfieldname)); % Center background at 0
+                    sig_centered = sig - mean(data(eachfile).(sigfieldname)); % Center signal at 0
     
                     [sigFFT, sigF] = preparestreamFFT(sig_centered,fs); % Prep FFT
                     [baqFFT, baqF] = preparestreamFFT(baq_centered,fs); % Prep FFT
@@ -367,7 +367,7 @@ function [data] = subtractFPdata(data, whichsigfield, whichbaqfield, whichfs, va
                     error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLS, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);
             end
 
-            data(eachfile).(append(whichbaqfield,'scaled')) =  baqscaled; % Add scaled background to data frame
+            data(eachfile).(append(baqfieldname,'scaled')) =  baqscaled; % Add scaled background to data frame
 
         %% Subtract data
             switch params.subtractionoutput

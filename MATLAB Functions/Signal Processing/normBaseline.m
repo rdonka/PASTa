@@ -1,29 +1,29 @@
-function [data] = normBaseline(data,whichstream,whichblstart,whichblend)
+function [data] = normBaseline(data,streamfieldname,BLstartfieldname,BLendfieldname)
 % NORMBASELINE    Normalizes a specified data stream to z-score based on the 
 %                 session baseline period.
 %
-%   NORMBASELINE(DATA, WHICHSTREAM, WHICHBLSTART, WHICHBLEND) normalizes 
-%   the data stream specified by WHICHSTREAM within the DATA structure to 
+%   NORMBASELINE(DATA, STREAMFIELDNAME, BLSTARTFIELDNAME, BLENDFIELDNAME) normalizes 
+%   the data stream specified by STREAMFIELDNAME within the DATA structure to 
 %   its z-score, using the mean and standard deviation calculated over the 
-%   session baseline defined by WHICHBLSTART and WHICHBLEND. The normalized 
+%   session baseline defined by BLSTARTFIELDNAME and BLENDFIELDNAME. The normalized 
 %   data is added to the DATA structure with the field name 
-%   '<whichStream>_z_normsession'.
+%   '<streamfieldname>_z_normsession'.
 %
 % REQUIRED INPUTS:
-%       DATA          - Structure array; each element represents a session and must
-%                       contain the field specified by WHICHSTREAM.
+%       DATA              - Structure array; each element represents a session and must
+%                           contain the field specified by STREAMFIELDNAME.
 %
-%       WHICHSTREAM   - String; the name of the field within DATA to be normalized.
+%       STREAMFIELDNAME   - String; the name of the field within DATA to be normalized.
 %
-%       WHICHBLSTART  - String; The name of the field containing the index 
-%                       of the start of the baseline period.
+%       BLSTARTFIELDNAME  - String; The name of the field containing the index 
+%                           of the start of the baseline period.
 %
-%       WHICHBLEND    - String; The name of the field containing the index 
-%                       of the end of the baseline period.
+%       BLENDFIELDNAME    - String; The name of the field containing the index 
+%                           of the end of the baseline period.
 %
 %   OUTPUTS:
 %       DATA:           Structure array; the original DATA structure with an added
-%                       field '<whichStream>_z_normbaseline' containing the normalized data.
+%                       field '<whichStream>z_normbaseline' containing the normalized data.
 %
 %   EXAMPLE:
 %       % Assuming 'data' is a structure array:
@@ -34,19 +34,19 @@ function [data] = normBaseline(data,whichstream,whichblstart,whichblend)
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 
 %% Normalize to session baseline
-disp(['NORMBASELINE: Normalizing ',whichstream,' to session baseline mean and standard deviation.'])
-disp(['   Baseline defined by ',whichblstart,' and ',whichblend,'.'])
-disp(['   Normalized data will be output to the field: ',whichstream, 'z_normbaseline'])
+disp(['NORMBASELINE: Normalizing ',streamfieldname,' to session baseline mean and standard deviation.'])
+disp(['   Baseline defined by ',BLstartfieldname,' and ',BLendfieldname,'.'])
+disp(['   Normalized data will be output to the field: ',streamfieldname, 'z_normbaseline'])
 
     for eachfile = 1:length(data)
         disp(['   NORMALIZING: File ',num2str(eachfile)])
         try
-            BLmean = mean(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend)),"omitnan"); % Find the mean of the session baseline
-            BLsd = std(data(eachfile).(whichstream)(data(eachfile).(whichblstart):data(eachfile).(whichblend)),"omitnan"); % Find the standard deviation of the session baseline
+            BLmean = mean(data(eachfile).(streamfieldname)(data(eachfile).(BLstartfieldname):data(eachfile).(BLendfieldname)),"omitnan"); % Find the mean of the session baseline
+            BLsd = std(data(eachfile).(streamfieldname)(data(eachfile).(BLstartfieldname):data(eachfile).(BLendfieldname)),"omitnan"); % Find the standard deviation of the session baseline
     
-            data(eachfile).(append(whichstream,'z_normbaseline')) = (data(eachfile).(whichstream) - BLmean)/BLsd; % Z score the whole session to the baseline
+            data(eachfile).(append(streamfieldname,'z_normbaseline')) = (data(eachfile).(streamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
         catch
-            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream]) 
+            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', streamfieldname]) 
         end
     end
 end

@@ -59,69 +59,80 @@ end
 % NOTE: Cropping is the only part of the pipeline that will alter the loaded data fields. 
 % To ensure you only complete this step once per analysis, it is reccomended to input structure 
 % 'rawdata' to the function and output a new structure 'data'.
-cropstart = 'sessionstart'; % name of field with session start index
-cropend = 'sessionend'; % name of field with session end index
-whichstreams = {'sig', 'baq'}; % which streams to crop
-whichepocs = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
+cropstartfieldname = 'sessionstart'; % name of field with session start index
+cropendfieldname = 'sessionend'; % name of field with session end index
+streamfieldnames = {'sig', 'baq'}; % which streams to crop
+epocsfieldnames = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
 
-[data] = cropFPdata(rawdata,cropstart,cropend, whichstreams,'whichepocs', whichepocs); % Output cropped data into new structure called data
+[data] = cropFPdata(rawdata,cropstartfieldname,cropendfieldname, streamfieldnames,'epocsfieldnames', whichepocs); % Output cropped data into new structure called data
 
 %% Process data
 % Subtract and filter data with default settings
-sigfield = 'sig';
-baqfield = 'baq';
-fsfield = 'fs';
+sigfieldname = 'sig';
+baqfieldname = 'baq';
+fsfieldname = 'fs';
 
-[data] = subtractFPdata(data,sigfield,baqfield,fsfield); % adds sigsub and sigfilt to data frame
+[data] = subtractFPdata(data,sigfieldname,baqfieldname,fsfieldname); % adds sigsub (subtracted stream) and sigfilt (subtracted and filtered stream) to data frame
 
 %% Plot whole session streams for each file
 % Use plotTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
+% Manually save plots to allow for customization (addition of injection start/stop lines)
+outputfiletype = 'png';
+
 for eachfile = 1:length(data)
+    fileindex = eachfile;
     maintitle = append(num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    alltraces = plotTraces(data,eachfile,maintitle);
-    for eachtile = 1:5
+    plotfilepath = append(figurepath,'SessionTraces_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
+
+    alltraces = plotTraces(data,fileindex,maintitle); % Save plot into object for customization
+    for eachtile = 1:5 % Add injection start/stop lines to each stream tile
         nexttile(eachtile)
         xline(data(eachfile).injt(1),'--','Injection','Color','#C40300','FontSize',8)
         xline(data(eachfile).injt(2),'--','Color','#C40300','FontSize',8)
     end    
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
-    plotfilepath = append(figurepath,'SessionTraces_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]); % Manually save the figure
+    exportgraphics(gcf,append(plotfilepath,'.',outputfiletype),'Resolution',300)
 end
 
 %% Plot whole session FFT power plots for each file
 % Use plotFFTpower to plot all frequency magnitude plots - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
-for eachfile = 1:length(data)
-    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    allffts = plotFFTpower(data,eachfile,maintitle,'fs');
+fsfieldname = 'fs'; % Prepare field names for function inputs 
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
-    plotfilepath = append(figurepath,'SessionFFTpower_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+for eachfile = 1:length(data) % Plot each file
+    fileindex = eachfile;
+    maintitle = append(num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'SessionFFTpower_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
+
+    plotFFTpower(data,fileindex,maintitle,fsfieldname,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath); % Autmatically save plots to specified file path
 end
 
 %% Plot whole session FFT magnitude plots for each file
 % Use plotFFTmag to plot all frequency magnitude plots - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
-for eachfile = 1:length(data)
-    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    allffts = plotFFTmag(data,eachfile,maintitle,'fs','xmax',100);
+for eachfile = 1:length(data) % Plot each file
+    fileindex = eachfile;
+    maintitle = append(num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'SessionFFTmag_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 9]);
-    plotfilepath = append(figurepath,'SessionFFTmag_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+    plotFFTmag(data,fileindex,maintitle,fsfieldname,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath);
 end
 
 %% Normalize data
 % To normalize to session mean:
-[data] = normSession(data,'sigfilt'); % Outputs whole session z score
+streamfieldname = 'sigfilt'; % Prepare field names for function inputs 
+
+[data] = normSession(data,streamfieldname); % Outputs Z scored stream based on whole session mean and SD
 
 % To normalize to a session baseline:
 for eachfile = 1:length(data) % prepare indexes for baseline period start and end
     data(eachfile).BLstart = 1;
     data(eachfile).BLend =  data(eachfile).injt(1);
 end
-[data] = normBaseline(data,'sigfilt','BLstart','BLend');
+
+BLstartfieldname = 'BLstart'; % Prepare field names for function inputs 
+BLendfieldname = 'BLend';
+
+[data] = normBaseline(data,streamfieldname,BLstartfieldname,BLendfieldname);  % Outputs Z scored stream based on session baseline (pre-injection) mean and SD
 
 %% Remove injection time window from normalized signal
 % This loop removes samples between the start and end of the injection. For
@@ -142,18 +153,21 @@ end
 % Use plotNormTraces to plot all raw traces - data needs to contain sig, baq, baq_scaled, sigsub, and sigfilt.
 streams = {'sigfiltz_normsession', 'sigfiltz_normbaseline'};
 streamtitles = {'Normalized to Whole Session', 'Normalized to Baseline'};
+outputfiletype = 'png';
 
 for eachfile = 1:length(data)
-    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    maintitle = append(num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'SessionNormTraces_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
     normtraces = plotNormTraces(data,eachfile,streams,'fs',maintitle,streamtitles);
+
+
     for eachtile = 1:2
         nexttile(eachtile)
         xline(data(eachfile).injt(1),'--','Injection','Color','#C40300','FontSize',8)
     end    
 
     set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 5]);
-    plotfilepath = append(figurepath,'SessionNormTraces_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+    exportgraphics(gcf,append(plotfilepath,'.',outputfiletype),'Resolution',300)
 end
 
 
@@ -168,14 +182,44 @@ end
 [data] = findTransients(data,'sigfiltz_normbaseline_injcropped','SDthreshold','fs');
 [data] = findTransients(data,'sigfilt_injcropped','SDthresholdsigfilt','fs');
 
-% Bin session transients
+%% Bin session transients
+% Bin session transients into time bins - default 5 mins
 [data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold');
 [data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt');
+
+% Bin session transients with 3 minute bins
+[data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold','binlengthmins',3);
+[data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt','binlengthmins',3);
+
+% Bin session transients with custom bin size
+[data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold','manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
+[data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt','manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
+
 
 % Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
 addvariables = {'SubjectID','TreatNum','InjType'};
 alltransients_Z = exportTransients(data,'sessiontransients_blmean_SDthreshold',analysispath,addvariables);
 alltransients_dFF = exportTransients(data,'sessiontransients_blmean_SDthresholdsigfilt',analysispath,addvariables);
+
+%% OPTIONAL: Create custom bins
+% If needed, transients can be binned into varying bins based on trial start and end indexes, or other relevant time points. 
+% Start and end indexes for each desired bin must be prepared and then passed to the function binTransients as optional inputs. 
+% This is an example of custom bin start and end index creation based on time points - in this case, just pre and post injection.
+
+for eachfile = 1:length(data)
+    % Prepare pre-injection start and end indexes
+    data(eachfile).binstart(1) = 1;
+    data(eachfile).binend(1) = data(eachfile).injt(1);
+
+    % Prepare post-injection start and end indexes
+    data(eachfile).binstart(2) = data(eachfile).binend(1)+1;
+    data(eachfile).binend(2) = length(data(eachfile).sigfiltz_normbaseline_injcropped);
+end
+
+binstartfieldname = 'binstart';
+binendfieldname = 'binend';
+
+
 
 %% Plot session bin traces with detected transients for each file
 % Use plotTransientBins to plot session bins with detected transients for each file.

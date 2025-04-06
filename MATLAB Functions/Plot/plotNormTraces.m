@@ -1,42 +1,43 @@
-function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maintitle,streamtitles,varargin)
+function [normtraces] = plotNormTraces(data,fileindex,streamfieldnames,fsfieldname,maintitle,streamtitles,varargin)
 % PLOTNORMTRACES  Plot normalized (Z-scored) fiber photometry traces for 
 %                 a session.
 %
-%   PLOTNORMTRACES(DATA, WHICHFILE, WHICHSTREAMS, WHICHFS, MAINTITLE, STREAMTITLES, 'PARAM1', VAL1, ...)
+%   PLOTNORMTRACES(DATA, FILEINDEX, STREAMFIELDNAMES, FSFIELDNAME, MAINTITLE, STREAMTITLES, 'PARAM1', VAL1, ...)
 %   plots the specified normalized data streams for a given session. This 
 %   function can be used within a loop to plot streams for all sessions in 
 %   the data structure.
 %
 % REQUIRED INPUTS:
-%   DATA            - Structure array; must contain the streams to be plotted.
+%   DATA              - Structure array; must contain the streams to be plotted.
 %
-%   WHICHFILE       - Integer; index of the file (session) to plot. 
-%                     This can be set within a loop to plot all files.
+%   FILEINDEX         - Integer; index of the file (session) to plot. 
+%                       This can be set within a loop to plot all files.
 %
-%   WHICHSTREAMS    - Cell array of strings; names of the fields in the 
-%                     data structure containing the normalized (Z-scored) 
-%                     streams to be plotted.
+%   STREAMFIELDNAMES  - Cell array of strings; names of the fields in the 
+%                       data structure containing the normalized (Z-scored) 
+%                       streams to be plotted.
+% 
+%   FSFIELDNAME       - String; name of the field that contains the sampling 
+%                       rate of the stream used for transient detection. 
+%                       For example, 'fs'.
 %
-%   WHICHFS         - String; name of the field that contains the sampling 
-%                     rate of the stream used for transient detection. 
-%                     For example, 'fs'.
+%   MAINTITLE         - String; main title for the overall plot, displayed 
+%                       above the individual subplots. For example, 
+%                       '427 - Treatment: Morphine'.
 %
-%   MAINTITLE       - String; main title for the overall plot, displayed 
-%                     above the individual subplots. For example, 
-%                     '427 - Treatment: Morphine'.
-%
-%   STREAMTITLES    - Cell array of strings; titles for each subplot 
-%                     corresponding to each stream in WHICHSTREAMS.
+%   STREAMTITLES      - Cell array of strings; titles for each subplot 
+%                       corresponding to each stream in STREAMFIELDNAMES.
 %
 % OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
 %   'saveoutput'    - Logical; set to true to automatically save trace 
-%                     plots as PNG files to the specified plot file path.
+%                     plots to the specified plot file path.
 %                     Default: false.
 %
+
 %   'plotfilepath'  - String; required if 'saveoutput' is set to true. 
 %                     Specifies the full path, including the filename,
 %                     where the plot should be saved. For example:
-%                     'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine.png'.
+%                     'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine'.
 %
 % OUTPUTS:
 %   NORMTRACES      - Figure handle; handle to the figure containing 
@@ -52,7 +53,7 @@ function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maint
 %
 %   % Plot and save normalized traces for the second session:
 %   plotNormTraces(data, 2, streams, 'fs', 'Subject 427 - Treatment Session', titles, ...
-%       'saveoutput', true, 'plotfilepath', 'C:\Plots\Session2.png');
+%       'saveoutput', true, 'plotfilepath', 'C:\Plots\Session2');
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -74,9 +75,9 @@ function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maint
     params = p.Results;
 
     % Display
-    disp(['PLOTNORMTRACES: Plotting normalized traces for file: ',num2str(whichfile)])
-    disp('   whichstreams: ')
-    disp(whichstreams)
+    disp(['PLOTNORMTRACES: Plotting normalized traces for file: ',num2str(fileindex)])
+    disp('   streamfieldnames: ')
+    disp(streamfieldnames)
 
     % Prepare defaults and check for optional inputs
     if isempty(params.plotfilepath) & params.saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
@@ -87,7 +88,7 @@ function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maint
     signormcolor = '#1300b6';
     
     %% Prep tiled layout
-    ntiles = length(whichstreams); % Number of tiles
+    ntiles = length(streamfieldnames); % Number of tiles
     
     close all
     normtraces = tiledlayout(ntiles, 1, 'Padding','compact', 'TileSpacing','compact');
@@ -95,40 +96,40 @@ function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maint
     %% Prep y axis variables
     streammax = 0;
     streammin = 0;
-    for eachstream = 1:length(whichstreams)
-        currstream = char(whichstreams(eachstream));
+    for eachstream = 1:length(streamfieldnames)
+        currstream = char(streamfieldnames(eachstream));
         % Find max
-        currstreammax = max(data(whichfile).(currstream));
+        currstreammax = max(data(fileindex).(currstream));
         if currstreammax > streammax
             streammax = currstreammax;
         end
         % Find min
-        currstreammin = min(data(whichfile).(currstream));
+        currstreammin = min(data(fileindex).(currstream));
         if currstreammin < streammin
             streammin = currstreammin;
         end
     end
     
-    ymax = ceil(max(data(whichfile).(currstream))+(0.1*max(data(whichfile).(currstream))));
+    ymax = ceil(max(data(fileindex).(currstream))+(0.1*max(data(fileindex).(currstream))));
     ymin = floor(streammin-(0.1*streammin));
     yticksize = round((ymax-ymin)/4,0); % Find size of ticks to generate 5 y axis ticks total
     yticklocs = ymin:yticksize:ymax;
 
     %% Plot each stream
-    for eachstream = 1:length(whichstreams)
-        currstream = char(whichstreams(eachstream));
+    for eachstream = 1:length(streamfieldnames)
+        currstream = char(streamfieldnames(eachstream));
         currstreamtitle = char(streamtitles(eachstream));
         
         % Prep x axis variables
-        currxlength = length(data(whichfile).(currstream));
-        currxmins = (length(data(whichfile).(currstream))/data(whichfile).(whichfs))/60; % Find total number of minutes per session - helper variable to determine ticks
+        currxlength = length(data(fileindex).(currstream));
+        currxmins = (length(data(fileindex).(currstream))/data(fileindex).(fsfieldname))/60; % Find total number of minutes per session - helper variable to determine ticks
         currxticklabels = 0:5:floor(currxmins/5)*5;
-        currxticks = floor(currxticklabels.*60.*data(whichfile).(whichfs)); % Determine x axis ticks - add ticks every 5 minutes
+        currxticks = floor(currxticklabels.*60.*data(fileindex).(fsfieldname)); % Determine x axis ticks - add ticks every 5 minutes
     
         % Plot normalized signal
         nexttile;
         hold on;
-        plot(data(whichfile).(currstream), 'Color', signormcolor);
+        plot(data(fileindex).(currstream), 'Color', signormcolor);
         xlim([0 currxlength]);
         xticks(currxticks);
         xticklabels(currxticklabels);
@@ -144,8 +145,9 @@ function [normtraces] = plotNormTraces(data,whichfile,whichstreams,whichfs,maint
     title(normtraces, maintitle, 'Interpreter', 'none');
 
     if params.saveoutput == 1
+        disp(['   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype])
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntiles]);
-        exportgraphics(gcf,append(params.plotfilepath, '.png'),'Resolution',300)
+        exportgraphics(gcf,append(params.plotfilepath, '.',params.outputfiletype),'Resolution',300)
     end
 end
 

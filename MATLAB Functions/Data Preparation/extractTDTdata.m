@@ -118,7 +118,7 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
         
                 % Identify all stream and epoc fields
                 streams = string(fieldnames(alldata.streams)); % Find all stream names for the current file
-                epocs = string(fieldnames(alldata.epocs)); % Find all epoc names for the current file
+                epocs = string(fieldnames(alldata.epocs)); % Find all epoch names for the current file
                 
                 % Find the signal and background stream names for the current file
                 currsigname = char(streams(ismember(streams,sigstreamnames))); % Extract the name of the signal field for the current file
@@ -149,7 +149,7 @@ function [] = extractTDTdata(rawfolderpaths,extractedfolderpaths,sigstreamnames,
                 blockdata.sig = double(alldata.streams.(currsigname).data((trimsamples+1):end-trimsamples)); % Add signal to the data structure and trim
                 blockdata.baq = double(alldata.streams.(currbaqname).data((trimsamples+1):end-trimsamples)); % Add background to the data structure and trim
 
-                % Adjust epoc event times for the trimmed data based on epoc onset
+                % Adjust epoch event times for the trimmed data based on epoc onset
                 for eachepoc = 1:length(epocs)
                     thisepoc = char(epocs(eachepoc));
                     blockdata.(thisepoc) = round(((alldata.epocs.(thisepoc).onset-alldata.time_ranges(1)).*blockdata.fs)-(trimsamples));

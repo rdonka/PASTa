@@ -1,23 +1,23 @@
-function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
+function [allffts] = plotFFTmag(data,fileindex,maintitle,fsfieldname,varargin)
 % PLOTFFTMAG    Creates frequency magnitude plots of fiber photometry streams.
 %               This function computes and plots the Fast Fourier Transform (FFT)
 %               of specified data streams, including 'sig', 'baq', 'baqscaled',
 %               'sigsub', and 'sigfilt'. It is designed to be used in a loop to
 %               generate plots for all sessions in the data structure.
 %
-%   [ALLFFTS] = PLOTFFTMAG(DATA, WHICHFILE, MAINTITLE, WHICHFS, 'PARAM1', VAL1, ...)
+%   [ALLFFTS] = PLOTFFTMAG(DATA, FILEINDEX, MAINTITLE, FSFIELDNAME, 'PARAM1', VAL1, ...)
 %   computes and plots the FFT magnitude spectra for the specified data streams in
 %   the given session.
 %
 % REQUIRED INPUTS:
 %   DATA        - Structure array; contains the data streams to be plotted.
 %
-%   WHICHFILE   - Numeric; index specifying the session (file) to plot.
+%   FILEINDEX   - Numeric; index specifying the session (file) to plot.
 %
 %   MAINTITLE   - String; main title for the overall plot, displayed above 
 %                 the individual subplots. (e.g., '427 - Treatment: Morphine').
 %
-%   WHICHFS     - String; name of the field containing the sampling rate of
+%   FSFIELDNAME - String; name of the field containing the sampling rate of
 %                 the streams (e.g., 'fs').
 %
 % OPTIONAL INPUT NAME-VALUE PAIRS:
@@ -26,13 +26,16 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
 %                     plot all frequencies, set to 'actual'. Default: 100.
 %
 %   'saveoutput'    - Logical; set to true to automatically save trace plots 
-%                     as PNG files to the specified plot file path. 
-%                     Default: false.
+%                     to the specified plot file path. Default: false.
+%
+%   'outputfiletype'- String; File type extension to save the figure as.
+%                     Options supported: 'png', 'jpg', 'tiff', 'eps', and 'pdf'.
+%                     Default: 'png'.
 %
 %   'plotfilepath'  - String; required if 'saveoutput' is set to true. 
 %                     Specifies the full path, including the filename, 
 %                     where the plot should be saved (e.g.,
-%                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionFFTmag_427_Morphine.png').
+%                       'C:\Users\rmdon\Box\Injection Transients\Figures\SessionFFTmag_427_Morphine').
 %
 % OUTPUT
 %   ALLFFTS     - Figure object; contains subplots for each input stream's
@@ -57,6 +60,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
     addParameter(p, 'xmax', 100,@(x) (isnumeric(x) && isscalar(x) && (x > 0)) || (ischar(x) && strcmp(x, 'actual'))); % xmax: Must either be numeric and greater than 0, or set to 'actual'
     addParameter(p, 'saveoutput', defaultparameters.saveoutput, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % saveoutput: input must be logical or numeric (either 0 or 1); set to 1 to save plot automatically
+    addParameter(p, 'outputfiletype', defaultparameters.outputfiletype, @(x) ischar(x) && ismember(x, {'png', 'jpg', 'tiff', 'eps', 'pdf'})); % outputfiletype: file type to save plot as if saveoutput is set to 1
     addParameter(p, 'plotfilepath', defaultparameters.plotfilepath, @(x) ischar(x) || isstring(x)); % plotfilepath: defaults to empty unless input is specified
 
     parse(p, varargin{:});
@@ -65,21 +69,18 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     params = p.Results;
     
     % Display
-    disp(['PLOTFFTMAG: Plotting FFT magnitude plots for file: ',num2str(whichfile)])
+    disp(['PLOTFFTMAG: Plotting FFT magnitude plots for file: ',num2str(fileindex)])
 
     if isempty(params.plotfilepath) & params.saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
         error('SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
     end
 
-
     %% Prep FFTs
-    [sigFFT,sigF] = preparestreamFFT(data(whichfile).sig,data(whichfile).(whichfs));
-    [baqFFT,baqF] = preparestreamFFT(data(whichfile).baq,data(whichfile).(whichfs));
-    [baqscaledFFT,baqscaledF] = preparestreamFFT(data(whichfile).baqscaled,data(whichfile).(whichfs));
-    [sigsubFFT,sigsubF] = preparestreamFFT(data(whichfile).sigsub,data(whichfile).(whichfs));
-    [sigfiltFFT,sigfiltF] = preparestreamFFT(data(whichfile).sigfilt,data(whichfile).(whichfs));
-
-
+    [sigFFT,sigF] = preparestreamFFT(data(fileindex).sig,data(fileindex).(fsfieldname));
+    [baqFFT,baqF] = preparestreamFFT(data(fileindex).baq,data(fileindex).(fsfieldname));
+    [baqscaledFFT,baqscaledF] = preparestreamFFT(data(fileindex).baqscaled,data(fileindex).(fsfieldname));
+    [sigsubFFT,sigsubF] = preparestreamFFT(data(fileindex).sigsub,data(fileindex).(fsfieldname));
+    [sigfiltFFT,sigfiltF] = preparestreamFFT(data(fileindex).sigfilt,data(fileindex).(fsfieldname));
 
 %% Prep colors
     sigcolor = '#0092FF';
@@ -89,9 +90,9 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     sigfiltcolor = '#4CBB17';
     
 %% Prep axis variables
-    currxlength = sum(sigF<xmax);
-    currxticksize = floor(xmax/20); % Find total number of minutes per session - helper variable to determine ticks
-    currxticks = 0:currxticksize:xmax;
+    currxlength = sum(sigF<params.xmax);
+    currxticksize = floor(params.xmax/20); % Find total number of minutes per session - helper variable to determine ticks
+    currxticks = 0:currxticksize:params.xmax;
 
     fftymax = 10^2;
     fftymin = 10^-8;
@@ -104,13 +105,12 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     % Create tiled layout
     allffts = tiledlayout(ntraces, 1, 'Padding','compact', 'TileSpacing','compact');
 
-    
     % Plot raw signal
     nexttile;
     hold on;
     plot(sigF(1:currxlength), sigFFT(1:currxlength), 'Color', sigcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -125,7 +125,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     hold on;
     plot(baqF(1:currxlength), baqFFT(1:currxlength), 'Color', baqcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -141,7 +141,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     plot(sigF(1:currxlength), sigFFT(1:currxlength), 'Color', sigcolor);
     plot(baqF(1:currxlength), baqFFT(1:currxlength), 'Color', baqcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -157,7 +157,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     plot(sigF(1:currxlength), sigFFT(1:currxlength), 'Color', sigcolor);
     plot(baqscaledF(1:currxlength), baqscaledFFT(1:currxlength), 'Color', baqscaledcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -172,7 +172,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     hold on;
     plot(sigsubF(1:currxlength), sigsubFFT(1:currxlength), 'Color', sigsubcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -187,7 +187,7 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     hold on;
     plot(sigfiltF(1:currxlength), sigfiltFFT(1:currxlength), 'Color', sigfiltcolor);
     set(gca, 'YScale', 'log')
-    xlim([-0.1 xmax]);
+    xlim([-0.1 params.xmax]);
     xticks(currxticks);
     ylim([fftymin fftymax]);
     yticks(fftyticks);
@@ -200,9 +200,10 @@ function [allffts] = plotFFTmag(data,whichfile,maintitle,whichfs,varargin)
     % Add a main title for the entire tiled layout
     title(allffts, maintitle, 'Interpreter', 'none');
 
-    if saveoutput == 1
+    if params.saveoutput == 1
+        disp(['   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype])
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);
-        exportgraphics(gcf,append(plotfilepath, '.png'),'Resolution',300)
+        exportgraphics(gcf,append(params.plotfilepath, '.',params.outputfiletype),'Resolution',300)
     end
 end
 

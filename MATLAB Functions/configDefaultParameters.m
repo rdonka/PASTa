@@ -55,10 +55,11 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.findTransients.outputpostmaxS = 8; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
 
     % binSessionTransients
-    allparameters.binTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
-    allparameters.binTransients.whichmaxlocs = 'maxloc'; % Name of field in transient quantificaiton table with the max peak locations
+    allparameters.binTransients.transientstablefieldname = 'transientquantification'; % Name of field containing table of quantified transients
+    allparameters.binTransients.maxlocsfieldname = 'maxloc'; % Name of field in transient quantificaiton table with the max peak locations
     allparameters.binTransients.binlengthmins = 5; % Bin length (mins) for transient analysis
     allparameters.binTransients.nbinsoverride = 0; % Mannual override to set number of bins; Set to 0 to calculate number of bins based on length of session    
+    allparameters.binTransients.manuallydefinebins = false; % Mannually specify bin start and end indexes
 
     % exportSessionTransients
     allparameters.exportTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
@@ -66,20 +67,24 @@ function defaultparameters = configDefaultParameters(callerFunction)
 
     % plotTraces
     allparameters.plotTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTraces.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
     % plotNormTraces
     allparameters.plotNormTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotNormTraces.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotNormTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
     % plotFFTpower
     allparameters.plotFFTpower.xmax = 100; % X axis cutoff (hz) for plots
     allparameters.plotFFTpower.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotFFTpower.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotFFTpower.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
     % plotFFTmag
     allparameters.plotFFTmag.xmax = 100; % X axis cutoff (hz) for plots
     allparameters.plotFFTmag.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotFFTmag.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotFFTmag.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
 

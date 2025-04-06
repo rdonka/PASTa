@@ -1,7 +1,7 @@
-function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
+function [alltraces] = plotTraces(data,fileindex,maintitle,varargin)
 % PLOTTRACES  Plot whole-session fiber photometry traces.
 %
-%   PLOTTRACES(DATA, WHICHFILE, MAINTITLE, 'PARAM1', VAL1, ...) plots the
+%   PLOTTRACES(DATA, FILEINDEX, MAINTITLE, 'PARAM1', VAL1, ...) plots the
 %   specified data streams for a given session, including 'sig', 'baq',
 %   'baqscaled', 'sigsub', and 'sigfilt'. This function can be used within
 %   a loop to plot streams for all sessions in the data structure.
@@ -9,7 +9,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
 % REQUIRED INPUTS:
 %   DATA        - Structure array; must contain the streams to be plotted.
 %
-%   WHICHFILE   - Integer; index of the file (session) to plot. This can be
+%   FILEINDEX   - Integer; index of the file (session) to plot. This can be
 %                 set within a loop to plot all files.
 %
 %   MAINTITLE   - String; main title for the overall plot, displayed above
@@ -18,13 +18,16 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
 %
 % OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
 %   'saveoutput'    - Logical; set to true to automatically save trace plots
-%                     as PNG files to the specified plot file path.
-%                     Default: false.
+%                     to the specified plot file path. Default: false.
+%
+%   'outputfiletype'- String; File type extension to save the figure as.
+%                     Options supported: 'png', 'jpg', 'tiff', 'eps', and 'pdf'.
+%                     Default: 'png'.
 %
 %   'plotfilepath'  - String; required if 'saveoutput' is set to true.
 %                     Specifies the full path, including the filename, where
 %                     the plot should be saved. For example:
-%                     'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine.png'.
+%                     'C:\Users\rmdon\Box\Injection Transients\Figures\SessionTraces_427_Morphine'.
 %
 % OUTPUTS:
 %   ALLTRACES   - Figure handle; handle to the figure containing subplots
@@ -35,7 +38,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
 %   plotTraces(data, 1, 'Subject 427 - Baseline Session');
 %
 %   % Plot and save traces for the second session:
-%   plotTraces(data, 2, 'Subject 427 - Treatment Session', 'saveoutput', true, 'plotfilepath', 'C:\Plots\Session2.png');
+%   plotTraces(data, 2, 'Subject 427 - Treatment Session', 'saveoutput', true, 'plotfilepath', 'C:\Plots\Session2');
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -49,6 +52,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
     addParameter(p, 'saveoutput', defaultparameters.saveoutput, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % saveoutput: input must be logical or numeric (either 0 or 1); set to 1 to save plot automatically
+    addParameter(p, 'outputfiletype', defaultparameters.outputfiletype, @(x) ischar(x) && ismember(x, {'png', 'jpg', 'tiff', 'eps', 'pdf'})); % outputfiletype: file type to save plot as if saveoutput is set to 1
     addParameter(p, 'plotfilepath', defaultparameters.plotfilepath, @(x) ischar(x) || isstring(x)); % plotfilepath: defaults to empty unless input is specified
 
     parse(p, varargin{:});
@@ -57,7 +61,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     params = p.Results;
     
     % Display
-    disp(['PLOTTRACES: Plotting session traces for file: ',num2str(whichfile)])
+    disp(['PLOTTRACES: Plotting session traces for file: ',num2str(fileindex)])
 
     if isempty(params.plotfilepath) & params.saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
         error('SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
@@ -70,28 +74,28 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     sigfiltcolor = '#4CBB17';
     
     %% Prep axis variables
-    currxlength = length(data(whichfile).sig);
-    currxmins = (length(data(whichfile).sig)/data(whichfile).fs)/60; % Find total number of minutes per session - helper variable to determine ticks
+    currxlength = length(data(fileindex).sig);
+    currxmins = (length(data(fileindex).sig)/data(fileindex).fs)/60; % Find total number of minutes per session - helper variable to determine ticks
     currxticklabels = 0:5:floor(currxmins/5)*5;
-    currxticks = floor(currxticklabels.*60.*data(whichfile).fs); % Determine x axis ticks - add ticks every 5 minutes
+    currxticks = floor(currxticklabels.*60.*data(fileindex).fs); % Determine x axis ticks - add ticks every 5 minutes
 
-    ymaxsig = ceil(max(data(whichfile).sig)+(0.1*max(data(whichfile).sig)));
-    yminsig = floor(min(data(whichfile).sig)-(0.1*min(data(whichfile).sig)));
+    ymaxsig = ceil(max(data(fileindex).sig)+(0.1*max(data(fileindex).sig)));
+    yminsig = floor(min(data(fileindex).sig)-(0.1*min(data(fileindex).sig)));
     yticksizesig = round((ymaxsig-yminsig)/4,0); % Find size of ticks to generate 5 y axis ticks total
     currytickssig = yminsig:yticksizesig:ymaxsig;
 
-    ymaxbaq = ceil(max(data(whichfile).baq)+(0.1*max(data(whichfile).baq)));
-    yminbaq = floor(min(data(whichfile).baq)-(0.1*min(data(whichfile).baq)));
+    ymaxbaq = ceil(max(data(fileindex).baq)+(0.1*max(data(fileindex).baq)));
+    yminbaq = floor(min(data(fileindex).baq)-(0.1*min(data(fileindex).baq)));
     yticksizebaq = round((ymaxbaq-yminbaq)/4,0); % Find size of ticks to generate 5 y axis ticks total
     curryticksbaq = yminbaq:yticksizebaq:ymaxbaq;
 
-    ymaxsigsub = ceil(max(data(whichfile).sigsub)+(0.1*max(data(whichfile).sigsub)));
-    yminsigsub = floor(min(data(whichfile).sigsub)-(0.1*min(data(whichfile).sigsub)));
+    ymaxsigsub = ceil(max(data(fileindex).sigsub)+(0.1*max(data(fileindex).sigsub)));
+    yminsigsub = floor(min(data(fileindex).sigsub)-(0.1*min(data(fileindex).sigsub)));
     yticksizesigsub = round((ymaxsigsub-yminsigsub)/4,1); % Find size of ticks to generate 5 y axis ticks total
     currytickssigsub = yminsigsub:yticksizesigsub:ymaxsigsub;
 
-    ymaxsigfilt = ceil(max(data(whichfile).sigfilt)+(0.1*max(data(whichfile).sigfilt)));
-    yminsigfilt = floor(min(data(whichfile).sigfilt)-(0.1*min(data(whichfile).sigfilt)));
+    ymaxsigfilt = ceil(max(data(fileindex).sigfilt)+(0.1*max(data(fileindex).sigfilt)));
+    yminsigfilt = floor(min(data(fileindex).sigfilt)-(0.1*min(data(fileindex).sigfilt)));
     yticksizesigfilt = round((ymaxsigfilt-yminsigfilt)/4,1); % Find size of ticks to generate 5 y axis ticks total
     currytickssigfilt = yminsigfilt:yticksizesigfilt:ymaxsigfilt;
 
@@ -105,7 +109,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Plot raw signal
     nexttile;
     hold on;
-    plot(data(whichfile).sig, 'Color', sigcolor);
+    plot(data(fileindex).sig, 'Color', sigcolor);
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);
@@ -119,7 +123,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Plot raw background
     nexttile;
     hold on;
-    plot(data(whichfile).baq, 'Color', baqcolor);
+    plot(data(fileindex).baq, 'Color', baqcolor);
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);
@@ -133,8 +137,8 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Plot raw signal with scaled background
     nexttile;
     hold on;
-    plot(data(whichfile).sig, 'Color', sigcolor);
-    plot(data(whichfile).baqscaled, 'Color', baqcolor);
+    plot(data(fileindex).sig, 'Color', sigcolor);
+    plot(data(fileindex).baqscaled, 'Color', baqcolor);
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);
@@ -148,7 +152,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Plot subtracted signal
     nexttile;
     hold on;
-    plot(data(whichfile).sigsub, 'Color', sigsubcolor);
+    plot(data(fileindex).sigsub, 'Color', sigsubcolor);
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);
@@ -162,7 +166,7 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     % Plot filtered signal
     nexttile;
     hold on;
-    plot(data(whichfile).sigfilt, 'Color', sigfiltcolor);
+    plot(data(fileindex).sigfilt, 'Color', sigfiltcolor);
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);
@@ -177,8 +181,10 @@ function [alltraces] = plotTraces(data,whichfile,maintitle,varargin)
     title(alltraces, maintitle, 'Interpreter', 'none');
 
     if params.saveoutput == 1
+        disp(['   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype])
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);
-        exportgraphics(gcf,append(params.plotfilepath, '.png'),'Resolution',300)
+        exportgraphics(gcf,append(params.plotfilepath, '.',params.outputfiletype),'Resolution',300)
+
     end
 end
 

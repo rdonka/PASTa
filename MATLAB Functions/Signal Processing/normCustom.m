@@ -1,29 +1,29 @@
-function [data] = normCustom(data,whichfullstream,whichcustomstream)
+function [data] = normCustom(data,fullstreamfieldname,customstreamfieldname)
 % NORMCUSTOM    Normalizes the whole session data stream based on a
 %                custom period input as a separate stream field.
 %
-%   NORMBASELINE(DATA, WHICHSTREAM, WHICHBLSTART, WHICHBLEND) normalizes 
-%   the data stream specified by WHICHSTREAM within the DATA structure to 
-%   its z-score, using the mean and standard deviation calculated over the 
-%   session baseline defined by WHICHBLSTART and WHICHBLEND. The normalized 
-%   data is added to the DATA structure with the field name 
-%   '<whichStream>_z_normsession'.
+%   NORMCUSTOM(DATA, FULLSTREAMFIELDNAME, CUSTOMSTREAMFIELDNAME) normalizes 
+%   the data stream specified by FULLSTREAMFIELDNAME within the DATA structure 
+%   to its z-score, using the mean and standard deviation calculated over the 
+%   specified custom stream cut specified by CUSTOMSTREAMFIELDNAME in the 
+%   DATA structure. The normalized data is added to the DATA structure with 
+%   the field name '<fullstreamfieldname>_z_normcustom'.
 %
 % REQUIRED INPUTS:
-%   DATA                - Structure array; each element represents a session
-%                         and must contain the fields specified by WHICHFULLSTREAM
-%                         and WHICHCUSTOMSTREAM.
+%   DATA                   - Structure array; each element represents a session
+%                            and must contain the fields specified by
+%                            FULLSTREAMFIELDNAME and CUSTOMSTREAMFIELDNAME.
 %
-%   WHICHFULLSTREAM     - String; The name of the field containing the full 
-%                         data stream to be normalized.
+%   FULLSTREAMFIELDNAME   - String; The name of the field containing the full 
+%                           data stream to be normalized.
 %
-%   WHICHCUSTOMSTREAM   - String; The name of the field containing the cut 
-%                         data stream to use as the reference for
-%                         normalization.
+%   CUSTOMSTREAMFIELDNAME - String; The name of the field containing the cut 
+%                           data stream to use as the reference for
+%                           normalization.
 %
-%   OUTPUTS:
-%       DATA:           Structure array; the original DATA structure with an added
-%                       field '<whichStream>_z_normcustom' containing the normalized data.
+% OUTPUTS:
+%   DATA:   Structure array; the original DATA structure with an added field 
+%           '<fullstreamfieldname>z_normcustom' containing the normalized data.
 %
 %   EXAMPLE:
 %       % Assuming 'data' is a structure array with a field 'sigfilt':
@@ -34,42 +34,20 @@ function [data] = normCustom(data,whichfullstream,whichcustomstream)
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 
 
-% INPUTS:
-%       DATA:           Data structure; Must contain at least the stream to 
-%                       be normalized, baseline start field, and baseline 
-%                       end field.
-%
-%       WHICHFULLSTREAM: String; The name of the field containing the full 
-%                       data stream to be normalized.
-%
-%       WHICHCUSTOMSTREAM: String; The name of the field containing the
-%                       pre-prepared customized cut of the stream to be
-%                       used as the reference for the normalization of the
-%                       full stream. Example: 3 minutes before and after
-%                       the trial portion of a session.
-%
-% OUTPUTS:
-%       DATA:           Data structure; This is the original data structure 
-%                       with 'data.WHICHSTREAMz_normcustom' added.
-%
-% Written by R M Donka, February 2025.
-% Stored in the PASTa GitHub Repository, see the user guide for additional
-% documentation: https://rdonka.github.io/PASTa/
-
 %% Normalize to session baseline
-disp(['NORM CUSTOM: Normalizing ',whichfullstream,' to mean and standard deviation of customized period of session.'])
-disp('   Mean and SD defined by ',whichcustomstream,'.')
-disp(['   Normalized data will be output to the field: ',whichfullstream, 'z_normcustom'])
+disp(['NORM CUSTOM: Normalizing ',fullstreamfieldname,' to mean and standard deviation of customized period of session.'])
+disp('   Mean and SD defined by ',customstreamfieldname,'.')
+disp(['   Normalized data will be output to the field: ',fullstreamfieldname, 'z_normcustom'])
 
     for eachfile = 1:length(data)
         disp(['   NORMALIZING: File ',num2str(eachfile)])
         try
-            BLmean = mean(data(eachfile).(whichcustomstream)); % Find the mean of the session baseline
-            BLsd = std(data(eachfile).(whichcustomstream)); % Find the standard deviation of the session baseline
+            BLmean = mean(data(eachfile).(customstreamfieldname)); % Find the mean of the session baseline
+            BLsd = std(data(eachfile).(customstreamfieldname)); % Find the standard deviation of the session baseline
     
-            data(eachfile).(append(whichfullstream,'z_normcustom')) = (data(eachfile).(whichfullstream) - BLmean)/BLsd; % Z score the whole session to the baseline
+            data(eachfile).(append(fullstreamfieldname,'z_normcustom')) = (data(eachfile).(fullstreamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
         catch
-            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', whichfullstream]) 
+            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', fullstreamfieldname]) 
         end
     end
 end

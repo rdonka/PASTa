@@ -1,28 +1,29 @@
-function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargin)
+function [data] = findTransients(data,streamfieldname,thresholdfieldname,fsfieldname,varargin)
 % FINDTRANSIENTS     Detects and quantifies transients in a data stream
 %                           for the entire session using the pre-transient 
 %                           baseline window mean.
 %
-%   FINDTRANSIENTS(DATA, WHICHBLTYPE, WHICHSTREAM, WHICHTHRESHOLD, WHICHFS, 'PARAM1', VAL1, ...)
+%   FINDTRANSIENTS(DATA,STREAMFIELDNAME, THRESHOLDFIELDNAME, FSFIELDNAME, 'PARAM1', VAL1, ...)
 %   analyzes the specified data stream to detect transient events based on
-%   the specified threshold and pre-transient baseline window type.
+%   the specified threshold.
 %
 % REQUIRED INPUTS:
-%       DATA            - Structure array; each element corresponds to a session
-%                         and must contain the fields specified by WHICHSTREAM,
-%                         WHICHTHRESHOLD, and WHICHFS.
+%       DATA                - Structure array; each element corresponds to a session
+%                             and must contain the fields specified by STREAMFIELDNAME,
+%                             THRESHOLDFIELDNAME, and FSFIELDNAME.
 %
-%       WHICHSTREAM     - String; name of the field in DATA containing the data stream
-%                         to be analyzed (e.g., 'sigfiltz_normsession').
+%       STREAMFIELDNAME     - String; name of the field in DATA containing the data stream
+%                             to be analyzed (e.g., 'sigfiltz_normsession').
 %
-%       WHICHTHRESHOLD  - String; name of the field in DATA containing the numeric
-%                         threshold values for transient detection (e.g., 'threshold_3SD').
-%                         Thresholds should be precomputed and typically set to 2-3 standard deviations.
+%       THRESHOLDFIELDNAME  - String; name of the field in DATA containing the numeric
+%                             threshold values for transient detection (e.g., 'SDthreshold').
+%                             Thresholds should be precomputed and typically 
+%                             set to 2.6 standard deviations.
 %
-%       WHICHFS         - String; name of the field in DATA containing the sampling rate (fs)
-%                         of the data stream.
+%       FSFIELDNAME         - String; name of the field in DATA containing the sampling rate (fs)
+%                             of the data stream.
 %
-%   OPTIONAL INPUT NAME-VALUE PAIRS:
+% OPTIONAL INPUT NAME-VALUE PAIRS:
 %       'bltype'                  - String; Method for pre-transient peak baseline detection. 
 %                                   Options are 'blmean', 'blmin', and 'localmin'.
 %                                   Default: 'blmean'.
@@ -55,16 +56,16 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
 %                                   transient data output streams. Default: 8.
 %
 %   OUTPUTS:
-%       DATA            - Structure array; each element corresponds to a session and includes
-%                         the following added fields:
-%                           - sessiontransients_<BLTYPE>_<THRESHOLDLABEL>: A structure containing:
-%                               - params: Structure of input parameters used for transient detection.
-%                               - transientquantification: Table of quantified variables for each transient,
-%                                 including amplitude, rise time, fall time, width, and AUC.
-%                               - transientstreamlocs: Table of pre-transient baseline, transient peak,
-%                                 rise, and fall locations for each transient.
-%                               - transientstreamdata: Table of cut data streams from baseline start to
-%                                 the end of the post-transient period for each transient event.
+%       DATA    - Structure array; each element corresponds to a session and includes
+%                 the following added fields:
+%                 - sessiontransients_<BLTYPE>_<THRESHOLDLABEL>: A structure containing:
+%                 - params: Structure of input parameters used for transient detection.
+%                 - transientquantification: Table of quantified variables for each transient,
+%                   including amplitude, rise time, fall time, width, and AUC.
+%                 - transientstreamlocs: Table of pre-transient baseline, transient peak,
+%                   rise, and fall locations for each transient.
+%                 - transientstreamdata: Table of cut data streams from baseline start to
+%                   the end of the post-transient period for each transient event.
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -95,39 +96,44 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
     params = p.Results;
 
     % Add function call variables
-    params.streamfield = whichstream;
-    params.thresholdfield = whichthreshold;
-    params.fsfield = whichfs;
+    params.streamfield = streamfieldname;
+    params.thresholdfield = thresholdfieldname;
+    params.fsfield = fsfieldname;
 
     %% Display settings
     switch params.bltype
         case 'blmean'
-            disp(['FINDTRANSIENTS: Identifying and quantifying transients in stream ',whichstream,' with thresholds from ',whichthreshold,'. Pre-peak baselines will be determined by the baseline window mean.'])
+            disp(['FINDTRANSIENTS: Identifying and quantifying transients in stream ',streamfieldname,' with thresholds from ',thresholdfieldname,'. Pre-peak baselines will be determined by the baseline window mean.'])
         case 'blmin'
-            disp(['FINDTRANSIENTS: Identifying and quantifying transients in stream ',whichstream,' with thresholds from ',whichthreshold,'. Pre-peak baselines will be determined by the baseline window minimum.'])
+            disp(['FINDTRANSIENTS: Identifying and quantifying transients in stream ',streamfieldname,' with thresholds from ',thresholdfieldname,'. Pre-peak baselines will be determined by the baseline window minimum.'])
         case 'localmin'
-            disp(['FINDTRANSIENTS: Identifying and quantifying transients in stream ',whichstream,' with thresholds from ',whichthreshold,'. Pre-peak baselines will be determined by the local minimum.'])
+            disp(['FINDTRANSIENTS: Identifying and quantifying transients in stream ',streamfieldname,' with thresholds from ',thresholdfieldname,'. Pre-peak baselines will be determined by the local minimum.'])
         otherwise
             error('No viable transient baseline type specific. BLTYPE must be set to blmin, blmean, or localmin.')
     end
 
-    disp(['     Transient detection parameters and quantification will be added to data structure as sessiontransients_',params.bltype,'_',whichthreshold,'.'])
+    disp(['     Transient detection parameters and quantification will be added to data structure as sessiontransients_',params.bltype,'_',thresholdfieldname,'.'])
     disp('   PARAMETERS:') % Display all input values
     disp(params)
+
+    % Clear the transients table if function has been previously run
+    if isfield(data, append('sessiontransients_',params.bltype,'_',thresholdfieldname))
+        data = rmfield(data, append('sessiontransients_',params.bltype,'_',thresholdfieldname));
+    end
 
     %% Find transients
     for eachfile = 1:length(data)
         disp(['Finding Transients: File ',num2str(eachfile)]) % Display which file is being processed
         try
             % Prep variables
-            fs = data(eachfile).(whichfs);
+            fs = data(eachfile).(fsfieldname);
             blstartsamples = floor(fs*(params.preminstartms/1000));
             blendsamples = floor(fs*(params.preminendms/1000));
             posttransientsamples = floor(fs*(params.posttransientms/1000));
             compoundtransientwindowsamples = floor(fs*(params.compoundtransientwindowms/1000));
 
             % Find all maxes in stream
-            allmaxlocs = find(islocalmax(data(eachfile).(whichstream))); % Find all maxes
+            allmaxlocs = find(islocalmax(data(eachfile).(streamfieldname))); % Find all maxes
             
             % Prepare tables - preallocate size
             allvarnames = {'transientID','maxloc', 'maxval', 'preminstartloc', 'preminendloc', 'preminloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems',...
@@ -161,7 +167,7 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
                 
                 % Determine peak variables for inclusion
                 currmaxloc = allmaxlocs(eachmax); % Index of current max in data stream
-                currmaxval = data(eachfile).(whichstream)(currmaxloc); % Value of current max from data stream
+                currmaxval = data(eachfile).(streamfieldname)(currmaxloc); % Value of current max from data stream
 
                 % Find pre-peak baseline window indexes
                 currpreminstartloc = currmaxloc-blstartsamples; % Find the start of the pre-peak baseline window
@@ -175,18 +181,18 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
                 switch params.bltype
                     case 'blmean'
                         currminloc = currpreminendloc - ((blstartsamples-blendsamples)/2);
-                        currminval = mean(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)); % Find mean of pre-transient baseline window
+                        currminval = mean(data(eachfile).(streamfieldname)(currpreminstartloc:currpreminendloc)); % Find mean of pre-transient baseline window
                     case 'blmin'
-                        currminval = min(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)); % Find the value of pre-transient baseline window minimum
-                        currminloc = currpreminstartloc+find(currminval == data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
+                        currminval = min(data(eachfile).(streamfieldname)(currpreminstartloc:currpreminendloc)); % Find the value of pre-transient baseline window minimum
+                        currminloc = currpreminstartloc+find(currminval == data(eachfile).(streamfieldname)(currpreminstartloc:currpreminendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
                     case 'localmin'
-                        currminloc = find(islocalmin(data(eachfile).(whichstream)(currpreminstartloc:currpreminendloc)),1,'last') + currpreminstartloc; % Find the last local minimum in the baseline window
-                        currminval = data(eachfile).(whichstream)(currminloc); % Find the value of the pre-transient local minimum
+                        currminloc = find(islocalmin(data(eachfile).(streamfieldname)(currpreminstartloc:currpreminendloc)),1,'last') + currpreminstartloc; % Find the last local minimum in the baseline window
+                        currminval = data(eachfile).(streamfieldname)(currminloc); % Find the value of the pre-transient local minimum
                 end
 
                 curramp = currmaxval-currminval; % Find the amplitude of the current transient relative to baseline
     
-                if curramp >= data(eachfile).(whichthreshold) % If the current transient amplitude is greater than the threshold, quantify and add it to the table 'transientquantification'
+                if curramp >= data(eachfile).(thresholdfieldname) % If the current transient amplitude is greater than the threshold, quantify and add it to the table 'transientquantification'
                     transientcount = transientcount + 1; % Update the total count of transients
    
                     % Initialize variables - set to empty
@@ -206,17 +212,17 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
     
 
                     % Quantify rise time
-                    pretransientdata = data(eachfile).(whichstream)((currmaxloc-blstartsamples):currmaxloc); % Extract pre-transient data from baseline start to peak max
+                    pretransientdata = data(eachfile).(streamfieldname)((currmaxloc-blstartsamples):currmaxloc); % Extract pre-transient data from baseline start to peak max
                     currriseval = currminval + curramp*params.quantificationheight; % Find the rise value at the input quantification height
                     currrisesamples = length(pretransientdata) - find(pretransientdata >= currriseval,1,'first'); % Find the number of samples from rise start to transient peak
                     currrisems = (currrisesamples/fs)*1000;
                     currriseloc = currmaxloc-currrisesamples; % Find the location index of the rise start
     
                     % Quantify fall time
-                    if (currmaxloc + posttransientsamples) < length(data(eachfile).(whichstream)) % Find post-transient data; check if post-transient period is within the length of the session
-                        posttransientdata = data(eachfile).(whichstream)(currmaxloc:(currmaxloc+posttransientsamples));
+                    if (currmaxloc + posttransientsamples) < length(data(eachfile).(streamfieldname)) % Find post-transient data; check if post-transient period is within the length of the session
+                        posttransientdata = data(eachfile).(streamfieldname)(currmaxloc:(currmaxloc+posttransientsamples));
                     else
-                        posttransientdata = data(eachfile).(whichstream)(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
+                        posttransientdata = data(eachfile).(streamfieldname)(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
                     end
                     
                     currfallval = currmaxval - curramp*params.quantificationheight; % Find the fall value at the input quantification height (default is half height - 0.5)
@@ -235,7 +241,7 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
                         currfallms = (currfallsamples/fs)*1000;
                         currwidthsamples = currfallloc - currriseloc;
                         currwidthms =(currwidthsamples/fs)*1000;
-                        currpkAUCdata = [data(eachfile).(whichstream)(currriseloc:currfallloc)] - min(data(eachfile).(whichstream)(currriseloc:currfallloc));
+                        currpkAUCdata = [data(eachfile).(streamfieldname)(currriseloc:currfallloc)] - min(data(eachfile).(streamfieldname)(currriseloc:currfallloc));
                         currAUC = round(trapz(currpkAUCdata));
                     end
                         
@@ -285,8 +291,8 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
                         transientstreamlocs.fallendloc(transientcount) = premaxstart+currfallsamples;
                         
                         % Cut data streams
-                        if (currmaxloc-premaxstart) >= 1 && (currmaxloc+postmaxend) <= length(data(eachfile).(whichstream))
-                            transientstreamdata(transientcount,:) = data(eachfile).(whichstream)(currmaxloc-premaxstart:currmaxloc+postmaxend);
+                        if (currmaxloc-premaxstart) >= 1 && (currmaxloc+postmaxend) <= length(data(eachfile).(streamfieldname))
+                            transientstreamdata(transientcount,:) = data(eachfile).(streamfieldname)(currmaxloc-premaxstart:currmaxloc+postmaxend);
                         else
                             if (currmaxloc-premaxstart) < 1
                                 premissingsamples = abs(currmaxloc-premaxstart);
@@ -295,14 +301,14 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
                                 premissingsamples = 0;
                                 prenans = [];
                             end
-                            if (currmaxloc+postmaxend) >= length(data(eachfile).(whichstream))
-                                postmissingsamples = abs((postmaxend)-length(data(eachfile).(whichstream)(currmaxloc:end)));
+                            if (currmaxloc+postmaxend) >= length(data(eachfile).(streamfieldname))
+                                postmissingsamples = abs((postmaxend)-length(data(eachfile).(streamfieldname)(currmaxloc:end)));
                                 postnans = [NaN(1,postmissingsamples)];
                             else
                                 postmissingsamples = 0;
                                 postnans = [];
                             end
-                            streamwithnans = [prenans,data(eachfile).(whichstream)(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples-1)),postnans];
+                            streamwithnans = [prenans,data(eachfile).(streamfieldname)(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples-1)),postnans];
                             streamwithnans = [streamwithnans, NaN(1,(premaxstart+postmaxend+1)-length(streamwithnans))];
                             transientstreamdata(transientcount,:) = streamwithnans;
                         end
@@ -327,16 +333,16 @@ function [data] = findTransients(data,whichstream,whichthreshold,whichfs,varargi
             end
 
             % Add params and transient quantification to the data structure
-            data(eachfile).(append('sessiontransients_',params.bltype,'_',whichthreshold)).params = params;
-            data(eachfile).(append('sessiontransients_',params.bltype,'_',whichthreshold)).transientquantification = transientquantification(1:transientcount,:);
+            data(eachfile).(append('sessiontransients_',params.bltype,'_',thresholdfieldname)).params = params;
+            data(eachfile).(append('sessiontransients_',params.bltype,'_',thresholdfieldname)).transientquantification = transientquantification(1:transientcount,:);
             
             % Display how many transients were found
             disp(append('   Total Transients: ',num2str(transientcount)))
             
             % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
             if params.outputtransientdata == 1
-                data(eachfile).(append('sessiontransients_',params.bltype,'_',whichthreshold)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
-                data(eachfile).(append('sessiontransients_',params.bltype,'_',whichthreshold)).transientstreamdata = transientstreamdata(1:transientcount,:);
+                data(eachfile).(append('sessiontransients_',params.bltype,'_',thresholdfieldname)).transientstreamlocs = transientstreamlocs(1:transientcount,:);
+                data(eachfile).(append('sessiontransients_',params.bltype,'_',thresholdfieldname)).transientstreamdata = transientstreamdata(1:transientcount,:);
             end
         catch ME
             fprintf('   ERROR: %s\n', ME.message);

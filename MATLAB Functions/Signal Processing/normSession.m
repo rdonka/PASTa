@@ -1,20 +1,20 @@
-function [data] = normSession(data,whichstream)
+function [data] = normSession(data,streamfieldname)
 % NORMSESSION    Normalizes a specified data stream to z-score based on the entire session.
 %
-%   NORMSESSION(DATA, WHICHSTREAM) normalizes the data stream specified by WHICHSTREAM
+%   NORMSESSION(DATA, STREAMFIELDNAME) normalizes the data stream specified by STREAMFIELDNAME
 %   within the DATA structure to its z-score, using the mean and standard deviation
 %   calculated over the entire session. The normalized data is added to the DATA
 %   structure with the field name '<whichStream>_z_normsession'.
 %
 % REQUIRED INPUTS:
-%       DATA          - Structure array; each element represents a session
-%                       and must contain the field specified by WHICHSTREAM.
+%       DATA            - Structure array; each element represents a session
+%                         and must contain the field specified by STREAMFIELDNAME.
 %
-%       WHICHSTREAM   - String; the name of the field within DATA to be normalized.
+%       STREAMFIELDNAME - String; the name of the field within DATA to be normalized.
 %
 %   OUTPUTS:
 %       DATA           - Structure array; the original DATA structure with an added
-%                       field '<whichStream>_z_normsession' containing the normalized data.
+%                       field '<STREAMFIELDNAME>z_normsession' containing the normalized data.
 %
 %   EXAMPLE:
 %       % Assuming 'data' is a structure array with a field 'sigfilt':
@@ -26,14 +26,14 @@ function [data] = normSession(data,whichstream)
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
 %% Normalize to whole session mean and SD
-disp(['NORMSESSION: Normalizing ',whichstream,' to whole session mean and standard deviation.'])
-disp(['   Normalized data will be output to the field: ',whichstream, 'z_normsession'])
+disp(['NORMSESSION: Normalizing ',streamfieldname,' to whole session mean and standard deviation.'])
+disp(['   Normalized data will be output to the field: ',streamfieldname, 'z_normsession'])
     for eachfile = 1:length(data)
         try
             disp(append('     NORMALIZING: File ',num2str(eachfile)))
-            data(eachfile).(append(whichstream, 'z_normsession')) = (data(eachfile).(whichstream)-mean(data(eachfile).(whichstream),"omitnan"))/std(data(eachfile).(whichstream),"omitnan");
+            data(eachfile).(append(streamfieldname, 'z_normsession')) = (data(eachfile).(streamfieldname)-mean(data(eachfile).(streamfieldname),"omitnan"))/std(data(eachfile).(streamfieldname),"omitnan");
          catch
-            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', whichstream]) 
+            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', streamfieldname]) 
         end
     end
 end

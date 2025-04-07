@@ -1,21 +1,18 @@
-function [alltransients] = exportTransients(data,whichtransients,exportfilepath,addvariables,varargin)
+function [alltransients] = exportTransients(transientdata,exportfilepath,addvariablesfieldnames,varargin)
 % EXPORTTRANSIENTS  Compiles all transients across sessions into a table and exports to a CSV file.
 %
-%   EXPORTTRANSIENTS(DATA, WHICHTRANSIENTS, EXPORTFILEPATH, ADDVARIABLES, 'PARAM1', VAL1, ...)
-%   aggregates transient data from multiple sessions and exports the compiled table to a specified CSV file.
+%   EXPORTTRANSIENTS(TRANSIENTDATA, TRANSIENTQUANTIFICATIONFIELDNAME, EXPORTFILEPATH, ADDVARIABLESFIELDNAMES, 'PARAM1', VAL1, ...)
+%   aggregates transient transientdata from multiple sessions and exports the compiled table to a specified CSV file.
 %
 % REQUIRED INPUTS:
-%   DATA            - Structure array; must contain at least the output 
-%                     from FINDTRANSIENTS.
-%
-%   WHICHTRANSIENTS - String; name of the field containing the table of 
-%                     transients to export (e.g., 'sessiontransients_blmin_3SD').
+%   TRANSIENTDATA     - Structure array of the output from FINDTRANSIENTS
+%                       with the field 'transientquantification'
 %
 %   EXPORTFILEPATH  - String; path to the folder where the CSV file will be
 %                     saved. Note: The path must end with a forward slash.
 %
-%   ADDVARIABLES    - Cell array of strings; names of additional variables 
-%                     from the data structure to include in the transients 
+%   ADDVARIABLESFIELDNAMES    - Cell array of strings; names of additional variables 
+%                     from the transientdata structure to include in the transients 
 %                     table. These variables will be added to every row of 
 %                     the output table. At a minimum, this should include 
 %                     the subject ID. If multiple sessions per subject are 
@@ -23,24 +20,17 @@ function [alltransients] = exportTransients(data,whichtransients,exportfilepath,
 %                         For example: {'Subject', 'SessionID', 'Treatment'}.
 %
 % OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
-%   'whichtransientstable' - String; name of the field within WHICHTRANSIENTS 
-%                            that contains the quantification of individual 
-%                            transient events. This input only needs to be 
-%                            specified if not using the format output from 
-%                            the FINDSESSIONTRANSIENTS functions.
-%                            Default: 'transientquantification'.
-%
-%   'filename'             - String; custom name for the output CSV file. 
-%                            If not specified, the file name will be 
-%                            generated as 'WHICHTRANSIENTS_AllSessionExport_DAY-MONTH-YEAR.csv'.
+%   'exportfilename'    - String; custom name for the output CSV file. If not 
+%                         specified, the file name will be  generated as 
+%                         'TransientQuantification_AllSessionExport_DAY-MONTH-YEAR.csv'.
 %
 % OUTPUTS:
 %   ALLTRANSIENTS   - Table; compiled table of all transients across all 
-%                     sessions in the data structure. This table is also 
+%                     sessions in the transientdata structure. This table is also 
 %                     saved as a CSV file at the specified export file path.
 %
 % EXAMPLE USAGE:
-%   alltransients = exportTransients(data, 'sessiontransients_blmin_3SD', exportfilepath, {'Subject', 'SessionID'}, 'filename', 'transients_export.csv');
+%   alltransients = exportTransients(transientdata, exportfilepath, {'Subject', 'SessionID'}, 'exportfilename', 'transients_export.csv');
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -53,37 +43,34 @@ function [alltransients] = exportTransients(data,whichtransients,exportfilepath,
 
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
-    addParameter(p, 'whichtransientstable', defaultparameters.whichtransientstable, @(x) ischar(x) || isstring(x)); % whichtransientstable: string with the name of the transients table
-    addParameter(p, 'filename', defaultparameters.filename); % filename: string with the custom filename
+    addParameter(p, 'exportfilename', defaultparameters.exportfilename); % exportfilepath: string with the custom exportfilepath
 
     parse(p, varargin{:});
 
     % Retrieve parsed inputs into params structure
     params = p.Results;
 
-    % Set filename automatically if not specified
-    if isempty(params.filename)
-        params.filename = append(whichtransients,'_AllSessionExport_',string(datetime("today")),'.csv');
+    % Set exportfilepath automatically if not specified
+    if isempty(params.exportfilename)
+        params.exportfilename = append(transientquantificationfieldname,'_AllSessionExport_',string(datetime("today")),'.csv');
     end
     
     % Display
-    disp(['EXPORTTRANSIENTS: Exporting transients from ', whichtransients, ' to a csv file.']) % Function display
-    disp(['     File will be output to the folder location: ', exportfilepath]) % Display file path location
-
+    disp(['EXPORTTRANSIENTS: Exporting transients as a csv file to: ', exportfilepath,'/',params.exportfilename]) % Display file path location
     disp('   PARAMETERS:') % Display all input values
     disp(params)
 
     %% Prepare Transients for Export
     alltransients = table; % Prepare empty table
 
-    for eachfile = 1:length(data)
+    for eachfile = 1:length(transientdata)
 
-        eachfiletransients = data(eachfile).(whichtransients).(params.whichtransientstable);
+        eachfiletransients = transientdata(eachfile).transientquantification;
         
-        for eachvariable = 1:length(addvariables)
-            currvariable = char(addvariables(eachvariable));
+        for eachvariable = 1:length(addvariablesfieldnames)
+            currvariable = char(addvariablesfieldnames(eachvariable));
             try 
-                eachfiletransients.(currvariable)(1:height(eachfiletransients),1) = {data(eachfile).(currvariable)};
+                eachfiletransients.(currvariable)(1:height(eachfiletransients),1) = {transientdata(eachfile).(currvariable)};
             catch
                 disp(append('WARNING: File number ',num2str(eachfile), ' - failed to add variable: ', currvariable))
             end
@@ -96,8 +83,8 @@ function [alltransients] = exportTransients(data,whichtransients,exportfilepath,
         end
     end
 
-    alltransients = movevars(alltransients,addvariables,"Before",1);
-    writetable(alltransients,append(exportfilepath,params.filename));
+    alltransients = movevars(alltransients,addvariablesfieldnames,"Before",1);
+    writetable(alltransients,append(exportfilepath,params.exportfilename));
 end
 
 % Copyright (C) 2025 Rachel Donka

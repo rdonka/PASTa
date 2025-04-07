@@ -55,15 +55,13 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.findTransients.outputpostmaxS = 8; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
 
     % binSessionTransients
-    allparameters.binTransients.transientstablefieldname = 'transientquantification'; % Name of field containing table of quantified transients
-    allparameters.binTransients.maxlocsfieldname = 'maxloc'; % Name of field in transient quantificaiton table with the max peak locations
     allparameters.binTransients.binlengthmins = 5; % Bin length (mins) for transient analysis
     allparameters.binTransients.nbinsoverride = 0; % Mannual override to set number of bins; Set to 0 to calculate number of bins based on length of session    
     allparameters.binTransients.manuallydefinebins = false; % Mannually specify bin start and end indexes
 
     % exportSessionTransients
-    allparameters.exportTransients.whichtransientstable = 'transientquantification'; % Name of field containing table of quantified transients
-    allparameters.exportTransients.filename = ''; % Empty file name to trigger automatic naming
+    allparameters.exportTransients.transientquantificationfieldname = 'transientquantification'; % Name of field containing table of quantified transients
+    allparameters.exportTransients.exportfilename = ''; % Empty file name to trigger automatic naming
 
     % plotTraces
     allparameters.plotTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
@@ -87,7 +85,20 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.plotFFTmag.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotFFTmag.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
+    % plotTransientBins
+    allparameters.plotTransientBins.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTransientBins.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
+    allparameters.plotTransientBins.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
+    % plotTransientTraces
+    allparameters.plotTransientTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTransientTraces.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
+    allparameters.plotTransientTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
+    % plotTransientTraceBins
+    allparameters.plotTransientTraceBins.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTransientTraceBins.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
+    allparameters.plotTransientTraceBins.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
 % If a specific function is requested, return only its parameters
     if nargin > 0 && isfield(allparameters, callerFunction)

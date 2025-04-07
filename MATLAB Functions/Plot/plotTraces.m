@@ -184,7 +184,6 @@ function [alltraces] = plotTraces(data,fileindex,maintitle,varargin)
         disp(['   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype])
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);
         exportgraphics(gcf,append(params.plotfilepath, '.',params.outputfiletype),'Resolution',300)
-
     end
 end
 

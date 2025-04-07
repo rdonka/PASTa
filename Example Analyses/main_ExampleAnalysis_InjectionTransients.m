@@ -64,7 +64,7 @@ cropendfieldname = 'sessionend'; % name of field with session end index
 streamfieldnames = {'sig', 'baq'}; % which streams to crop
 epocsfieldnames = {'injt','sess'}; % which epocs to adjust to maintain relative position - OPTIONAL INPUT
 
-[data] = cropFPdata(rawdata,cropstartfieldname,cropendfieldname, streamfieldnames,'epocsfieldnames', whichepocs); % Output cropped data into new structure called data
+[data] = cropFPdata(rawdata,cropstartfieldname,cropendfieldname, streamfieldnames,'epocsfieldnames', epocsfieldnames); % Output cropped data into new structure called data
 
 %% Process data
 % Subtract and filter data with default settings
@@ -171,89 +171,93 @@ for eachfile = 1:length(data)
 end
 
 
-%% Find session transients
+%% Find and quantify transient events
 % Prepare thresholds - since Z scored streams will be analyzed, input threshold as the desired SD.
 for eachfile = 1:length(data)
     data(eachfile).SDthreshold = 2.6;
     data(eachfile).SDthresholdsigfilt = 2.6*std(data(eachfile).sigfilt_injcropped(1:data(eachfile).injt(1)));
 end
 
-% Find session transients based on pre-peak baseline window mean - reccomended as the first pass choice for transient analysis
-[data] = findTransients(data,'sigfiltz_normbaseline_injcropped','SDthreshold','fs');
-[data] = findTransients(data,'sigfilt_injcropped','SDthresholdsigfilt','fs');
+addvariablesfieldnames = [fieldnames(experimentkey); {'params'}];
 
-%% Bin session transients
-% Bin session transients into time bins - default 5 mins
-[data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold');
-[data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt');
-
-% Bin session transients with 3 minute bins
-[data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold','binlengthmins',3);
-[data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt','binlengthmins',3);
-
-% Bin session transients with custom bin size
-[data] = binTransients(data,'sigfiltz_normbaseline_injcropped','fs','sessiontransients_blmean_SDthreshold','manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
-[data] = binTransients(data,'sigfilt_injcropped','fs','sessiontransients_blmean_SDthresholdsigfilt','manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
+% Find transients based on pre-peak baseline window mean - reccomended as the first pass choice for transient analysis
+[transientdata_sigfiltznormBL] = findTransients(data,addvariablesfieldnames,'sigfiltz_normbaseline_injcropped','SDthreshold','fs');
+[transientdata_sigfiltnormBL] = findTransients(data,addvariablesfieldnames,'sigfilt_injcropped','SDthresholdsigfilt','fs');
 
 
-% Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
-addvariables = {'SubjectID','TreatNum','InjType'};
-alltransients_Z = exportTransients(data,'sessiontransients_blmean_SDthreshold',analysispath,addvariables);
-alltransients_dFF = exportTransients(data,'sessiontransients_blmean_SDthresholdsigfilt',analysispath,addvariables);
+%% Bin transient events
+% Bin transients into time bins - default 5 mins
+[transientdata_sigfiltznormBL] = binTransients(transientdata_sigfiltznormBL);
+[transientdata_sigfiltnormBL] = binTransients(transientdata_sigfiltnormBL);
 
-%% OPTIONAL: Create custom bins
+% Bin transients with 3 minute bins
+[transientdata_sigfiltznormBL] = binTransients(transientdata_sigfiltznormBL,'binlengthmins',3);
+[transientdata_sigfiltnormBL] = binTransients(transientdata_sigfiltnormBL,'binlengthmins',3);
+
+% OPTIONAL: Create custom bins
 % If needed, transients can be binned into varying bins based on trial start and end indexes, or other relevant time points. 
 % Start and end indexes for each desired bin must be prepared and then passed to the function binTransients as optional inputs. 
 % This is an example of custom bin start and end index creation based on time points - in this case, just pre and post injection.
-
 for eachfile = 1:length(data)
     % Prepare pre-injection start and end indexes
-    data(eachfile).binstart(1) = 1;
-    data(eachfile).binend(1) = data(eachfile).injt(1);
+    transientdata_sigfiltznormBL(eachfile).binstart(1) = 1;
+    transientdata_sigfiltznormBL(eachfile).binend(1) = data(eachfile).injt(1);
+
+    transientdata_sigfiltnormBL(eachfile).binstart(1) = 1;
+    transientdata_sigfiltnormBL(eachfile).binend(1) = data(eachfile).injt(1);
 
     % Prepare post-injection start and end indexes
-    data(eachfile).binstart(2) = data(eachfile).binend(1)+1;
-    data(eachfile).binend(2) = length(data(eachfile).sigfiltz_normbaseline_injcropped);
+    transientdata_sigfiltznormBL(eachfile).binstart(2) = transientdata_sigfiltznormBL(eachfile).binend(1)+1;
+    transientdata_sigfiltznormBL(eachfile).binend(2) = length(data(eachfile).sigfiltz_normbaseline_injcropped);
+
+    transientdata_sigfiltnormBL(eachfile).binstart(2) = transientdata_sigfiltnormBL(eachfile).binend(1)+1;
+    transientdata_sigfiltnormBL(eachfile).binend(2) = length(data(eachfile).sigfilt_injcropped);
 end
 
+% Prep field names in variables
 binstartfieldname = 'binstart';
 binendfieldname = 'binend';
 
+% Bin transients with custom bin size
+[transientdata_sigfiltznormBL] = binTransients(transientdata_sigfiltznormBL,'manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
+[transientdata_sigfiltnormBL] = binTransients(transientdata_sigfiltnormBL,'manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
 
+
+%% Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
+addvariables = {'SubjectID','TreatNum','InjType'};
+alltransients_Z = exportTransients(transientdata_sigfiltznormBL,analysispath,addvariables,'exportfilename','transientquantification_sigfiltz_normbaseline_injcropped_SDthreshold.csv');
+alltransients_dFF = exportTransients(transientdata_sigfiltznormBL,analysispath,addvariables,'exportfilename','transientquantification_sigfilt_dFF_injcropped_SDthresholdsigfilt.csv');
 
 %% Plot session bin traces with detected transients for each file
 % Use plotTransientBins to plot session bins with detected transients for each file.
 for eachfile = 1:length(data)
-    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    allbins = plotTransientBins(data,eachfile,'sigfiltz_normsession_injcropped','sessiontransients_blmin_threshold3SD',maintitle);
+    fileindex = eachfile;
+    maintitle = append('Subject ',num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'SessionBins_blmin_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 6, 6]);
-    plotfilepath = append(figurepath,'SessionBins_blmin_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+    allbins = plotTransientBins(data,fileindex,'sigfiltz_normsession_injcropped',transientdata_sigfiltznormBL,'Bin_5min',maintitle,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath);
 end
 
 %% Plot all transient traces
 % Use plotTransientTraces to plot session bins with detected transients for each file.
 for eachfile = 1:length(data)
-    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    tracebins = plotTransientTraces(data,eachfile,maintitle,'fs','sessiontransients_blmin_threshold3SD');
-
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 6]);
-    plotfilepath = append(figurepath,'SessionTransientTraces_blmin_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+    fileindex = eachfile;
+    maintitle = append('Subject ',num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'TransientTraces_blmin_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
+    alltransienttraces = plotTransientTraces(transientdata_sigfiltznormBL,fileindex,maintitle,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath);
 end
 
 
 %% Plot transient traces by bin
 % Use plotTransientTracesBins to plot session bins with detected transients for each file.
 for eachfile = 1:length(data)
-    maintitle = append(num2str(data(eachfile).Subject),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
-    tracebins = plotTransientTracesBins(data,eachfile,maintitle,'fs','sessiontransients_blmin_threshold3SD');
+    fileindex = eachfile;
+    maintitle = append('Subject ',num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'TransientTracesby5minBin_blmin_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
 
-    set(gcf, 'Units', 'inches', 'Position', [0, 0, 12, 8]);
-    plotfilepath = append(figurepath,'SessionBinsTransientTraces_blmin_',num2str(data(eachfile).Subject),'_',data(eachfile).InjType,'.png');
-    exportgraphics(gcf,plotfilepath,'Resolution',300)
+    alltransienttracebins = plotTransientTraceBins(transientdata_sigfiltznormBL,fileindex,'Bin_5min',maintitle,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath);
 end
+
 
 %% Summarize transients by treatment
 whichfs = 'fs';

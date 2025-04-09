@@ -1,13 +1,22 @@
-function [alltransienttraces] = plotTransientTraces(transientdata,fileindex,maintitle,varargin)
-% PLOTTRANSIENTTRACES   Plots overlaid traces for every transient event in
-%                       a session.
+function [alltransients] = plotTransients(data,fileindex,streamfieldname,fsfieldname,transientdata,maintitle,varargin)
+% PLOTTRANSIENTS        Plots whole session data stream trace with detected
+%                       transient peaks marked by circles.
 %
 % REQUIRED INPUTS:
-%   TRANSIENTDATA   - Structure array of the output from FINDTRANSIENTS
-%                     with the field 'transientstreamdata'.
+%   DATA            - Structure array; must contain the stream to be plotted.
 %
 %   FILEINDEX       - Integer; index of the file (session) to plot. This can be
 %                     set within a loop to plot all files.
+%
+%   STREAMFIELDNAME - String; The name of the field containing the stream
+%                     used for transient detection. For example, 'sigfiltz_normsession'.
+%
+%   FSFIELDNAME       - String; name of the field that contains the sampling 
+%                       rate of the stream used for transient detection. 
+%                       For example, 'fs'.
+%
+%   TRANSIENTDATA   - Structure array of the output from FINDTRANSIENTS
+%                     with the field 'transientquantification'.
 %
 %   MAINTITLE       - String; main title for the overall plot, displayed above
 %                     the individual subplots. For example, '427 - Treatment:
@@ -51,57 +60,57 @@ function [alltransienttraces] = plotTransientTraces(transientdata,fileindex,main
     params = p.Results;
     
     % Display
-    disp(['PLOTTRANSIENTTRACES: Plotting overlaid transient traces for file: ',num2str(fileindex)])
+    disp(['PLOTTRANSIENTS: Plotting whole session trace with detected transients for file: ',num2str(fileindex)])
 
     if isempty(params.plotfilepath) & params.saveoutput == 1 % If saveoutput is set to 1, plotfilepath is required
         error('SAVEOUTPUT set to 1 but no PLOTFILEPATH specified. Provide PLOTFILEPATH or set SAVEOUTPUT to 0.')
     end
 
-
-    %% Prep axis variables 
-    fs = transientdata(fileindex).params.findTransients.fs;
-
-    currxlength = length(transientdata(fileindex).transientstreamdata);
-    currxseconds = currxlength/fs; % Find total number of minutes per session - helper variable to determine ticks
-    currxticklabels = 0:.5:currxseconds;
-    currxticks = currxticklabels.*fs; % Determine x axis ticks - add ticks every 5 minutes
-
-    ymax = ceil(max(transientdata(fileindex).transientstreamdata, [], 'all')+(0.1*max(transientdata(fileindex).transientstreamdata, [], 'all')));
-    ymin = floor(min(transientdata(fileindex).transientstreamdata, [], 'all')-(0.1*min(transientdata(fileindex).transientstreamdata, [], 'all')));
-    yticksize = round((ymax-ymin)/4,0); % Find size of ticks to generate 5 y axis ticks total
-    curryticks = ymin:yticksize:ymax;
+    %% Prep colors
+    tracecolor = '#4CBB17';
+    transientcolor = '#0004ff';
     
-    if contains(transientdata(fileindex).params.findTransients.streamfield, 'z') == 1
+    %% Prep variables
+    pklocs = transientdata(fileindex).transientquantification.maxloc;
+
+    currxlength = length(data(fileindex).(streamfieldname));
+    currxmins = (length(data(fileindex).(streamfieldname))/data(fileindex).(fsfieldname))/60; % Find total number of minutes per session - helper variable to determine ticks
+    currxticklabels = 0:5:floor(currxmins/5)*5;
+    currxticks = floor(currxticklabels.*60.*data(fileindex).(fsfieldname)); % Determine x axis ticks - add ticks every 5 minutes
+
+    ymax = ceil(max(data(fileindex).(streamfieldname))+(0.1*max(data(fileindex).(streamfieldname))));
+    ymin = floor(min(data(fileindex).(streamfieldname))+(0.1*min(data(fileindex).(streamfieldname))));
+    yticksize = round((ymax-ymin)/4,0); % Find size of ticks to generate 5 y axis ticks total
+    yticklocs = ymin:yticksize:ymax;
+
+    if contains(streamfieldname, 'z') == 1
         currylabel = 'Z Score';
     else
         currylabel = 'dF/F';
     end
 
-    %% Plot traces
+    %% Plot trace with transients
     close all
 
-    % Create tiled layout
-    alltransienttraces = tiledlayout(1, 1, 'Padding','compact', 'TileSpacing','compact');
-
-    nexttile;
-    set(gca, 'ColorOrder', lines(height(transientdata(fileindex).transientstreamdata)), 'NextPlot', 'replacechildren');
+    figure()
     hold on;
-    plot(transientdata(fileindex).transientstreamdata');
+    plot(data(fileindex).(streamfieldname), 'Color', tracecolor);
+    plot(pklocs,data(fileindex).(streamfieldname)(pklocs),'o', 'Color', transientcolor)
     xlim([0 currxlength]);
     xticks(currxticks);
     xticklabels(currxticklabels);
     ylim([ymin ymax]);
-    yticks(curryticks);
-    xlabel('Seconds');
+    yticks(yticklocs);
+    xlabel('Minute');
     ylabel(currylabel);
+    title(maintitle, 'Interpreter', 'none');
     hold off;
-   
-    % Add a main title for the entire tiled layout
-    title(alltransienttraces, maintitle, 'Interpreter', 'none');
+
+    alltransients = gcf;
 
     if params.saveoutput == 1
         disp(['   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype])
-        set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 6]);
+        set(gcf, 'Units', 'inches', 'Position', [0, 0, 15, 3]);
         exportgraphics(gcf,append(params.plotfilepath, '.',params.outputfiletype),'Resolution',300)
     end
 end

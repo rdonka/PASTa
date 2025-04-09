@@ -33,10 +33,10 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
 %                                   Options are 'blmean', 'blmin', and 'localmin'.
 %                                   Default: 'blmean'.
 %
-%       'preminstartms'           - Numeric; start time (ms) of the pre-transient baseline window.
+%       'blstartms'           - Numeric; start time (ms) of the pre-transient baseline window.
 %                                   Default: 1000 ms.
 %
-%       'preminendms'             - Numeric; end time (ms) of the pre-transient baseline window.
+%       'blendms'             - Numeric; end time (ms) of the pre-transient baseline window.
 %                                   Default: 200 ms.
 %
 %       'posttransientms'         - Numeric; duration (ms) after the transient peak for analysis.
@@ -86,8 +86,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
 
     % Add optional name-value pair arguments with validation
     addParameter(p, 'bltype', defaultparameters.bltype, @(x) ischar(x) && ismember(x, {'blmean', 'blmin', 'localmin'})); % bltype: Pre-peak baseline method
-    addParameter(p, 'preminstartms', defaultparameters.preminstartms, @isnumeric); % preminstartms: Numeric (ms); pre-transient to start the baseline period
-    addParameter(p, 'preminendms', defaultparameters.preminendms, @isnumeric); % preminendms: Numeric (ms); ms pre-transient to start the baseline period
+    addParameter(p, 'blstartms', defaultparameters.blstartms, @isnumeric); % blstartms: Numeric (ms); pre-transient to start the baseline period
+    addParameter(p, 'blendms', defaultparameters.blendms, @isnumeric); % blendms: Numeric (ms); ms pre-transient to start the baseline period
     addParameter(p, 'posttransientms', defaultparameters.posttransientms, @isnumeric); % posttransientms: Numeric (ms); ms post-transient to use as the oost-transient fall window
     addParameter(p, 'compoundtransientwindowms',  defaultparameters.compoundtransientwindowms, @isnumeric);  % Numeric (ms); Window size to search before and after each event for compound transients
     addParameter(p, 'quantificationheight', defaultparameters.quantificationheight, @(x) isnumeric(x) && x >= 0 && x <= 1); % quantificationheight: Numeric between 0 and 1; Height for quantification of transients (rise/fall/AUC)
@@ -138,8 +138,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
             % Prep variables
             datastream = data(eachfile).(streamfieldname);
             fs = data(eachfile).(fsfieldname);
-            blstartsamples = floor(fs*(params.preminstartms/1000));
-            blendsamples = floor(fs*(params.preminendms/1000));
+            blstartsamples = floor(fs*(params.blstartms/1000));
+            blendsamples = floor(fs*(params.blendms/1000));
             posttransientsamples = floor(fs*(params.posttransientms/1000));
             compoundtransientwindowsamples = floor(fs*(params.compoundtransientwindowms/1000));
             
@@ -147,8 +147,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
             allmaxlocs = find(islocalmax(datastream)); % Find all maxes
             
             % Prepare tables - preallocate size
-            allvarnames = {'transientID','maxloc', 'maxval', 'preminstartloc', 'preminendloc', 'preminloc', 'preminval', 'amp','risestartloc','risestartval','risesamples', 'risems',...
-                'fallendloc','fallendval','fallsamples','fallms','widthsamples','widthms','AUC','IEIsamples','IEIms','IEIs','compoundeventnum'};
+            allvarnames = {'transientID','maxloc', 'maxval', 'blstartloc', 'blendloc', 'blloc', 'blval', 'amp','quantheightval','risestartloc','risesamples', 'risems',...
+                'fallendloc','fallsamples','fallms','widthsamples','widthms','AUC','IEIsamples','IEIms','IEIs','compoundeventnum'};
             [allvartypes{1:length(allvarnames)}] = deal('double');
             transientquantification = table('Size',[length(allmaxlocs), length(allvarnames)], 'VariableNames', allvarnames, 'VariableTypes', allvartypes);
     
@@ -157,7 +157,7 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                 premaxstart = floor(params.outputpremaxS*fs);
                 postmaxend = floor(params.outputpostmaxS*fs);
 
-                transientstreamlocsvarnames = {'transientID','maxloc','preminstartloc', 'preminendloc','risestartloc','fallendloc'};
+                transientstreamlocsvarnames = {'transientID','maxloc','blstartloc', 'blendloc','risestartloc','fallendloc'};
                 [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
                 transientstreamlocs = table('Size',[length(allmaxlocs), length(transientstreamlocsvarnames)], 'VariableNames', transientstreamlocsvarnames, 'VariableTypes', transientstreamlocsvartypes);
                 [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
@@ -170,8 +170,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                 % Initialize variables - set to empty
                 currmaxloc = [];
                 currmaxval = [];
-                currpreminstartloc = [];
-                currpreminendloc = [];   
+                currblstartloc = [];
+                currblendloc = [];   
                 currminval = [];
                 currminloc = [];
                 curramp = [];
@@ -181,23 +181,23 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                 currmaxval = datastream(currmaxloc); % Value of current max from data stream
 
                 % Find pre-peak baseline window indexes
-                currpreminstartloc = currmaxloc-blstartsamples; % Find the start of the pre-peak baseline window
-                currpreminendloc = currmaxloc-blendsamples; % Find the end of the pre-peak baseline window
+                currblstartloc = currmaxloc-blstartsamples; % Find the start of the pre-peak baseline window
+                currblendloc = currmaxloc-blendsamples; % Find the end of the pre-peak baseline window
     
-                if currpreminstartloc < 1 % If the max is within the baseline length of the start of the session exclude it and move to the next max
+                if currblstartloc < 1 % If the max is within the baseline length of the start of the session exclude it and move to the next max
                     continue
                 end
 
                 % Find pre-peak baseline
                 switch params.bltype
                     case 'blmean'
-                        currminloc = currpreminendloc - ((blstartsamples-blendsamples)/2);
-                        currminval = mean(datastream(currpreminstartloc:currpreminendloc)); % Find mean of pre-transient baseline window
+                        currminloc = currblendloc - ((blstartsamples-blendsamples)/2);
+                        currminval = mean(datastream(currblstartloc:currblendloc)); % Find mean of pre-transient baseline window
                     case 'blmin'
-                        currminval = min(datastream(currpreminstartloc:currpreminendloc)); % Find the value of pre-transient baseline window minimum
-                        currminloc = currpreminstartloc+find(currminval == datastream(currpreminstartloc:currpreminendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
+                        currminval = min(datastream(currblstartloc:currblendloc)); % Find the value of pre-transient baseline window minimum
+                        currminloc = currblstartloc+find(currminval == datastream(currblstartloc:currblendloc),1,'last'); % Index of the pre-transient baseline window min point in the data stream
                     case 'localmin'
-                        currminloc = find(islocalmin(datastream(currpreminstartloc:currpreminendloc)),1,'last') + currpreminstartloc; % Find the last local minimum in the baseline window
+                        currminloc = find(islocalmin(datastream(currblstartloc:currblendloc)),1,'last') + currblstartloc; % Find the last local minimum in the baseline window
                         currminval = datastream(currminloc); % Find the value of the pre-transient local minimum
                 end
 
@@ -208,11 +208,10 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
    
                     % Initialize variables - set to empty
                     pretransientdata = [];
-                    curriseval = [];
+                    quantheightval = [];
                     currrisesamples = [];
                     currriseloc = [];
                     posttransientdata = [];
-                    currfallval = [];
                     currfallsamples = [];
                     currfallloc = [];
                     currpkAUCdata = [];
@@ -224,8 +223,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
 
                     % Quantify rise time
                     pretransientdata = datastream((currmaxloc-blstartsamples):currmaxloc); % Extract pre-transient data from baseline start to peak max
-                    currriseval = currminval + curramp*params.quantificationheight; % Find the rise value at the input quantification height
-                    currrisesamples = length(pretransientdata) - find(pretransientdata >= currriseval,1,'first'); % Find the number of samples from rise start to transient peak
+                    quantheightval = currmaxval - curramp*params.quantificationheight; % Find the rise value at the input quantification height
+                    currrisesamples = length(pretransientdata) - find(pretransientdata >= quantheightval,1,'first'); % Find the number of samples from rise start to transient peak
                     currrisems = (currrisesamples/fs)*1000;
                     currriseloc = currmaxloc-currrisesamples; % Find the location index of the rise start
     
@@ -236,12 +235,10 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                         posttransientdata = datastream(currmaxloc:end); % If the end point of the post transient period is after the session end, just take to the end of the session
                     end
                     
-                    currfallval = currmaxval - curramp*params.quantificationheight; % Find the fall value at the input quantification height (default is half height - 0.5)
-                    currfallsamples = find(posttransientdata <= currfallval,1,'first'); % Find the number of samples from transient peak to fall end
+                    currfallsamples = find(posttransientdata <= quantheightval,1,'first'); % Find the number of samples from transient peak to fall end
                     currfallloc = currmaxloc+currfallsamples; % Find the location index of the fall end
                  
                     if isempty(currfallsamples) % Catch for if no post-transient fall location is found
-                        currfallval = NaN; % NaN out fall variables
                         currfallsamples = NaN;
                         currfallloc = NaN;
                         currfallms = NaN;
@@ -272,17 +269,16 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                     transientquantification.transientID(transientcount) = transientcount;
                     transientquantification.maxloc(transientcount) = currmaxloc;
                     transientquantification.maxval(transientcount) = currmaxval;
-                    transientquantification.preminstartloc(transientcount) = currpreminstartloc;
-                    transientquantification.preminendloc(transientcount) = currpreminendloc;
-                    transientquantification.preminloc(transientcount) = currminloc;
-                    transientquantification.preminval(transientcount) = currminval;
+                    transientquantification.blstartloc(transientcount) = currblstartloc;
+                    transientquantification.blendloc(transientcount) = currblendloc;
+                    transientquantification.blloc(transientcount) = currminloc;
+                    transientquantification.blval(transientcount) = currminval;
                     transientquantification.amp(transientcount) = curramp;
+                    transientquantification.quantheightval(transientcount) = quantheightval;
                     transientquantification.risestartloc(transientcount) = currriseloc;
-                    transientquantification.risestartval(transientcount) = currriseval;
                     transientquantification.risesamples(transientcount) = currrisesamples;
                     transientquantification.risems(transientcount) = currrisems;            
                     transientquantification.fallendloc(transientcount) = currfallloc;
-                    transientquantification.fallendval(transientcount) = currfallval;
                     transientquantification.fallsamples(transientcount) = currfallsamples;
                     transientquantification.fallms(transientcount) = currfallms;
                     transientquantification.widthsamples(transientcount) = currwidthsamples;    

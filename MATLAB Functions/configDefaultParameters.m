@@ -45,8 +45,8 @@ function defaultparameters = configDefaultParameters(callerFunction)
 
     % findSessionTransients
     allparameters.findTransients.bltype = 'blmean'; % Default to baseline mean method
-    allparameters.findTransients.preminstartms = 1000; % Pre-transient baseline ms start
-    allparameters.findTransients.preminendms = 200; % Pre-transient baseline ms end
+    allparameters.findTransients.blstartms = 1000; % Pre-transient baseline ms start
+    allparameters.findTransients.blendms = 200; % Pre-transient baseline ms end
     allparameters.findTransients.posttransientms = 2000; % Post-transient fall window
     allparameters.findTransients.compoundtransientwindowms = 2000; % Window size to search before and after each event for compound transients
     allparameters.findTransients.quantificationheight = 0.5; % Height for quantification of transients (rise/fall/AUC)
@@ -84,6 +84,11 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.plotFFTmag.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
     allparameters.plotFFTmag.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotFFTmag.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
+    % plotTransients
+    allparameters.plotTransients.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTransients.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
+    allparameters.plotTransients.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
     % plotTransientBins
     allparameters.plotTransientBins.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath

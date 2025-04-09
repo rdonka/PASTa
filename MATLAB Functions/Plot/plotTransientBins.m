@@ -2,8 +2,6 @@ function [allbins] = plotTransientBins(data,fileindex,streamfieldname,transientd
 % PLOTTRANSIENTBINS     Plots every bin for a session with detected
 %                       transient peaks marked by circles.
 %
-% Copyright (C) 2024 Rachel Donka. Licensed under the GNU General Public License v3.
-%
 % REQUIRED INPUTS:
 %   DATA            - Structure array; must contain the stream to be plotted.
 %

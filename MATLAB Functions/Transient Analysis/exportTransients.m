@@ -1,17 +1,25 @@
-function [alltransients] = exportTransients(transientdata,exportfilepath,addvariablesfieldnames,varargin)
+function [alltransients] = exportTransients(transientdata,exportfieldname,exportfilepath,addvariablesfieldnames,varargin)
 % EXPORTTRANSIENTS  Compiles all transients across sessions into a table and exports to a CSV file.
 %
 %   EXPORTTRANSIENTS(TRANSIENTDATA, TRANSIENTQUANTIFICATIONFIELDNAME, EXPORTFILEPATH, ADDVARIABLESFIELDNAMES, 'PARAM1', VAL1, ...)
-%   aggregates transient transientdata from multiple sessions and exports the compiled table to a specified CSV file.
+%   aggregates transient data from multiple sessions and exports the compiled table to a specified CSV file.
 %
 % REQUIRED INPUTS:
 %   TRANSIENTDATA     - Structure array of the output from FINDTRANSIENTS
-%                       with the field 'transientquantification'
+%                       with the field you wish to export.
+%
+%   EXPORTFIELDNAME   - String; name of the field that contains the
+%                     transients to be exported. 
+%                     For individual transient events, use 'transientquantification'. 
+%                     For session means of transient events, use 'transientsummary_session'. 
+%                     For bin means of transient events, use 'transientsummary_<BINFIELDNAME>'.
+%                     Ensure the TRANSIENTDATA structure contains the field
+%                     you specify in EXPORTFIELDNAME.
 %
 %   EXPORTFILEPATH  - String; path to the folder where the CSV file will be
 %                     saved. Note: The path must end with a forward slash.
 %
-%   ADDVARIABLESFIELDNAMES    - Cell array of strings; names of additional variables 
+%   ADDVARIABLESFIELDNAMES - Cell array of strings; names of additional variables 
 %                     from the transientdata structure to include in the transients 
 %                     table. These variables will be added to every row of 
 %                     the output table. At a minimum, this should include 
@@ -22,15 +30,16 @@ function [alltransients] = exportTransients(transientdata,exportfilepath,addvari
 % OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
 %   'exportfilename'    - String; custom name for the output CSV file. If not 
 %                         specified, the file name will be  generated as 
-%                         'TransientQuantification_AllSessionExport_DAY-MONTH-YEAR.csv'.
+%                         '<EXPORTFIELDNAME>_AllSessionExport_DAY-MONTH-YEAR.csv'.
 %
 % OUTPUTS:
 %   ALLTRANSIENTS   - Table; compiled table of all transients across all 
-%                     sessions in the transientdata structure. This table is also 
+%                     sessions in the TRANSIENTDATA structure. This table is also 
 %                     saved as a CSV file at the specified export file path.
 %
 % EXAMPLE USAGE:
-%   alltransients = exportTransients(transientdata, exportfilepath, {'Subject', 'SessionID'}, 'exportfilename', 'transients_export.csv');
+%   alltransients = exportTransients(transientdata, exportfieldname, exportfilepath, ...
+%                       {'Subject', 'SessionID'}, 'exportfilename', 'transients_export.csv');
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -52,12 +61,11 @@ function [alltransients] = exportTransients(transientdata,exportfilepath,addvari
 
     % Set exportfilepath automatically if not specified
     if isempty(params.exportfilename)
-        params.exportfilename = append(transientquantificationfieldname,'_AllSessionExport_',string(datetime("today")),'.csv');
+        params.exportfilename = append(exportfieldname,'_AllSessionExport_',string(datetime("today")),'.csv');
     end
     
     % Display
     disp(['EXPORTTRANSIENTS: Exporting transients as a csv file to: ', exportfilepath,'/',params.exportfilename]) % Display file path location
-    disp('   PARAMETERS:') % Display all input values
     disp(params)
 
     %% Prepare Transients for Export
@@ -65,7 +73,7 @@ function [alltransients] = exportTransients(transientdata,exportfilepath,addvari
 
     for eachfile = 1:length(transientdata)
 
-        eachfiletransients = transientdata(eachfile).transientquantification;
+        eachfiletransients = transientdata(eachfile).(exportfieldname);
         
         for eachvariable = 1:length(addvariablesfieldnames)
             currvariable = char(addvariablesfieldnames(eachvariable));

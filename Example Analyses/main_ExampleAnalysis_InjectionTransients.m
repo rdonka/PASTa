@@ -223,10 +223,15 @@ binendfieldname = 'binend';
 [transientdata_sigfiltnormBL] = binTransients(transientdata_sigfiltnormBL,'manuallydefinebins',1,'binstartfieldname',binstartfieldname,'binendfieldname',binendfieldname);
 
 
-%% Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
-addvariables = {'SubjectID','TreatNum','InjType'};
-alltransients_Z = exportTransients(transientdata_sigfiltznormBL,analysispath,addvariables,'exportfilename','transientquantification_sigfiltz_normbaseline_injcropped_SDthreshold.csv');
-alltransients_dFF = exportTransients(transientdata_sigfiltznormBL,analysispath,addvariables,'exportfilename','transientquantification_sigfilt_dFF_injcropped_SDthresholdsigfilt.csv');
+%% Plot whole session trace with detected transients for each file
+% Use plotTransients to plot session trace with detected transients for each file.
+for eachfile = 1:length(data)
+    fileindex = eachfile;
+    maintitle = append('Subject ',num2str(data(eachfile).SubjectID),' - Treatment: ',data(eachfile).InjType); % Create title string for current plot
+    plotfilepath = append(figurepath,'SessionTransients_blmin_',num2str(data(eachfile).SubjectID),'_',data(eachfile).InjType);
+
+    allbins = plotTransients(data,fileindex,'sigfiltz_normsession_injcropped','fs',transientdata_sigfiltznormBL,maintitle,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath);
+end
 
 %% Plot session bin traces with detected transients for each file
 % Use plotTransientBins to plot session bins with detected transients for each file.
@@ -257,6 +262,25 @@ for eachfile = 1:length(data)
 
     alltransienttracebins = plotTransientTraceBins(transientdata_sigfiltznormBL,fileindex,'Bin_5min',maintitle,'saveoutput',1,'outputfiletype','png','plotfilepath',plotfilepath);
 end
+
+
+%% Summarize transient quantification
+% summarizeTransients finds the whole session frequency (in total peaks, peaks per minute, and peak per second/hz), mean values for quantification
+% variables (amp, rise, fall, width, AUC, etc), and total number of compound events.
+[transientdata_sigfiltznormBL] = summarizeTransients(transientdata_sigfiltznormBL);
+
+%summarizeBinTransients finds the per bin values within each session for frequency (in total peaks, peaks per minute, and peak per second/hz), 
+% mean values for quantification variables (amp, rise, fall, width, AUC, etc), and total number of compound events.
+[transientdata_sigfiltznormBL] = summarizeBinTransients(transientdata_sigfiltznormBL,'Bin_5min');
+
+
+%% Export transients with added fields for subject and treatment using the EXPORTSESSIONTRANSIENTS function
+
+% Export all individual transient events
+addvariables = {'SubjectID','TreatNum','InjType','Weight','FiberPlacement','Virus'};
+alltransients_Z = exportTransients(transientdata_sigfiltznormBL,'transientquantification',analysispath,addvariables,'exportfilename','transientquantification_sigfiltz_normbaseline_injcropped_SDthreshold.csv');
+alltransients_Z_session = exportTransients(transientdata_sigfiltznormBL,'transientsummary_session',analysispath,addvariables,'exportfilename','transientsummary_session_sigfiltz_normbaseline_injcropped_SDthreshold.csv');
+alltransients_Z_bin = exportTransients(transientdata_sigfiltznormBL,'transientsummary_Bin_5min',analysispath,addvariables,'exportfilename','transientsummary_Bin5min_sigfiltz_normbaseline_injcropped_SDthreshold.csv');
 
 
 %% Summarize transients by treatment

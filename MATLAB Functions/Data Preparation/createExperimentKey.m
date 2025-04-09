@@ -1,9 +1,9 @@
-function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
-% LOADKEYS  Combine subject key and file key into a single data structure, 
-%           appending the provided rootdirectory to create full paths to
-%           stored data locations.
+function [experimentkey] = createExperimentKey(rootdirectory,subjectkeyname,filekeyname)
+% CREATEXPERIMENTKEY  Combine subject key and file key into a single data structure, 
+%                     appending the provided rootdirectory to create full paths to
+%                     stored data locations.
 %
-%   [EXPERIMENTKEY] = LOADKEYS(ROOTDIRECTORY, SUBJECTKEYNAME, FILEKEYNAME)
+%   [EXPERIMENTKEY] = CREATEXPERIMENTKEY(ROOTDIRECTORY, SUBJECTKEYNAME, FILEKEYNAME)
 %   reads two CSV files: a subject key and a file key, merges them on the
 %   shared column "SubjectID", and then appends ROOTDIRECTORY
 %   to the folder paths in the file key. This produces a single struct 
@@ -39,7 +39,7 @@ function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
 %       fileKey = 'fileKey.csv';
 %
 %       % Load them into one experiment key structure:
-%       experimentkey = loadKeys(rootdirectory, subjKey, fileKey);
+%       experimentkey = createExperimentKey(rootdirectory, subjKey, fileKey);
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -65,7 +65,7 @@ function [experimentkey] = loadKeys(rootdirectory,subjectkeyname,filekeyname)
             disp(unique(filekey.SubjectID));
 
             % Return error
-            error('loadKeys:JoinError', 'Failed to join the subject and file key tables.');
+            error('createExperimentKey:JoinError', 'Failed to join the subject and file key tables.');
         end
     else % No subject key provided, so only read the file key
         filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',',');

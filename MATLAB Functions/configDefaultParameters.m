@@ -53,6 +53,7 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.findTransients.blstartms = 1000; % Pre-transient baseline ms start
     allparameters.findTransients.blendms = 200; % Pre-transient baseline ms end
     allparameters.findTransients.posttransientms = 2000; % Post-transient fall window
+    allparameters.findTransients.AUCwindowms = 1000; % Window size (ms) for AUC window
     allparameters.findTransients.compoundtransientwindowms = 2000; % Window size to search before and after each event for compound transients
     allparameters.findTransients.quantificationheight = 0.5; % Height for quantification of transients (rise/fall/AUC)
     allparameters.findTransients.outputtransientdata = 1; % Logical; If set to 1 (true), data streams for individual transients will be added to the data structure

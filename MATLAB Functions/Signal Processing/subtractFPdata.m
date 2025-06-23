@@ -112,7 +112,7 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
     addParameter(p, 'artifactremoval', defaultparameters.artifactremoval, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % artifactremoval: input must be logical or numeric (either 0 or 1)
     addParameter(p, 'filtertype', defaultparameters.filtertype, @(x) ischar(x) && ismember(x, {'nofilter', 'bandpass', 'highpass', 'lowpass'})); % filtertype: input must be one of 4 options
     addParameter(p, 'padding', defaultparameters.padding, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % padding: input must be logical or numeric (either 0 or 1)
-    addParameter(p, 'paddingperc', defaultparameters.paddingperc, @(x) validateattributes(x, {'numeric'}, {'positive', '<=', 1,'>=',0.1})); % paddingperc: input must be between 10% and 100%
+    addParameter(p, 'paddingperc', defaultparameters.paddingperc, @(x) validateattributes(x, {'numeric'}, {'positive', '<=', 1,'>=',0.05})); % paddingperc: input must be between 10% and 100%
     addParameter(p, 'filterorder', defaultparameters.filterorder, @(x) validateattributes(x, {'numeric'}, {'positive', 'integer'})); % filterorder: input must be a positive integer
     addParameter(p, 'highpasscutoff', defaultparameters.highpasscutoff, @(x) validateattributes(x, {'numeric'}, {'positive'})); % highpasscutoff: input must be numeric and positive
     addParameter(p, 'lowpasscutoff', defaultparameters.lowpasscutoff, @(x) validateattributes(x, {'numeric'}, {'positive'})); % lowpasscutoff: input must be numeric and positive

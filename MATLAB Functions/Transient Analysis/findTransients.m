@@ -50,6 +50,9 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
 %       'compoundtransientwindowms' - Numeric; window (ms) to search before and after each event
 %                                     for compound transients. Default: 2000 ms.
 %
+%       'AUCwindowms'         - Numeric; window (ms) for transient AUC
+%                               window.
+%
 %       'outputtransientdata'     - Logical; if true (1), outputs cut data streams for each transient
 %                                   event. If false (0), skips this output.
 %                                   Default: true (1).
@@ -89,6 +92,7 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
     addParameter(p, 'blstartms', defaultparameters.blstartms, @isnumeric); % blstartms: Numeric (ms); pre-transient to start the baseline period
     addParameter(p, 'blendms', defaultparameters.blendms, @isnumeric); % blendms: Numeric (ms); ms pre-transient to start the baseline period
     addParameter(p, 'posttransientms', defaultparameters.posttransientms, @isnumeric); % posttransientms: Numeric (ms); ms post-transient to use as the oost-transient fall window
+    addParameter(p, 'AUCwindowms',  defaultparameters.compoundtransientwindowms, @isnumeric);  % Numeric (ms); Window size to search before and after each event for compound transients
     addParameter(p, 'compoundtransientwindowms',  defaultparameters.compoundtransientwindowms, @isnumeric);  % Numeric (ms); Window size to search before and after each event for compound transients
     addParameter(p, 'quantificationheight', defaultparameters.quantificationheight, @(x) isnumeric(x) && x >= 0 && x <= 1); % quantificationheight: Numeric between 0 and 1; Height for quantification of transients (rise/fall/AUC)
     addParameter(p, 'outputtransientdata', defaultparameters.outputtransientdata, @islogical); % outputtransientdata: Logical; If set to 1 (true), data streams for individual transients will be added to the data structure
@@ -214,6 +218,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                     posttransientdata = [];
                     currfallsamples = [];
                     currfallloc = [];
+                    currpkAUCwindowdata = [];
+                    currAUCwindow = [];
                     currpkAUCdata = [];
                     currAUC = [];
                     currIEIsamples = [];
@@ -237,7 +243,17 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                     
                     currfallsamples = find(posttransientdata <= quantheightval,1,'first'); % Find the number of samples from transient peak to fall end
                     currfallloc = currmaxloc+currfallsamples; % Find the location index of the fall end
-                 
+                    
+                    %  Quantify transient AUC - window
+                    AUCwindowsamples = floor((params.AUCwindowms/1000)*fs);
+                    currpkAUCwindowend = currriseloc+AUCwindowsamples;
+                    if currpkAUCwindowend > length(datastream)
+                        currAUCwindow = NaN;
+                    else
+                        currpkAUCwindowdata = [datastream(currriseloc:currpkAUCwindowend)] - min(datastream(currriseloc:currpkAUCwindowend));
+                        currAUCwindow = round(trapz(currpkAUCwindowdata));
+                    end
+
                     if isempty(currfallsamples) % Catch for if no post-transient fall location is found
                         currfallsamples = NaN;
                         currfallloc = NaN;
@@ -284,6 +300,7 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                     transientquantification.widthsamples(transientcount) = currwidthsamples;    
                     transientquantification.widthms(transientcount) = currwidthms;
                     transientquantification.AUC(transientcount) = currAUC;
+                    transientquantification.AUCwindow(transientcount) = currAUCwindow;
                     transientquantification.IEIsamples(transientcount) = currIEIsamples;
                     transientquantification.IEIms(transientcount) = currIEIms;
                     transientquantification.IEIs(transientcount) = currIEIs;

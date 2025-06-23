@@ -36,7 +36,7 @@ function [data] = normCustom(data,fullstreamfieldname,customstreamfieldname)
 
 %% Normalize to session baseline
 disp(['NORM CUSTOM: Normalizing ',fullstreamfieldname,' to mean and standard deviation of customized period of session.'])
-disp('   Mean and SD defined by ',customstreamfieldname,'.')
+disp(['   Mean and SD defined by ',customstreamfieldname,'.'])
 disp(['   Normalized data will be output to the field: ',fullstreamfieldname, 'z_normcustom'])
 
     for eachfile = 1:length(data)

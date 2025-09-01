@@ -22,6 +22,10 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.extractTDTdata.trim = 5;
     allparameters.extractTDTdata.skipexisting = 1;
 
+    % extractTDTdata_multiblock
+    allparameters.extractTDTdata_multiblock.trim = 5;
+    allparameters.extractTDTdata_multiblock.skipexisting = 1;
+
     % extractCSVdata
     allparameters.extractCSVdata.trim = 5;
     allparameters.extractCSVdata.skipexisting = 1;

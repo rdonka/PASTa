@@ -1,0 +1,120 @@
+<deployment-project plugin="plugin.toolbox" plugin-version="1.0">
+  <configuration build-checksum="3213657146" file="C:\Users\rmdon\OneDrive\Desktop\GitHub_Repositories\PASTa\PASTa.prj" location="C:\Users\rmdon\OneDrive\Desktop\GitHub_Repositories\PASTa" name="PASTa" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>PASTa</param.appname>
+    <param.authnamewatermark>Rachel Donka</param.authnamewatermark>
+    <param.email>rdonka2@uic.edu</param.email>
+    <param.company />
+    <param.summary>PASTa: Photometry Analysis and Signal Processing Toolbox</param.summary>
+    <param.description>An open-source toolbox for the analysis and processing of fiber photometry data.</param.description>
+    <param.screenshot>C:\Users\rmdon\OneDrive\Desktop\GitHub_Repositories\PASTaUserGuide\docs\img\PASTa_logo_FINAL.png</param.screenshot>
+    <param.version>0.0.0</param.version>
+    <param.output>${PROJECT_ROOT}\PASTa.mltbx</param.output>
+    <param.products.name>
+      <item>Signal Processing Toolbox</item>
+    </param.products.name>
+    <param.products.id>
+      <item>8</item>
+    </param.products.id>
+    <param.products.version>
+      <item>24.1</item>
+    </param.products.version>
+    <param.platforms />
+    <param.guid>fa127ddf-fb9f-4b6d-86f9-a88bf3469c67</param.guid>
+    <param.exclude.filters />
+    <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
+    <param.examples />
+    <param.demosxml />
+    <param.apps />
+    <param.registered.apps />
+    <param.docs />
+    <param.getting.started.guide />
+    <param.matlabpath.excludes />
+    <param.javaclasspath.excludes />
+    <param.exported.on.package>false</param.exported.on.package>
+    <param.required.addons />
+    <param.matlab.project.id />
+    <param.matlab.project.name />
+    <param.release.start />
+    <param.release.end />
+    <param.release.current.only>false</param.release.current.only>
+    <param.compatiblity.windows>true</param.compatiblity.windows>
+    <param.compatiblity.macos>true</param.compatiblity.macos>
+    <param.compatiblity.linux>true</param.compatiblity.linux>
+    <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
+    <param.installation.map />
+    <param.additional.sw.names />
+    <param.additional.sw.licenses />
+    <param.additional.sw.win.url />
+    <param.additional.sw.mac.url />
+    <param.additional.sw.linux.url />
+    <unset>
+      <param.company />
+      <param.output />
+      <param.platforms />
+      <param.exclude.filters />
+      <param.exclude.pcodedmfiles />
+      <param.examples />
+      <param.demosxml />
+      <param.apps />
+      <param.registered.apps />
+      <param.docs />
+      <param.getting.started.guide />
+      <param.matlabpath.excludes />
+      <param.javaclasspath.excludes />
+      <param.exported.on.package />
+      <param.required.addons />
+      <param.matlab.project.id />
+      <param.matlab.project.name />
+      <param.release.start />
+      <param.release.end />
+      <param.release.current.only />
+      <param.compatiblity.windows />
+      <param.compatiblity.macos />
+      <param.compatiblity.linux />
+      <param.compatiblity.matlabonline />
+      <param.installation.map />
+      <param.additional.sw.names />
+      <param.additional.sw.licenses />
+      <param.additional.sw.win.url />
+      <param.additional.sw.mac.url />
+      <param.additional.sw.linux.url />
+    </unset>
+    <fileset.rootdir>
+      <file>${PROJECT_ROOT}\MATLAB Functions</file>
+    </fileset.rootdir>
+    <fileset.rootfiles>
+      <file>${PROJECT_ROOT}\MATLAB Functions\configDefaultParameters.m</file>
+      <file>${PROJECT_ROOT}\MATLAB Functions\Data Preparation</file>
+      <file>${PROJECT_ROOT}\MATLAB Functions\Helper Functions</file>
+      <file>${PROJECT_ROOT}\MATLAB Functions\Plot</file>
+      <file>${PROJECT_ROOT}\MATLAB Functions\Signal Processing</file>
+      <file>${PROJECT_ROOT}\MATLAB Functions\Transient Analysis</file>
+    </fileset.rootfiles>
+    <fileset.depfun.included />
+    <fileset.depfun.excluded />
+    <fileset.package />
+    <build-deliverables>
+      <file location="${PROJECT_ROOT}" name="PASTa.mltbx" optional="false">C:\Users\rmdon\OneDrive\Desktop\GitHub_Repositories\PASTa\PASTa.mltbx</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2024a</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>

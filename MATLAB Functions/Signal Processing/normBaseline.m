@@ -45,6 +45,8 @@ disp(['   Normalized data will be output to the field: ',streamfieldname, 'z_nor
             BLsd = std(data(eachfile).(streamfieldname)(data(eachfile).(BLstartfieldname):data(eachfile).(BLendfieldname)),"omitnan"); % Find the standard deviation of the session baseline
     
             data(eachfile).(append(streamfieldname,'z_normbaseline')) = (data(eachfile).(streamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
+            data(eachfile).(append(streamfieldname,'z_normbaseline_mean')) = BLmean; % Add mean used for Z score to data structure
+            data(eachfile).(append(streamfieldname,'z_normbaseline_sd')) = BLsd; % Add sd used for Z score to data structure
         catch
             warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', streamfieldname]) 
         end

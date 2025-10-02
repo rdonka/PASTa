@@ -1,4 +1,4 @@
-function [data] = normCustom(data,fullstreamfieldname,customstreamfieldname)
+function [data] = normCustom(data,fullstreamfieldname,customstreamfieldname,varargin)
 % NORMCUSTOM    Normalizes the whole session data stream based on a
 %                custom period input as a separate stream field.
 %
@@ -21,6 +21,10 @@ function [data] = normCustom(data,fullstreamfieldname,customstreamfieldname)
 %                           data stream to use as the reference for
 %                           normalization.
 %
+% OPTIONAL INPUTS:
+%   NORMFIELDOUTPUTNAME:  - String; output name to be appended to the FULLSTREAMFIELDNAME 
+%                           for the normalized stream. 
+%                           Default: <fullstreamfieldname>_normcustom.
 % OUTPUTS:
 %   DATA:   Structure array; the original DATA structure with an added field 
 %           '<fullstreamfieldname>z_normcustom' containing the normalized data.
@@ -33,11 +37,26 @@ function [data] = normCustom(data,fullstreamfieldname,customstreamfieldname)
 % License: GNU General Public License v3. See end of file for details.
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 
+% Prepare default values
+defaultparameters = configDefaultParameters(mfilename); % For more details on default parameter values, see help configDefaultParameters.
+
+% Import required and optional inputs into a structure
+p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
+
+% Add optional name-value pair arguments with validation
+addParameter(p, 'normfieldoutputname', defaultparameters.normfieldoutputname, @(x) ischar(x)); % normfieldoutputname: input must be char
+
+parse(p, varargin{:});
+
+% Retrieve all parsed inputs into params structure
+allparams = p.Results;
+
+normfieldoutputname = append(fullstreamfieldname,'z_',allparams.normfieldoutputname);
 
 %% Normalize to session baseline
 disp(['NORM CUSTOM: Normalizing ',fullstreamfieldname,' to mean and standard deviation of customized period of session.'])
 disp(['   Mean and SD defined by ',customstreamfieldname,'.'])
-disp(['   Normalized data will be output to the field: ',fullstreamfieldname, 'z_normcustom'])
+disp(['   Normalized data will be output to the field: ',normfieldoutputname])
 
     for eachfile = 1:length(data)
         disp(['   NORMALIZING: File ',num2str(eachfile)])
@@ -45,7 +64,9 @@ disp(['   Normalized data will be output to the field: ',fullstreamfieldname, 'z
             BLmean = mean(data(eachfile).(customstreamfieldname)); % Find the mean of the session baseline
             BLsd = std(data(eachfile).(customstreamfieldname)); % Find the standard deviation of the session baseline
     
-            data(eachfile).(append(fullstreamfieldname,'z_normcustom')) = (data(eachfile).(fullstreamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
+            data(eachfile).(normfieldoutputname) = (data(eachfile).(fullstreamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
+            data(eachfile).(append(normfieldoutputname,'_mean')) = BLmean; % Add mean used for Z score to data structure
+            data(eachfile).(append(normfieldoutputname,'_sd')) = BLsd; % Add sd used for Z score to data structure
         catch
             warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', fullstreamfieldname]) 
         end

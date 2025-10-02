@@ -52,6 +52,9 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.removeStreamArtifacts.artifactampthreshold_min = 8; % Artifact SD detection threshold - min artifacts
     allparameters.removeStreamArtifacts.bucketsizeSecs = 30; % Bucket size (seconds) for session amplitude and mean calculations
 
+    % normCustom
+    allparameters.normCustom.normfieldoutputname = 'z_normcustom'; % Default to baseline mean method
+    
     % findSessionTransients
     allparameters.findTransients.bltype = 'blmean'; % Default to baseline mean method
     allparameters.findTransients.blstartms = 1000; % Pre-transient baseline ms start

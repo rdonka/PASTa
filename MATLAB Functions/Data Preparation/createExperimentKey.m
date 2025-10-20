@@ -50,8 +50,8 @@ function [experimentkey] = createExperimentKey(rootdirectory,subjectkeyname,file
 % If 'subjectkeyname' is non-empty, merge the subject and file keys by the field "SubjectID". Otherwise, just load the file key.
 
     if strcmp(subjectkeyname, "") == 0 % Subject key is provided, so read both and then attempt to join
-        subjectkey = readtable(subjectkeyname, 'Decimal',',', 'Delimiter',','); % Load subject key
-        filekey = readtable(filekeyname, 'Decimal',',', 'Delimiter',','); % Load file key
+        subjectkey = readtable(subjectkeyname, 'Delimiter',','); % Load subject key
+        filekey = readtable(filekeyname, 'Delimiter',','); % Load file key
         try 
             % Merge the file key and subject key into one table, then convert to struct
             [experimentkey] = table2struct(join(filekey, subjectkey));

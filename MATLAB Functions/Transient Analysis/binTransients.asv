@@ -147,7 +147,7 @@ function [transientdata] = binTransients(transientdata,varargin)
                 transientdata(eachfile).transientquantification.(binoutputfieldname)((transientdata(eachfile).transientquantification.maxloc >= startbin & ...
                    transientdata(eachfile).transientquantification.maxloc < endbin)) = eachbin; % Add variable for bin to the transient quantification table. Transients are grouped by the bin start and stop indexes. Output column is labeled 'Bin_BINLENGTHMINS'
                 % Add bin samples to params
-                transientdata(eachfile).params.(mfilename).(append(binoutputfieldname,'_binsamples'))(eachbin) = endbin - startbin;
+                transientdata(eachfile).params.(mfilename).(append(binoutputfieldname,'_binsamples'))(eachbin) = binend - binstart;
             end
             % Add bin transients settings to the transients table
             transientdata(eachfile).params.(mfilename).(binoutputfieldname).nbins = nbins; % Add number of bins to settings table

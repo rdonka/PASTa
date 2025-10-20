@@ -69,8 +69,9 @@ function defaultparameters = configDefaultParameters(callerFunction)
 
     % binSessionTransients
     allparameters.binTransients.binlengthmins = 5; % Bin length (mins) for transient analysis
-    allparameters.binTransients.nbinsoverride = 0; % Mannual override to set number of bins; Set to 0 to calculate number of bins based on length of session    
-    allparameters.binTransients.manuallydefinebins = false; % Mannually specify bin start and end indexes
+    allparameters.binTransients.nbinsoverride = 0; % Manual override to set number of bins; Set to 0 to calculate number of bins based on length of session    
+    allparameters.binTransients.manuallydefinebins = false; % Manually specify bin start and end indexes
+    allparameters.binTransients.binoutputfieldname = 'Bin_Custom'; % Output field name if manuallydefinebins is set to TRUE
 
     % exportSessionTransients
     allparameters.exportTransients.transientquantificationfieldname = 'transientquantification'; % Name of field containing table of quantified transients

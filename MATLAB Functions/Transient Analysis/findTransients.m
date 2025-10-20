@@ -246,11 +246,12 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                     
                     %  Quantify transient AUC - window
                     AUCwindowsamples = floor((params.AUCwindowms/1000)*fs);
+                    currpkAUCwindowstart = currriseloc - (currriseloc - currblendloc);
                     currpkAUCwindowend = currriseloc+AUCwindowsamples;
                     if currpkAUCwindowend > length(datastream)
                         currAUCwindow = NaN;
                     else
-                        currpkAUCwindowdata = [datastream(currriseloc:currpkAUCwindowend)] - min(datastream(currriseloc:currpkAUCwindowend));
+                        currpkAUCwindowdata = [datastream(currpkAUCwindowstart:currpkAUCwindowend)] - min(datastream(currpkAUCwindowstart:currpkAUCwindowend));
                         currAUCwindow = round(trapz(currpkAUCwindowdata));
                     end
 

@@ -166,7 +166,6 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                 transientstreamlocs = table('Size',[length(allmaxlocs), length(transientstreamlocsvarnames)], 'VariableNames', transientstreamlocsvarnames, 'VariableTypes', transientstreamlocsvartypes);
                 [transientstreamlocsvartypes{1:length(transientstreamlocsvarnames)}] = deal('double');
                 transientstreamdata = zeros(length(allmaxlocs), (premaxstart+postmaxend+1));
-                transientstreamdatacentered = zeros(length(allmaxlocs), (premaxstart+postmaxend+1));
             end
     
             transientcount = 0;
@@ -337,9 +336,8 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                             end
                             streamwithnans = [prenans,datastream(currmaxloc-(premaxstart-premissingsamples-1):(postmaxend-postmissingsamples-1)),postnans];
                             streamwithnans = [streamwithnans, NaN(1,(premaxstart+postmaxend+1)-length(streamwithnans))];
-                            centeredstreamwithnans = streamwithnans - currminval;
+                            
                             transientstreamdata(transientcount,:) = streamwithnans;
-                            transientstreamdatacentered(transientcount,:) = centeredstreamwithnans;
                         end
                     end
                 end               
@@ -376,7 +374,6 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
             if params.outputtransientdata == 1
                 transientdata(eachfile).transientstreamlocs = transientstreamlocs(1:transientcount,:);
                 transientdata(eachfile).transientstreamdata = transientstreamdata(1:transientcount,:);
-                transientdata(eachfile).transientstreamdatacentered = transientstreamdatacentered(1:transientcount,:);
             end
         catch ME
             fprintf('   ERROR: %s\n', ME.message);

@@ -126,37 +126,10 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.plotTransientColorGradeBins.outputpremaxS = allparameters.findTransients.outputpremaxS; % Seconds pre transient max (set to same as in findTransients)
     allparameters.plotTransientColorGradeBins.outputpostmaxS = allparameters.findTransients.outputpostmaxS; % Seconds post transient max (set to same as in findTransients)
     allparameters.plotTransientColorGradeBins.climtype = 'global'; % Color scale limit type (global scales to all events in the plot matrix)
-    allparameters.plotTransientColorGradeBins.climmin = ''; % Color scale limit min (only set if climtype is set to 'manual')
-    allparameters.plotTransientColorGradeBins.climmax = ''; % Color scale limit max (only set if climtype is set to 'manual')
+    allparameters.plotTransientColorGradeBins.climmin = 'global'; % Color scale limit type (global scales to all events in the plot matrix)
     allparameters.plotTransientColorGradeBins.yscaletype = 'auto'; % Y scale type (auto scales y axis to the min and max of all events in the plot matrix)
     allparameters.plotTransientColorGradeBins.yscalemin = ''; % Y scale min (only set if yscaletype is set to 'manual')
-    allparameters.plotTransientColorGradeBins.yscalemax = ''; % Y scale type (only set if yscaletype is set to 'manual')
-
-    % plotTransientColorGradePhases
-    allparameters.plotTransientColorGradePhases.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
-    allparameters.plotTransientColorGradePhases.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
-    allparameters.plotTransientColorGradePhases.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
-    allparameters.plotTransientColorGradePhases.outputpremaxS = allparameters.findTransients.outputpremaxS; % Seconds pre transient max (set to same as in findTransients)
-    allparameters.plotTransientColorGradePhases.outputpostmaxS = allparameters.findTransients.outputpostmaxS; % Seconds post transient max (set to same as in findTransients)
-    allparameters.plotTransientColorGradePhases.climtype = 'global'; % Color scale limit type (global scales to all events in the plot matrix)
-    allparameters.plotTransientColorGradePhases.climmin = ''; % Color scale limit min (only set if climtype is set to 'manual')
-    allparameters.plotTransientColorGradePhases.climmax = ''; % Color scale limit max (only set if climtype is set to 'manual')
-    allparameters.plotTransientColorGradePhases.yscaletype = 'auto'; % Y scale type (auto scales y axis to the min and max of all events in the plot matrix)
-    allparameters.plotTransientColorGradePhases.yscalemin = ''; % Y scale min (only set if yscaletype is set to 'manual')
-    allparameters.plotTransientColorGradePhases.yscalemax = ''; % Y scale type (only set if yscaletype is set to 'manual')
-
-    % plotTransientColorGradeGroups
-    allparameters.plotTransientColorGradeGroups.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
-    allparameters.plotTransientColorGradeGroups.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
-    allparameters.plotTransientColorGradeGroups.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
-    allparameters.plotTransientColorGradeGroups.outputpremaxS = allparameters.findTransients.outputpremaxS; % Seconds pre transient max (set to same as in findTransients)
-    allparameters.plotTransientColorGradeGroups.outputpostmaxS = allparameters.findTransients.outputpostmaxS; % Seconds post transient max (set to same as in findTransients)
-    allparameters.plotTransientColorGradeGroups.climtype = 'global'; % Color scale limit type (global scales to all events in the plot matrix)
-    allparameters.plotTransientColorGradeGroups.climmin = ''; % Color scale limit min (only set if climtype is set to 'manual')
-    allparameters.plotTransientColorGradeGroups.climmax = ''; % Color scale limit max (only set if climtype is set to 'manual')
-    allparameters.plotTransientColorGradeGroups.yscaletype = 'auto'; % Y scale type (auto scales y axis to the min and max of all events in the plot matrix)
-    allparameters.plotTransientColorGradeGroups.yscalemin = ''; % Y scale min (only set if yscaletype is set to 'manual')
-    allparameters.plotTransientColorGradeGroups.yscalemax = ''; % Y scale type (only set if yscaletype is set to 'manual')
+    allparameters.plotTransientColorGradeBins.yscalemax = ''; % Y scale type (auto scales y axis to the min and max of all events in the plot matrix)
 
 % If a specific function is requested, return only its parameters
     if nargin > 0 && isfield(allparameters, callerFunction)

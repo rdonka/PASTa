@@ -60,7 +60,7 @@ function [alltransientstruct] = exportTransientStreams(transientdata,transientst
             for eachvariable = 1:length(addvariablesfieldnames)
                 currvariable = char(addvariablesfieldnames(eachvariable));
                 try 
-                    eacheventstruct.(currvariable) = {transientdata(eachfile).(currvariable)};
+                    eacheventstruct.(currvariable) = transientdata(eachfile).(currvariable);
                 catch
                     disp(append('WARNING: File number ',num2str(eachfile), ' - failed to add variable: ', currvariable))
                 end

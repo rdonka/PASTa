@@ -158,6 +158,11 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.plotTransientColorGradeGroups.yscalemin = ''; % Y scale min (only set if yscaletype is set to 'manual')
     allparameters.plotTransientColorGradeGroups.yscalemax = ''; % Y scale type (only set if yscaletype is set to 'manual')
 
+    % createCustomColorScale
+    allparameters.createCustomColorScale.hexColors = ["#FFFFFF", "#1CD61C", "#0012FF", "#A600FF", "#FA00FF", "#E00004", "#F26700", "#FFE500"]; % Array of color hex codes for the custom color scale
+    allparameters.createCustomColorScale.colorvaluepositions = [0.00, 0.02, 0.183, 0.347, 0.510, 0.673, 0.837, 1.000]; % Array of color value positions ranging from 0 to 1
+    allparameters.createCustomColorScale.noutputcolors = 256; % Empty file name - replace with manual input if saveoutput set to 1
+
 % If a specific function is requested, return only its parameters
     if nargin > 0 && isfield(allparameters, callerFunction)
         defaultparameters = allparameters.(callerFunction);

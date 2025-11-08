@@ -163,6 +163,11 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.createCustomColorScale.colorvaluepositions = [0.00, 0.02, 0.183, 0.347, 0.510, 0.673, 0.837, 1.000]; % Array of color value positions ranging from 0 to 1
     allparameters.createCustomColorScale.noutputcolors = 256; % Empty file name - replace with manual input if saveoutput set to 1
 
+    % plotTrialTraces
+    allparameters.plotTrialTraces.saveoutput = 0; % Logical; Set to 1 to automatically save plot to plotfilepath
+    allparameters.plotTrialTraces.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
+    allparameters.plotTrialTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
+
 % If a specific function is requested, return only its parameters
     if nargin > 0 && isfield(allparameters, callerFunction)
         defaultparameters = allparameters.(callerFunction);

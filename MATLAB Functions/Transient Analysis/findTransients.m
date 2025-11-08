@@ -372,7 +372,7 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
             % Display how many transients were found
             disp(append('   Total Transients: ',num2str(transientcount)))
             
-            % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams and stream locs to data structure
+            % OPTIONAL: If outputtransientdata is set to 1, add cut transient data streams (raw and centered) and stream locs to data structure
             if params.outputtransientdata == 1
                 transientdata(eachfile).transientstreamlocs = transientstreamlocs(1:transientcount,:);
                 transientdata(eachfile).transientstreamdata = transientstreamdata(1:transientcount,:);

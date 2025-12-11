@@ -47,7 +47,7 @@ function [data] = cutTrialdata(data,streamfieldname,startepocfieldname,endepocfi
 %
 % EXAMPLE USAGE:
 %   [data] = cuttrialdata(data, 'sigfilt','trialstart', 'trialend', ... % Required inputs
-%                           'epocfieldnames', {'infonset','infoffset'}) % Optional additional epocs to adjust
+%                           'epocsfieldnames', {'infonset','infoffset'}) % Optional additional epocs to adjust
 %
 % Author:  Rachel Donka (2025)
 % License: GNU General Public License v3. See end of file for details.
@@ -87,3 +87,17 @@ function [data] = cutTrialdata(data,streamfieldname,startepocfieldname,endepocfi
             end
         end
 end
+
+% Copyright (C) 2025 Rachel Donka
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <https://www.gnu.org/licenses/>.

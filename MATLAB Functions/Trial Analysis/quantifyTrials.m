@@ -14,18 +14,21 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
 %                                 trial should be in each row.
 %
 %       TRIALEVENTSTARTFIELDNAME - String; name of the field in DATA
-%                                  containing the event start epochs spatially 
+%                                  containing the phase start epochs spatially 
 %                                  matched to the cut trial data specified by 
 %                                  TRIALSTREAMFIELDNAME.
 %
 %       TRIALEVENTENDFIELDNAME - String; name of the field in DATA
-%                                  containing the event end epochs spatially 
+%                                  containing the phase end epochs spatially 
 %                                  matched to the cut trial data specified by 
 %                                  TRIALSTREAMFIELDNAME.
 %
 %       FSFIELDNAME         - String; name of the field in DATA containing the sampling rate (fs)
 %                             of the data stream.
 %
+% OPTIONAL INPUTS
+%       TRIALPHASELABELS    - Cell array of strings; labels for each phase
+%                             of the trial structure.
 % OUTPUTS:
 %   DATA                - Original data structure with a field added
 %                         containing the trial quantification. The output
@@ -41,13 +44,26 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
 
+
     %% Prepare Settings
+    % Import required and optional inputs into a structure
+    p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
+    addParameter(p, 'trialphaselabels', []); % exportfilepath: string with the custom exportfilepath
+
+    parse(p, varargin{:});
+
+    % Retrieve parsed inputs into params structure
+    params = p.Results;
+
     % Initialize params
-    params = struct();
     params.trialstreamfieldname = trialstreamfieldname;
     params.trialeventstartfieldname = trialeventstartfieldname;
     params.trialeventendfieldname = trialeventendfieldname;
     
+    if ~isempty(params.trialphaselabels)
+        trialphaselabels = params.trialphaselabels;
+    end
+
     % Display
     disp(['QUANTIFYTRIALS: Add trial quantification to data structure. Trial streams will be quantified from the field: ', trialstreamfieldname]) % Display bin length
     disp('   PARAMETERS:') % Display all parameters
@@ -64,62 +80,56 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
     
         for eachtrial = 1:ntrials
             % Prepare table
-            currvals = table();
-    
-            % Subset data for pre event, event, and post event periods
-            currtrialpreeventdata = data(eachfile).(trialstreamfieldname)(eachtrial,1:data(eachfile).(trialeventstartfieldname)(eachtrial)-1);
-            currtrialeventdata = data(eachfile).(trialstreamfieldname)(eachtrial,data(eachfile).(trialeventstartfieldname)(eachtrial):data(eachfile).(trialeventendfieldname)(eachtrial));
-            currtrialposteventdata = data(eachfile).(trialstreamfieldname)(eachtrial,data(eachfile).(trialeventendfieldname)(eachtrial):end);
-            currtrialeventAUCdata = currtrialeventdata - mean(currtrialpreeventdata,'omitnan');
-                
-            % Find duration of each period
-            currtrialpreeventsamples = size(currtrialpreeventdata,2);
-            currtrialpreeventS = currtrialpreeventsamples/fs;
-    
-            currtrialeventsamples = size(currtrialeventdata,2);
-            currtrialeventS = currtrialeventsamples/fs;
-    
-            currtrialposteventsamples = size(currtrialposteventdata,2);
-            currtrialposteventS = currtrialposteventsamples/fs;
-    
-            currvals.Trial = eachtrial;
-            currvals.Stream = {trialstreamfieldname};
-            currvals.TrialPreEventS = currtrialpreeventS;
-            currvals.TrialEventS = currtrialeventS;
-            currvals.TrialPostEventS = currtrialposteventS;
-    
-            currvals.TrialPreEventmean = mean(currtrialpreeventdata,2,'omitnan');
-            currvals.TrialPreEventmin = min(currtrialpreeventdata,[],2,'omitnan');
-            currvals.TrialPreEventmax = max(currtrialpreeventdata,[],2,'omitnan');
-            currvals.TrialPreEventrange = currvals.TrialPreEventmax - currvals.TrialPreEventmin;
-            currvals.TrialPreEventsd = std(currtrialpreeventdata,'omitnan');
-    
-            currvals.TrialEventmean = mean(currtrialeventdata,2,'omitnan');
-            currvals.TrialEventmin = min(currtrialeventdata,[],2,'omitnan');
-            currvals.TrialEventmax = max(currtrialeventdata,[],2,'omitnan');
-            currvals.TrialEventrange = currvals.TrialEventmax - currvals.TrialEventmin;
-            currvals.TrialEventsd = std(currtrialeventdata,'omitnan');
-            currvals.TrialEventMaxAmp = currvals.TrialEventmax - currvals.TrialPreEventmean;
-            currvals.TrialEventMeanAmp = currvals.TrialEventmean - currvals.TrialPreEventmean;
-            currvals.TrialEventAUC = trapz(currtrialeventAUCdata, 2);
-    
-            currvals.TrialPostEventmean = mean(currtrialposteventdata,2,'omitnan');
-            currvals.TrialPostEventmin = min(currtrialposteventdata,[],2,'omitnan');
-            currvals.TrialPostEventmax = max(currtrialposteventdata,[],2,'omitnan');
-            currvals.TrialPostEventrange = currvals.TrialPostEventmax - currvals.TrialPostEventmin;
-            currvals.TrialPostEventsd = std(currtrialposteventdata,'omitnan');
-            currvals.TrialPostEventMaxAmp = currvals.TrialPostEventmax - currvals.TrialPreEventmean;
-            currvals.TrialPostEventMeanAmp = currvals.TrialPostEventmean - currvals.TrialPreEventmean;
-    
-            currvals.Trial = eachtrial;
-            currvals.Stream = {trialstreamfieldname};
-            currvals.TrialPreEventS = currtrialpreeventS;
-            currvals.TrialEventS = currtrialeventS;
-            currvals.TrialPostEventS = currtrialposteventS;
-    
-            currfiletrialvals = [currfiletrialvals; currvals];
+            currtrialvals = table();
+            
+            trialeventstartepochs = data(eachfile).(trialeventstartfieldname)(eachtrial,:);
+            trialeventendepochs = data(eachfile).(trialeventendfieldname)(eachtrial,:);
+
+            if length(trialeventstartepochs) ~= length(trialeventendepochs)
+                error('ERROR: Number of input trial start epochs not the same as number of input trial end epochs.')
+            end
+
+            for eachphase = 1:length(trialeventstartepochs)
+                currvals = [];
+                currtrialeventstartidx = trialeventstartepochs(eachphase);
+                currtrialeventendidx = trialeventendepochs(eachphase);
+
+                currtrialphasedata = data(eachfile).(trialstreamfieldname)(eachtrial,currtrialeventstartidx:currtrialeventendidx);
+
+                % Find duration of phase
+                currtrialphasesamples = size(currtrialphasedata,2);
+                currtrialphaseS = currtrialphasesamples/fs;
+
+                currvals.Trial = eachtrial;
+                currvals.Stream = {trialstreamfieldname};
+                currvals.PhaseNum = eachphase;
+                if ~isempty(params.trialphaselabels)
+                    currvals.Phase = {trialphaselabels{eachphase}};
+                end
+                currvals.TrialPhaseS = currtrialphaseS;
+
+                currvals.TrialPhasemean = mean(currtrialphasedata,2,'omitnan');
+                currvals.TrialPhasemin = min(currtrialphasedata,[],2,'omitnan');
+                currvals.TrialPhasemax = max(currtrialphasedata,[],2,'omitnan');
+                currvals.TrialPhaserange = currvals.TrialPhasemax - currvals.TrialPhasemin;
+                currvals.TrialPhasesd = std(currtrialphasedata,'omitnan');
+
+                if eachphase == 1
+                    currvals.TrialPhaseMaxAmp = nan;
+                    currvals.TrialPhaseMeanAmp = nan;
+                    currvals.TrialPhaseAUC = nan;
+                else
+                    currtrialphaseAUCdata = currtrialphasedata - currtrialvals.TrialPhasemean(1);
+
+                    currvals.TrialPhaseMaxAmp = currvals.TrialPhasemax - currtrialvals.TrialPhasemax(1);
+                    currvals.TrialPhaseMeanAmp = currvals.TrialPhasemean - currtrialvals.TrialPhasemean(1);
+                    currvals.TrialPhaseAUC = trapz(currtrialphaseAUCdata, 2)/currtrialphasesamples;
+                end
+                currvalstable = struct2table(currvals);
+                currtrialvals = [currtrialvals; currvalstable];
+            end
+            currfiletrialvals = [currfiletrialvals; currtrialvals];
         end
-        
     data(eachfile).(['trialquantification_',trialstreamfieldname]) = currfiletrialvals;
     end
 end

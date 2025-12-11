@@ -168,6 +168,9 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.plotTrialTraces.outputfiletype = 'png'; % String; If saveoutput = 1, save plot as png
     allparameters.plotTrialTraces.plotfilepath = ''; % Empty file name - replace with manual input if saveoutput set to 1
 
+    % quantifyTrials
+    allparameters.quantifyTrials.trialphaselabels = []; % Empty array by default
+
     % exportTrialQuantification
     allparameters.exportTrialQuantification.exportfilename = ''; % Empty file name to trigger automatic naming
 

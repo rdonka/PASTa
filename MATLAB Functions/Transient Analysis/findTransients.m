@@ -253,7 +253,7 @@ function [transientdata] = findTransients(data,addvariablesfieldnames,streamfiel
                         currAUCwindow = NaN;
                     else
                         currpkAUCwindowdata = [datastream(currpkAUCwindowstart:currpkAUCwindowend)] - min(datastream(currpkAUCwindowstart:currpkAUCwindowend));
-                        currAUCwindow = round(trapz(currpkAUCwindowdata));
+                        currAUCwindow = round(trapz(currpkAUCwindowdata))/fs;
                     end
 
                     if isempty(currfallsamples) % Catch for if no post-transient fall location is found

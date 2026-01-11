@@ -52,6 +52,9 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.removeStreamArtifacts.artifactampthreshold_min = 8; % Artifact SD detection threshold - min artifacts
     allparameters.removeStreamArtifacts.bucketsizeSecs = 30; % Bucket size (seconds) for session amplitude and mean calculations
 
+    % downsamplestreams
+    allparameters.downsamplestreams.dsmethod = 'median'; % Default method for downsampling raw data streams
+
     % normCustom
     allparameters.normCustom.normfieldoutputname = 'z_normcustom'; % Default to baseline mean method
     

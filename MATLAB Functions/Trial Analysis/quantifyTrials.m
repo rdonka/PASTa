@@ -29,6 +29,10 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
 % OPTIONAL INPUTS
 %       TRIALPHASELABELS    - Cell array of strings; labels for each phase
 %                             of the trial structure.
+%
+%       TRIALIDFIELDNAMES   - Cell array of strings; names of fields containing trial ID labels 
+%                             for each individual trial spatially matched to
+%                             cut trial data (i.e., frequency value, block, trial type).
 % OUTPUTS:
 %   DATA                - Original data structure with a field added
 %                         containing the trial quantification. The output
@@ -49,6 +53,7 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
     addParameter(p, 'trialphaselabels', []); % exportfilepath: string with the custom exportfilepath
+    addParameter(p, 'trialidfieldnames', []); 
 
     parse(p, varargin{:});
 
@@ -62,6 +67,10 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
     
     if ~isempty(params.trialphaselabels)
         trialphaselabels = params.trialphaselabels;
+    end
+
+    if ~isempty(params.trialidfieldnames)
+        trialidfieldnames = params.trialidfieldnames;
     end
 
     % Display
@@ -124,6 +133,12 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
                     currvals.TrialPhaseMaxAmp = currvals.TrialPhasemax - currtrialvals.TrialPhasemax(1);
                     currvals.TrialPhaseMeanAmp = currvals.TrialPhasemean - currtrialvals.TrialPhasemean(1);
                     currvals.TrialPhaseAUC = trapz(currtrialphaseAUCdata, 2)/currtrialphasesamples;
+                end
+                if ~isempty(params.trialidfieldnames)
+                    for eachtrialidfieldnames = 1:length(trialidfieldnames)
+                        currtrialidfieldname = trialidfieldnames{eachtrialidfieldnames};
+                        currvals.(currtrialidfieldname) = data(eachfile).(currtrialidfieldname)(eachtrial);
+                    end
                 end
                 currvalstable = struct2table(currvals);
                 currtrialvals = [currtrialvals; currvalstable];

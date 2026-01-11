@@ -1,4 +1,4 @@
-function [data] = cutTrialdata(data,streamfieldname,startepocfieldname,endepocfieldname,varargin)
+function [data] = cutTrialdata(data,streamfieldname,fsfieldname,startepocfieldname,endepocfieldname,varargin)
 % CUTTRIALDATA    Cuts fiber photometry signal data into individual trials based on epocs.
 %                 Requires a data structure containing at least the specified signal and relevant
 %                 epocs for each trial.
@@ -8,7 +8,7 @@ function [data] = cutTrialdata(data,streamfieldname,startepocfieldname,endepocfi
 %                           contain the fields specified by STREAMFIELDNAME, STARTEPOCFIELDNAME, 
 %                           and ENDEPOCFIELDNAME.
 %
-%       STREAMFIELDNAME   - String; the name of the field within DATA to be normalized.
+%       STREAMFIELDNAME   - String; the name of the field within DATA to be cut by trial.
 %
 %       STARTEPOCFIELDNAME  - String; The name of the field containing the index 
 %                           of the start of the trials.
@@ -66,6 +66,7 @@ function [data] = cutTrialdata(data,streamfieldname,startepocfieldname,endepocfi
     % Cut trial data
         disp(append('CUTTING TRIAL DATA: ', streamfieldname, ' by indices in ', startepocfieldname, ' and ', endepocfieldname))
         for eachfile = 1:length(data)
+            fs = data(eachfile).(fsfieldname);
             maxtrialsamples = max(data(eachfile).(endepocfieldname) - data(eachfile).(startepocfieldname)) + 1;
             ntrials = length(data(eachfile).(startepocfieldname));
             % Prepare data structure
@@ -76,6 +77,9 @@ function [data] = cutTrialdata(data,streamfieldname,startepocfieldname,endepocfi
                 data(eachfile).(append('trial_',streamfieldname))(eachtrial,1:currtrialsamples) = data(eachfile).(streamfieldname)(data(eachfile).(startepocfieldname)(eachtrial):data(eachfile).(endepocfieldname)(eachtrial));
                 data(eachfile).(append('trial_',startepocfieldname))(eachtrial,1) = 1;
                 data(eachfile).(append('trial_',endepocfieldname))(eachtrial,1) = data(eachfile).(endepocfieldname)(eachtrial) - data(eachfile).(startepocfieldname)(eachtrial);
+                
+                trialidxs = 0:1:(currtrialsamples-1);
+                data(eachfile).(append('trial_timeS'))(eachtrial,1:currtrialsamples) = trialidxs/fs;
                 if isempty(params.epocsfieldnames) % Adjust additional inputs if specified with optional input WHICHEPOCS
                     continue
                 else

@@ -110,7 +110,7 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
     addParameter(p, 'baqscalingperc', defaultparameters.baqscalingperc, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingperc: input must be numeric and positive
     addParameter(p, 'subtractionoutput', defaultparameters.subtractionoutput, @(x) ischar(x) && ismember(x, {'dff', 'df'})); % subtractionoutput: input must be either 'dff' or 'df'
     addParameter(p, 'artifactremoval', defaultparameters.artifactremoval, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % artifactremoval: input must be logical or numeric (either 0 or 1)
-    addParameter(p, 'filtertype', defaultparameters.filtertype, @(x) ischar(x) && ismember(x, {'nofilter', 'bandpass', 'highpass', 'lowpass','bandstop'})); % filtertype: input must be one of 4 options
+    addParameter(p, 'filtertype', defaultparameters.filtertype, @(x) ischar(x) && ismember(x, {'nofilter', 'bandpass', 'highpass', 'lowpass'})); % filtertype: input must be one of 4 options
     addParameter(p, 'padding', defaultparameters.padding, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % padding: input must be logical or numeric (either 0 or 1)
     addParameter(p, 'paddingperc', defaultparameters.paddingperc, @(x) validateattributes(x, {'numeric'}, {'positive', '<=', 1,'>=',0.05})); % paddingperc: input must be between 10% and 100%
     addParameter(p, 'filterorder', defaultparameters.filterorder, @(x) validateattributes(x, {'numeric'}, {'positive', 'integer'})); % filterorder: input must be a positive integer
@@ -141,10 +141,10 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
         params.padding = allparams.padding;
         params.paddingperc = allparams.paddingperc;
         params.filterorder = allparams.filterorder;
-        if strcmp(params.filtertype, 'bandpass') || strcmp(params.filtertype, 'highpass') || strcmp(params.filtertype, 'bandstop')
+        if strcmp(params.filtertype, 'bandpass') || strcmp(params.filtertype, 'highpass')
             params.highpasscutoff = allparams.highpasscutoff;
         end
-        if strcmp(params.filtertype, 'bandpass') || strcmp(params.filtertype, 'lowpass') || strcmp(params.filtertype, 'bandstop')
+        if strcmp(params.filtertype, 'bandpass') || strcmp(params.filtertype, 'lowpass')
             params.lowpasscutoff = allparams.lowpasscutoff;
         end
     end
@@ -219,10 +219,15 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
                 lowpasscutoffval = round(params.lowpasscutoff/nyquist,6);
                 [b_low,a_low] = butter(params.filterorder,lowpasscutoffval,'low');
             case 'bandstop'
-                freqs = sort([params.highpasscutoff, params.lowpasscutoff]);
-                Wn = round(freqs ./ nyquist, 6);
-                [z, p, k] = butter(params.filterorder, Wn, 'stop');
-                [sos, g] = zp2sos(z, p, k);
+                lower_stop = round(params.highpasscutoff/nyquist, 6);
+                upper_stop = round(params.lowpasscutoff/nyquist, 6);
+                
+                % Design the bandstop filter
+                % [W1 W2] defines the band to filter out
+                [b_stop, a_stop] = but
+                
+                lowpasscutoffval = round(params.lowpasscutoff/nyquist,6);
+                [b_low,a_low] = butter(params.filterorder,lowpasscutoffval,'low');
             case 'nofilter'
                 % No filter design needed
         end
@@ -416,8 +421,6 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
                         sigfilt = filtfilt(b_high,a_high,sigsub);  % Apply high-pass
                     case 'lowpass'
                         sigfilt = filtfilt(b_low,a_low, sigsub);  % Apply low-pass
-                    case 'bandstop'
-                        sigfilt = filtfilt(sos, g, sigsub);
                     otherwise
                         warning('Filter type "%s" not recognized. No filter applied.', params.filtertype);
                 end

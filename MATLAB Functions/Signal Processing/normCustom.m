@@ -61,8 +61,8 @@ disp(['   Normalized data will be output to the field: ',normfieldoutputname])
     for eachfile = 1:length(data)
         disp(['   NORMALIZING: File ',num2str(eachfile)])
         try
-            BLmean = mean(data(eachfile).(customstreamfieldname)); % Find the mean of the session baseline
-            BLsd = std(data(eachfile).(customstreamfieldname)); % Find the standard deviation of the session baseline
+            BLmean = mean(data(eachfile).(customstreamfieldname),'omitnan'); % Find the mean of the session baseline
+            BLsd = std(data(eachfile).(customstreamfieldname),'omitnan'); % Find the standard deviation of the session baseline
     
             data(eachfile).(normfieldoutputname) = (data(eachfile).(fullstreamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
             data(eachfile).(append(normfieldoutputname,'_mean')) = BLmean; % Add mean used for Z score to data structure

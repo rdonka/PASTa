@@ -29,16 +29,15 @@ function [streamFFT, streamF] = preparestreamFFT(streamdata,fs)
 
     %% Compute FFT
     L = length(streamdata); % Length of data
-    n = 2^nextpow2(L);
-    numonesided = floor(n/2)+1; % Length of data for one sided FFT
+    numUniquePts = floor(L/2) + 1;
     
-    fftfull = fft(streamdata,n); % Take the fft
-    fftonesided = fftfull(1:numonesided); % Take one side
+    fftfull = fft(streamdata,L); % Take the fft
+    fftonesided = fftfull(1:numUniquePts); % Take one side
 
-    streamFFT = abs(fftonesided)/L; % Take the absolute value divided by length
-    streamFFT(2:end-1) = 2*streamFFT(2:end-1); % Adjust power (exclude dc at index 1 and nyquist at the end)
+    streamFFT = abs(Y_oneSide) / L; % Take the absolute value divided by length
+    streamFFT(2:end-1) = 2*streamFFT(2:end-1);
 
-    streamF = fs*(0:(numonesided-1))/n; % Create spatially matched frequency vector
+    streamF = fs*(0:(numUniquePts-1))/L;
 end
 
 % Copyright (C) 2025 Rachel Donka

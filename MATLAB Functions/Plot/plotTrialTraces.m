@@ -1,28 +1,22 @@
-function [trialtraces] = plotTrialTraces(data,fileindex,trialstreamfieldname,maintitle,varargin)
-
-% PLOTTRANSIENTBINS     Plots every trial for a session with detected
-%                       transient peaks marked by circles.
+function [trialtraces] = plotTrialTraces(data,fileindex,trialstreamfieldname,fsfieldname,maintitle,varargin)
+% PLOTTRIALTRACES     Plots the stream trace for every trial within a session. 
+%                     Data must be prepared with cutTrialdata function.
 %
 % REQUIRED INPUTS:
-%   DATA            - Structure array; must contain the stream to be plotted.
+%   DATA                    - Structure array; must contain the cut trial streams to be plotted.
 %
-%   FILEINDEX       - Integer; index of the file (session) to plot. This can be
-%                     set within a loop to plot all files.
+%   FILEINDEX               - Integer; index of the file (session) to plot. This can be
+%                             set within a loop to plot all files.
 %
-%   STREAMFIELDNAME - String; The name of the field containing the stream
-%                     used for transient detection. For example, 'sigfiltz_normsession'.
+%   TRIALSTREAMFIELDNAME    - String; The name of the field containing the
+%                             cut trial data to be plotted. Each row must be one trial.
 %
-%   TRANSIENTDATA   - Structure array of the output from FINDTRANSIENTS
-%                     with the field 'transientquantification'.
+%   FSFIELDNAME             - String; name of the field in DATA containing the
+%                             sampling rate (e.g., 'fs').
 %
-%   BINFIELDNAME    - String; The name of the field in TRANSIENTDATA under
-%                     the 'transientquantification' table that contains the
-%                     trial IDs for each transient event. For example, 
-%                     'Bin_5min'.
-%
-%   MAINTITLE       - String; main title for the overall plot, displayed above
-%                     the individual subplots. For example, '427 - Treatment:
-%                     Morphine'.
+%   MAINTITLE               - String; main title for the overall plot, displayed above
+%                             the individual subplots. For example, '427 - Treatment:
+%                             Morphine'.
 %
 % OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
 %   'saveoutput'    - Logical; set to true to automatically save trace plots
@@ -38,10 +32,10 @@ function [trialtraces] = plotTrialTraces(data,fileindex,trialstreamfieldname,mai
 %                     'C:\Users\rmdon\Box\Injection Transients\Figures\TransientBinTraces_427_Morphine'.
 %
 % OUTPUT:
-%       ALLBINS:      A plot object containing subplots for each input
-%                       stream.
+%       TRIALTRACES     - A plot object containing subplots for each input
+%                         stream.
 %
-% Author:  Rachel Donka (2025)
+% Author:  Rachel Donka (2026)
 % License: GNU General Public License v3. See end of file for details.
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
@@ -72,7 +66,7 @@ function [trialtraces] = plotTrialTraces(data,fileindex,trialstreamfieldname,mai
     tracecolor = '#4CBB17';
     
     %% Prep axis variables
-    fs = data(fileindex).fs;
+    fs = data(fileindex).(fsfieldname);
     ntrials = height(data(fileindex).(trialstreamfieldname));
     
     Xmax = max(data(fileindex).(trialstreamfieldname)(:));     % max over all elements
@@ -136,7 +130,7 @@ function [trialtraces] = plotTrialTraces(data,fileindex,trialstreamfieldname,mai
     end
 end
 
-% Copyright (C) 2025 Rachel Donka
+% Copyright (C) 2026 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

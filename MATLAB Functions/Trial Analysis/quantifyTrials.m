@@ -1,49 +1,53 @@
-function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldname,trialeventendfieldname,fsfieldname,varargin)
-% QUANTIFYTRIALS  Assigns each transient to a time bin within the session.
+function [data] = quantifyTrials(data,trialstreamfieldname,trialphasestartfieldname,trialphaseendfieldname,fsfieldname,varargin)
+% QUANTIFYTRIALS  Quantifies trial data streams by trial events provided in
+%                 'trialphasestartfieldname' and 'trialphaseendfieldname'.
+%                 Event epochs must be provided relative to the trial data
+%                 streams. Multiple windows within a trial can be provided
+%                 by passing arrays of epochs to 'trialphasestartfieldname' 
+%                 and 'trialphaseendfieldname'.
+% 
 %
-%   QUANTIFYTRIALS(DATA, TRIALSTREAMFIELDNAME, 'PARAM1', VAL1, ...)
+%   QUANTIFYTRIALS(DATA, TRIALSTREAMFIELDNAME, TRIALPHASESTARTFIELDNAME, TRIALPHASEENDFIELDNAME,...
+%                   FSFIELDNAME,'PARAM1', VAL1, ...)
 %   quantifies the mean, max, and AUC of individual trial streams and adds
 %   the field 'trialquantification' to the data frame.
 %
 % REQUIRED INPUTS:
-%       DATA       - Data structure containing at least a field with cut
-%                    streams of trial data with each trial as a row.
+%   DATA                        - Struct array; Must contain at least a field with the desired cut
+%                                 trial streams to be quantified with each trial as a row.
 %
-%       TRIALSTREAMFIELDNAME    - String; name of the field in DATA containing
-%                                 the cut trial data to be quantified. Each
-%                                 trial should be in each row.
+%   TRIALSTREAMFIELDNAME        - String; The name of the field in the data structure that
+%                                 contains the trial streams to be quantified.
 %
-%       TRIALEVENTSTARTFIELDNAME - String; name of the field in DATA
-%                                  containing the phase start epochs spatially 
-%                                  matched to the cut trial data specified by 
-%                                  TRIALSTREAMFIELDNAME.
+%   TRIALPHASESTARTFIELDNAME    - String; The name of the field containing epochs to provide the 
+%                                 start of each phase window for quantification (i.e., baseline, 
+%                                 stimulus delivery, post stimulus delivery).
 %
-%       TRIALEVENTENDFIELDNAME - String; name of the field in DATA
-%                                  containing the phase end epochs spatially 
-%                                  matched to the cut trial data specified by 
-%                                  TRIALSTREAMFIELDNAME.
+%   TRIALPHASEENDFIELDNAME     - String; The name of the field containing epochs to provide the 
+%                                end of each phase window for quantification.
 %
-%       FSFIELDNAME         - String; name of the field in DATA containing the sampling rate (fs)
-%                             of the data stream.
+%   FSFIELDNAME                 - String; name of the field in DATA containing the
+%                                 sampling rate (e.g., 'fs').
 %
-% OPTIONAL INPUTS
-%       TRIALPHASELABELS    - Cell array of strings; labels for each phase
-%                             of the trial structure.
+% OPTIONAL INPUT NAME-VALUE PAIRS:
+%   'trialphaselabels'    - Cell array of strings; names to label each phase provided by 
+%                           the trial event start and end epochs.
 %
-%       TRIALIDFIELDNAMES   - Cell array of strings; names of fields containing trial ID labels 
-%                             for each individual trial spatially matched to
-%                             cut trial data (i.e., frequency value, block, trial type).
+%   'trialidfieldnames'   - String; name of field containing trial ID variable (i.e., trial type) 
+%                           to be added to trial quantification table.
+%
 % OUTPUTS:
 %   DATA                - Original data structure with a field added
 %                         containing the trial quantification. The output
 %                         field name will be 'trialquantification_<TRIALSTREAMFIELDNAME>'
 %
 % EXAMPLE:
-%   data = quantifyTrials(data, 'trial_sigfiltz_normbaseline', 'trial_solO', 'trial_solF', 'fs');
+%   data = quantifyTrials(data, 'trial_sigfiltz_normbaseline', 'trial_phasestartidxs', 'trial_phasendidxs', 'fs');
 %
-% See also: findTransients
+% See also: cutTrialdata, centerTrialdata, normTrialdata,
+% exportTrialquantification
 %
-% Author:  Rachel Donka (2025)
+% Author:  Rachel Donka (2026)
 % License: GNU General Public License v3. See end of file for details.
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
@@ -62,8 +66,8 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
 
     % Initialize params
     params.trialstreamfieldname = trialstreamfieldname;
-    params.trialeventstartfieldname = trialeventstartfieldname;
-    params.trialeventendfieldname = trialeventendfieldname;
+    params.trialphasestartfieldname = trialphasestartfieldname;
+    params.trialphaseendfieldname = trialphaseendfieldname;
     
     if ~isempty(params.trialphaselabels)
         trialphaselabels = params.trialphaselabels;
@@ -91,13 +95,15 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
             % Prepare table
             currtrialvals = table();
             
-            trialeventstartepochs = data(eachfile).(trialeventstartfieldname)(eachtrial,:);
-            trialeventendepochs = data(eachfile).(trialeventendfieldname)(eachtrial,:);
+            % Prepare phase epochs
+            trialeventstartepochs = data(eachfile).(trialphasestartfieldname)(eachtrial,:);
+            trialeventendepochs = data(eachfile).(trialphaseendfieldname)(eachtrial,:);
 
             if length(trialeventstartepochs) ~= length(trialeventendepochs)
                 error('ERROR: Number of input trial start epochs not the same as number of input trial end epochs.')
             end
 
+            % Quantify trial stream for each phase
             for eachphase = 1:length(trialeventstartepochs)
                 currvals = [];
                 currtrialeventstartidx = trialeventstartepochs(eachphase);
@@ -109,31 +115,40 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
                 currtrialphasesamples = size(currtrialphasedata,2);
                 currtrialphaseS = currtrialphasesamples/fs;
 
+                % Prepare variables
                 currvals.Trial = eachtrial;
                 currvals.Stream = {trialstreamfieldname};
                 currvals.PhaseNum = eachphase;
+
+                % Add phase label if optional input 'trialphaselabels' provided
                 if ~isempty(params.trialphaselabels)
                     currvals.Phase = {trialphaselabels{eachphase}};
                 end
+
+                % Add trial phase samples
                 currvals.TrialPhaseS = currtrialphaseS;
 
-                currvals.TrialPhasemean = mean(currtrialphasedata,2,'omitnan');
-                currvals.TrialPhasemin = min(currtrialphasedata,[],2,'omitnan');
-                currvals.TrialPhasemax = max(currtrialphasedata,[],2,'omitnan');
-                currvals.TrialPhaserange = currvals.TrialPhasemax - currvals.TrialPhasemin;
-                currvals.TrialPhasesd = std(currtrialphasedata,'omitnan');
+                % Add trial phase quantification
+                currvals.TrialPhasemean = mean(currtrialphasedata,2,'omitnan'); % Phase mean
+                currvals.TrialPhasemin = min(currtrialphasedata,[],2,'omitnan'); % Phase min
+                currvals.TrialPhasemax = max(currtrialphasedata,[],2,'omitnan'); % Phase max
+                currvals.TrialPhaserange = currvals.TrialPhasemax - currvals.TrialPhasemin; % Phase range
+                currvals.TrialPhasesd = std(currtrialphasedata,'omitnan'); % Phase standard deviation
 
-                if eachphase == 1
+                % Add amplitude relative to baseline
+                if eachphase == 1 % Skip for baseline phase
                     currvals.TrialPhaseMaxAmp = nan;
-                    currvals.TrialPhaseMeanAmp = nan;
+                    currvals.TrialPhaseMeanAmp = nan; 
                     currvals.TrialPhaseAUC = nan;
-                else
-                    currtrialphaseAUCdata = currtrialphasedata - currtrialvals.TrialPhasemean(1);
+                else % Determine amplitude for all phases after baseline
+                    currtrialphaseAUCdata = currtrialphasedata - currtrialvals.TrialPhasemean(1); 
 
-                    currvals.TrialPhaseMaxAmp = currvals.TrialPhasemax - currtrialvals.TrialPhasemax(1);
-                    currvals.TrialPhaseMeanAmp = currvals.TrialPhasemean - currtrialvals.TrialPhasemean(1);
-                    currvals.TrialPhaseAUC = trapz(currtrialphaseAUCdata, 2)/currtrialphasesamples;
+                    currvals.TrialPhaseMaxAmp = currvals.TrialPhasemax - currtrialvals.TrialPhasemax(1); % Phase max amplitude relative to baseline
+                    currvals.TrialPhaseMeanAmp = currvals.TrialPhasemean - currtrialvals.TrialPhasemean(1); % Phase mean amplitude relative to baseline
+                    currvals.TrialPhaseAUC = trapz(currtrialphaseAUCdata, 2)/currtrialphasesamples; % Phase AUC relative to baseline
                 end
+
+                % Add trial ids if optional input 'trialidfieldnames' provided
                 if ~isempty(params.trialidfieldnames)
                     for eachtrialidfieldnames = 1:length(trialidfieldnames)
                         currtrialidfieldname = trialidfieldnames{eachtrialidfieldnames};
@@ -145,12 +160,12 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialeventstartfieldn
             end
             currfiletrialvals = [currfiletrialvals; currtrialvals];
         end
-    data(eachfile).(['trialquantification_',trialstreamfieldname]) = currfiletrialvals;
+    data(eachfile).(['trialquantification_',trialstreamfieldname]) = currfiletrialvals; % Add trial quantification to data structure
     end
 end
 
 
-% Copyright (C) 2025 Rachel Donka
+% Copyright (C) 2026 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

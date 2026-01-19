@@ -5,23 +5,22 @@ function [alltrialvals] = exportTrialQuantification(data,trialquantfieldname,exp
 %   aggregates transient data from multiple sessions and exports the compiled table to a specified CSV file.
 %
 % REQUIRED INPUTS:
-%   TRANSIENTDATA     - Structure array containing the output from
-%                       QUANTTRIAL function with the name specified in
-%                       TRIALQUANTFIELDNAME.
+%   DATA                    - Struct array containing the output from QUANTIFYTRIALS 
+%                             function with the name specified in TRIALQUANTFIELDNAME.
 %
-%   TRIALQUANTFIELDNAME   - String; name of the field that contains the
-%                     trial values to be exported.
+%   TRIALQUANTFIELDNAME     - String; name of the field produced by QUANTIFYTRIALS 
+%                             function that contains the trial values to be exported.
 %
-%   EXPORTFILEPATH  - String; path to the folder where the CSV file will be
-%                     saved. Note: The path must end with a forward slash.
+%   EXPORTFILEPATH          - String; path to the folder where the CSV file will be
+%                             saved. Note: The path must end with a forward slash.
 %
-%   ADDVARIABLESFIELDNAMES - Cell array of strings; names of additional variables 
-%                     from the data structure to include in the transients 
-%                     table. These variables will be added to every row of 
-%                     the output table. At a minimum, this should include 
-%                     the subject ID. If multiple sessions per subject are 
-%                     included, ensure a session ID variable is also included.
-%                         For example: {'Subject', 'SessionID', 'Treatment'}.
+%   ADDVARIABLESFIELDNAMES  - Cell array of strings; names of additional variables 
+%                             from the data structure to include in the trial 
+%                             quantification table. These variables will be added to 
+%                             every row of the output table. At a minimum, this should 
+%                             include the subject ID. If multiple sessions per subject 
+%                             are included, ensure a session ID variable is also included.
+%                               For example: {'Subject', 'SessionID', 'Treatment'}.
 %
 % OPTIONAL INPUT NAME-VALUE PAIR ARGUMENTS:
 %   'exportfilename'    - String; custom name for the output CSV file. If not 
@@ -34,10 +33,10 @@ function [alltrialvals] = exportTrialQuantification(data,trialquantfieldname,exp
 %                     saved as a CSV file at the specified export file path.
 %
 % EXAMPLE USAGE:
-%   alltrialvals = exportTrialQuantification(data, exportfieldname, exportfilepath, ...
+%   alltrialvals = exportTrialQuantification(data, trialquantfieldname, exportfieldname, exportfilepath, ...
 %                       {'Subject', 'SessionID'}, 'exportfilename', 'transients_export.csv');
 %
-% Author:  Rachel Donka (2025)
+% Author:  Rachel Donka (2026)
 % License: GNU General Public License v3. See end of file for details.
 % Stored in the PASTa GitHub Repository: https://github.com/rdonka/PASTa
 % For detailed instructions, see the PASTa user guide: https://rdonka.github.io/PASTaUserGuide/
@@ -64,7 +63,7 @@ function [alltrialvals] = exportTrialQuantification(data,trialquantfieldname,exp
     disp(['EXPORTTRIALQUANTIFICATION: Exporting all trial values as a csv file to: ', exportfilepath,'/',params.exportfilename]) % Display file path location
     disp(params)
 
-    %% Prepare Transients for Export
+    %% Prepare Trial Values for Export
     alltrialvals = table; % Prepare empty table
 
     for eachfile = 1:length(data)
@@ -90,7 +89,7 @@ function [alltrialvals] = exportTrialQuantification(data,trialquantfieldname,exp
     writetable(alltrialvals,append(exportfilepath,params.exportfilename));
 end
 
-% Copyright (C) 2025 Rachel Donka
+% Copyright (C) 2026 Rachel Donka
 % This program is free software: you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation, either version 3 of the License, or

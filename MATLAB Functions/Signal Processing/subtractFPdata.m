@@ -104,7 +104,7 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
 
     % Add optional name-value pair arguments with validation
-    addParameter(p, 'baqscalingtype', defaultparameters.baqscalingtype, @(x) ischar(x) && ismember(x, {'frequency', 'sigmean', 'OLS', 'detrendedOLS', 'smoothedOLS', 'biexpOLS', 'biexpQuartFit', 'IRLS'})); % baqscalingtype: input subtraction type must be one of 6 options
+    addParameter(p, 'baqscalingtype', defaultparameters.baqscalingtype, @(x) ischar(x) && ismember(x, {'frequency', 'sigmean', 'OLS', 'detrendedOLS', 'smoothedOLS', 'biexpOLS', 'biexpQuartFit', 'IRLS','frequency_amplitude'})); % baqscalingtype: input subtraction type must be one of 6 options
     addParameter(p, 'baqscalingfreqmin', defaultparameters.baqscalingfreqmin, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingfreqmin: input must be numeric and positive
     addParameter(p, 'baqscalingfreqmax', defaultparameters.baqscalingfreqmax, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingfreqmax: input must be numeric and positive
     addParameter(p, 'baqscalingperc', defaultparameters.baqscalingperc, @(x) validateattributes(x, {'numeric'}, {'positive'})); % baqscalingperc: input must be numeric and positive
@@ -130,7 +130,7 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
     params.filtertype = allparams.filtertype;
     
     % Conditionally add 'frequency' baqscalingtype specific params
-    if strcmp(params.baqscalingtype, 'frequency')
+    if strcmp(params.baqscalingtype, 'frequency') | strcmp(params.baqscalingtype, 'frequency_amplitude')
         params.baqscalingfreqmin = allparams.baqscalingfreqmin;
         params.baqscalingfreqmax = allparams.baqscalingfreqmax;
         params.baqscalingperc = allparams.baqscalingperc;
@@ -173,6 +173,9 @@ function [data] = subtractFPdata(data, sigfieldname, baqfieldname, fsfieldname, 
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         case 'IRLS' % Display for time domain subtraction
             disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with iteratively reweighted least squares regression (IRLS). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
+            warning('Deviation from PASTa protocol default in baqscalingtype.');
+        case 'frequency_amplitude' % Display for time domain subtraction
+            disp(['SUBTRACTFPDATA: ','Subtracting ',baqfieldname, ' from ',sigfieldname, ' with frequency domain amplitude scaling (threshold at ', num2str(params.baqscalingfreqmin), 'hz). Subtracted signal will be output as ', params.subtractionoutput, ' to data.sigsub.']);
             warning('Deviation from PASTa protocol default in baqscalingtype.');
         otherwise
             error(['ERROR: Baq scaling type issue - baqscalingtype set to ', params.baqscalingtype, '. Function inputs limited to frequency, sigmean, OLD, detrendedOLS, smoothedOLS, biexpOLS, biexpQuartFit, or IRLS.']);

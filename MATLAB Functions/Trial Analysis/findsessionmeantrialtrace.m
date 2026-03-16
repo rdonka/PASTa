@@ -70,11 +70,11 @@ function [data] = findsessionmeantrialtrace(data,trialstreamfieldname,trialtypef
         try
             % Find mean for each trial tupe
             for eachtrialtype = 1:length(trialtypes) % Save each trial type to a row
-                currtrialtype = trialtypes(eachtrialtype);
-                currtrialtypeidxs = find([data(eachfile).(trialtypefieldname)] == currtrialtype);
+                currtrialtype = trialtypes{eachtrialtype};
+                currtrialtypeidxs = find(strcmp([data(eachfile).(trialtypefieldname)], currtrialtype));
 
                 trialmeanstruct.(trialidoutputfieldname)(eachtrialtype,1) = trialtypes(eachtrialtype); % Add trial type ID
-                trialmeanstruct.trialdata(eachtrialtype,:) = mean(data(eachfile).(trialstreamfieldname)(currtrialtypeidxs,:)); % Add mean trial stream trace
+                trialmeanstruct.trialdata(eachtrialtype,:) = mean(data(eachfile).(trialstreamfieldname)(currtrialtypeidxs,:), 'omitnan'); % Add mean trial stream trace
                 
                 % Add event epochs
                 for eachtrialeventepoc = 1:length(trialeventepocfieldnames)

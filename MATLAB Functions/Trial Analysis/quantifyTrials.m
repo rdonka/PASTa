@@ -122,7 +122,7 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialphasestartfieldn
 
                 % Add phase label if optional input 'trialphaselabels' provided
                 if ~isempty(params.trialphaselabels)
-                    currvals.Phase = {trialphaselabels{eachphase}};
+                    currvals.TrialPhase = {trialphaselabels{eachphase}};
                 end
 
                 % Add trial phase samples

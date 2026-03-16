@@ -58,7 +58,7 @@ function [allffts] = plotFFTpower(data,fileindex,maintitle,fsfieldname,varargin)
 
     % Import required and optional inputs into a structure
     p = createParser(mfilename); % Create parser object with custom settings - see createParser helper function for more details
-    addParameter(p, 'xmax', 100,@(x) (isnumeric(x) && isscalar(x) && (x > 0)) || (ischar(x) && strcmp(x, 'actual'))); % xmax: Must either be numeric and greater than 0, or set to 'actual'
+    addParameter(p, 'xmax', 100, @(x) (isnumeric(x) && isscalar(x) && (x > 0)) || (ischar(x) && strcmp(x, 'actual'))); % xmax: Must either be numeric and greater than 0, or set to 'actual'
     addParameter(p, 'saveoutput', defaultparameters.saveoutput, @(x) islogical(x) || (isnumeric(x) && ismember(x, [0, 1]))); % saveoutput: input must be logical or numeric (either 0 or 1); set to 1 to save plot automatically
     addParameter(p, 'outputfiletype', defaultparameters.outputfiletype, @(x) ischar(x) && ismember(x, {'png', 'jpg', 'tiff', 'eps', 'pdf'})); % outputfiletype: file type to save plot as if saveoutput is set to 1
     addParameter(p, 'plotfilepath', defaultparameters.plotfilepath, @(x) ischar(x) || isstring(x)); % plotfilepath: defaults to empty unless input is specified
@@ -214,7 +214,7 @@ function [allffts] = plotFFTpower(data,fileindex,maintitle,fsfieldname,varargin)
     title(allffts, maintitle, 'Interpreter', 'none');
 
     if params.saveoutput == 1
-        disp(['   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype])
+        disp(append('   Automatically saved as ', params.outputfiletype, ' to: ', params.plotfilepath,'.',params.outputfiletype))
         set(gcf, 'Units', 'inches', 'Position', [0, 0, 8, 1.75*ntraces]);
         exportgraphics(gcf,append(params.plotfilepath, '.',params.outputfiletype),'Resolution',300)
     end

@@ -1,6 +1,8 @@
-function [] = extractCSVdata(rawfolderpaths,extractedfolderpaths,sigstreamname,baqstreamname,varargin)
-% EXTRACTCSVDATA  Extract and save fiber photometry data from generic csv
-%                 file format. See PASTa user guide for details.
+function [] = extractNPdata(rawfolderpaths,extractedfolderpaths,streamname,fs,timestampname,LEDstatename,LEDstatesig,LEDstatebaq,varargin)
+% EXTRACTNPDATA   Extract and save fiber photometry data from Neurophotometrics 
+%                 system output file format. Note that the csv file output must
+%                 include columns with the timestamps, LED state, and fluorescence output.
+%                 See PASTa user guide for details.
 %
 %   EXTRACTCSVDATA(RAWFOLDERPATHS, EXTRACTEDFOLDERPATHS, SIGSTREAMNAME, 
 %   BAQSTREAMNAME, 'PARAM1', VAL1, 'PARAM2', VAL2, ...) reads csv files
@@ -25,14 +27,30 @@ function [] = extractCSVdata(rawfolderpaths,extractedfolderpaths,sigstreamname,b
 %                               the experiment key. For example: 
 %                                   extractedfolderpaths = string({experimentkey.ExtractedFolderPath})';
 %
-%       SIGSTREAMNAME         - String; Name of csv files containing the "signal" channel.
-%                               (e.g. 'sig'). NOTE: Only one stream per file can be
-%                               treated as signal.
+%       TIMESTAMPNAME         - String; Name of the column in the csv files containing the 
+%                               timestamps of each sample. (e.g. 'Timestamp').
 %
-%       BAQSTREAMNAME         - String; Name of csv files containing the "background" channel.
-%                               (e.g. 'baq'). NOTE: Only one stream per file can be
-%                               treated as signal.
+%       STREAMNAME            - String; Name of the column in the csv files containing the 
+%                               fluorescence stream data for each sample. (e.g. 'F').
 %
+%       FS                    - Numeric; Sampling rate for each stream in hz. (e.g. 30).
+%                               Note: this must correspond to the actual
+%                               frequency of each LED state, not the total
+%                               sampling rate of the system.
+%
+%       LEDSTATENAME          - String; Name of the column in the csv files containing the 
+%                               LED state values for each sample. (e.g. 'LedState').
+%
+%
+%       LEDSTATESIG                    - Numeric; Sampling rate for each stream in hz. (e.g. 30).
+%                               Note: this must correspond to the actual
+%                               frequency of each LED state, not the total
+%                               sampling rate of the system.
+
+%       FS                    - Numeric; Sampling rate for each stream in hz. (e.g. 30).
+%                               Note: this must correspond to the actual
+%                               frequency of each LED state, not the total
+%                               sampling rate of the system.
 %  OPTIONAL INPUT NAME-VALUE PAIRS:
 %       'loadepocs'   - Logical; Set to 1 to load event epoch files in the
 %                       'Raw Data' session folders.
@@ -58,8 +76,8 @@ function [] = extractCSVdata(rawfolderpaths,extractedfolderpaths,sigstreamname,b
 %       sigstreamname  = 'sig';
 %       baqstreamname  = 'baq';
 %
-%       extractCSVdata(rawPaths, extractedPaths, sigstreamname, baqstreamname,
-%           'loadepocs',1,'epocsnames',{'injt', 'strt'},'trim', 10, 'skipexisting', 0);
+%       extractCSVdata(rawfolderpaths, extractedfolderpaths, streamname, timestampname, LEDstatename, 30,
+%           'loadepocs',1,'epocsnames',{'injt', 'strt'},'trim', 5, 'skipexisting', 0);
 %
 %
 % Author:  Rachel Donka (2025)
@@ -85,9 +103,9 @@ function [] = extractCSVdata(rawfolderpaths,extractedfolderpaths,sigstreamname,b
 
     % Main display and function inputs
     if params.skipexisting == 0
-        disp('EXTRACTCSVDATA: all blocks will be extracted.')
+        disp('EXTRACTNPDATA: all blocks will be extracted.')
     elseif params.skipexisting == 1
-        disp('EXTRACTCSVDATA: pre-extracted blocks will be skipped.')
+        disp('EXTRACTNPDATA: pre-extracted blocks will be skipped.')
     end
 
     disp('  PARAMETERS:') % Display all input parameters values
@@ -100,8 +118,9 @@ function [] = extractCSVdata(rawfolderpaths,extractedfolderpaths,sigstreamname,b
     for eachfile = 1:length(rawfolderpaths)
         % Prepare a new block data structure for this file
         blockdata = struct();
-        blockdata.RawFolderPath = char(rawfolderpaths(eachfile));
-        blockdata.ExtractedFolderPath = char(extractedfolderpaths(eachfile));
+        blockdata.RawFolderPath = append(rawfolderpaths{eachfile},'.csv');
+        blockdata.ExtractedFolderPath = extractedfolderpaths{eachfile};
+        blockdata.fs = fs;
 
         % Construct output file name (where the extracted data will be saved)
         extractedMatFile = strcat(blockdata.ExtractedFolderPath, '_extracted.mat');
@@ -114,23 +133,34 @@ function [] = extractCSVdata(rawfolderpaths,extractedfolderpaths,sigstreamname,b
             % Attempt to load and process the TDT block
             try
                 fprintf('Extracting file #%d: %s\n', eachfile, blockdata.RawFolderPath); % Display which file is loading
-                % Load recording parameters
-                recordingparams = readtable(fullfile(blockdata.RawFolderPath, 'recordingparams.csv'));
-                recordingparamsNames = recordingparams.Properties.VariableNames; 
-    
-                for eachrecordingparam = 1:length(recordingparamsNames)
-                    currparam = char(recordingparamsNames(eachrecordingparam));
-                    blockdata.(currparam) = recordingparams.(currparam);
-                end
-        
-                % Load signal and background streams
-                sig = readmatrix(fullfile(blockdata.RawFolderPath, append(sigstreamname,'.csv')))';
-                baq = readmatrix(fullfile(blockdata.RawFolderPath, append(baqstreamname,'.csv')))';
+                % Load NP csv data file
+                NPfiledata = readtable(fullfile(blockdata.RawFolderPath));
+                
+                % Find indexes for sig and baq streams based on LED state
+                sigidxs = find(NPfiledata.(LEDstatename) == LEDstatesig); 
+                baqidxs = find(NPfiledata.(LEDstatename) == LEDstatebaq);
 
-                % Trim the data at the beginning and end, as specified
+                % Trim sig and baq
                 trimsamples = round(params.trim*blockdata.fs); % Find number of samples to trim from beginning and end of session
-                blockdata.sig = sig((trimsamples+1):(end-trimsamples)); % Add signal to the data structure and trim
-                blockdata.baq = baq((trimsamples+1):(end-trimsamples)); % Add signal to the data structure and trim
+
+                % Find indexes for sig and baq streams based on LED state
+                sigidxs = sigidxs(trimsamples:end); 
+                baqidxs = baqidxs(trimsamples:end); 
+
+                % Check that lengths are equal - if not, set to shortest stream length
+                if ~(length(sigidxs) == length(baqidxs))
+                    minlength = min([length(sigidxs),length(baqidxs)]);
+                    sigidxs = sigidxs(1:minlength);
+                    baqidxs = baqidxs(1:minlength);
+                end
+
+                % Add sig and baq to data structure
+                blockdata.sig = NPfiledata.(streamname)(sigidxs)'; % Add signal stream to the data structure
+                blockdata.baq = NPfiledata.(streamname)(baqidxs)'; % Add background/control stream to the data structure
+
+                % Add timestamps to data structure
+                blockdata.sigTimestamp = NPfiledata.(timestampname)(sigidxs)'; % Add signal stream to the data structure
+                blockdata.baqTimestamp = NPfiledata.(timestampname)(baqidxs)'; % Add signal stream to the data structure
 
                 % OPTIONAL: Load epocs and adjust epoch event indexes for the trimmed data based on epoc onset
                 if params.loadepocs == 1

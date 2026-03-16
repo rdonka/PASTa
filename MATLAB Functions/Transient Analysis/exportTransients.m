@@ -65,7 +65,7 @@ function [alltransients] = exportTransients(transientdata,exportfieldname,export
     end
     
     % Display
-    disp(['EXPORTTRANSIENTS: Exporting transients as a csv file to: ', exportfilepath,'/',params.exportfilename]) % Display file path location
+    disp(append('EXPORTTRANSIENTS: Exporting transients as a csv file to: ', exportfilepath,'/',params.exportfilename)) % Display file path location
     disp(params)
 
     %% Prepare Transients for Export

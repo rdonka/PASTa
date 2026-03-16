@@ -84,24 +84,36 @@ function [alltraces] = plotTraces(data,fileindex,maintitle,varargin)
         currxticks = floor(currxticklabels.*60.*data(fileindex).fs); % Determine x axis ticks - add ticks every 5 minutes
     end
 
-    ymaxsig = ceil(max(data(fileindex).sig)+(0.1*max(data(fileindex).sig)));
-    yminsig = floor(min(data(fileindex).sig)-(0.1*min(data(fileindex).sig)));
-    yticksizesig = round((ymaxsig-yminsig)/4,0); % Find size of ticks to generate 5 y axis ticks total
-    currytickssig = yminsig:yticksizesig:ymaxsig;
+    ymaxsig = (max(data(fileindex).sig)+(0.1*max(data(fileindex).sig)));
+    yminsig = (min(data(fileindex).sig)-(0.1*min(data(fileindex).sig)));
 
-    ymaxbaq = ceil(max(data(fileindex).baq)+(0.1*max(data(fileindex).baq)));
-    yminbaq = floor(min(data(fileindex).baq)-(0.1*min(data(fileindex).baq)));
-    yticksizebaq = round((ymaxbaq-yminbaq)/4,0); % Find size of ticks to generate 5 y axis ticks total
-    curryticksbaq = yminbaq:yticksizebaq:ymaxbaq;
+    if ymaxsig - yminsig > 3
+        yticksizesig = round((ymaxsig-yminsig)/4,0); % Find size of ticks to generate 5 y axis ticks total
+        currytickssig = yminsig:yticksizesig:ymaxsig;
+    else
+        yticksizesig = round((ymaxsig-yminsig)/4,3); % Find size of ticks to generate 5 y axis ticks total
+        currytickssig = yminsig:yticksizesig:ymaxsig;
+    end
+
+    ymaxbaq = (max(data(fileindex).baq)+(0.1*max(data(fileindex).baq)));
+    yminbaq = (min(data(fileindex).baq)-(0.1*min(data(fileindex).baq)));
+
+    if ymaxbaq - yminbaq > 2
+        yticksizebaq = round((ymaxbaq-yminbaq)/4,0); % Find size of ticks to generate 5 y axis ticks total
+        curryticksbaq = yminbaq:yticksizebaq:ymaxbaq;
+    else
+        yticksizebaq = round((ymaxbaq-yminbaq)/4,2); % Find size of ticks to generate 5 y axis ticks total
+        curryticksbaq = yminbaq:yticksizebaq:ymaxbaq;
+    end
 
     ymaxsigsub = ceil(max(data(fileindex).sigsub)+(0.1*max(data(fileindex).sigsub)));
     yminsigsub = floor(min(data(fileindex).sigsub)-(0.1*min(data(fileindex).sigsub)));
-    yticksizesigsub = round((ymaxsigsub-yminsigsub)/4,1); % Find size of ticks to generate 5 y axis ticks total
+    yticksizesigsub = round((ymaxsigsub-yminsigsub)/4,0); % Find size of ticks to generate 5 y axis ticks total
     currytickssigsub = yminsigsub:yticksizesigsub:ymaxsigsub;
 
     ymaxsigfilt = ceil(max(data(fileindex).sigfilt)+(0.1*max(data(fileindex).sigfilt)));
     yminsigfilt = floor(min(data(fileindex).sigfilt)-(0.1*min(data(fileindex).sigfilt)));
-    yticksizesigfilt = round((ymaxsigfilt-yminsigfilt)/4,1); % Find size of ticks to generate 5 y axis ticks total
+    yticksizesigfilt = round((ymaxsigfilt-yminsigfilt)/4,0); % Find size of ticks to generate 5 y axis ticks total
     currytickssigfilt = yminsigfilt:yticksizesigfilt:ymaxsigfilt;
 
     sigfiltytitle = '\Delta F/F';

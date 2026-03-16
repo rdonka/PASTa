@@ -45,6 +45,7 @@ p = createParser(mfilename); % Create parser object with custom settings - see c
 
 % Add optional name-value pair arguments with validation
 addParameter(p, 'normfieldoutputname', defaultparameters.normfieldoutputname, @(x) ischar(x)); % normfieldoutputname: input must be char
+addParameter(p, 'normtype', defaultparameters.normfieldoutputname, @(x) ischar(x) && ismember(x, {'standard', 'sd'})); % normfieldoutputname: input must be char
 
 parse(p, varargin{:});
 
@@ -60,15 +61,28 @@ disp(['   Normalized data will be output to the field: ',normfieldoutputname])
 
     for eachfile = 1:length(data)
         disp(['   NORMALIZING: File ',num2str(eachfile)])
-        try
-            BLmean = mean(data(eachfile).(customstreamfieldname),'omitnan'); % Find the mean of the session baseline
-            BLsd = std(data(eachfile).(customstreamfieldname),'omitnan'); % Find the standard deviation of the session baseline
-    
-            data(eachfile).(normfieldoutputname) = (data(eachfile).(fullstreamfieldname) - BLmean)/BLsd; % Z score the whole session to the baseline
-            data(eachfile).(append(normfieldoutputname,'_mean')) = BLmean; % Add mean used for Z score to data structure
-            data(eachfile).(append(normfieldoutputname,'_sd')) = BLsd; % Add sd used for Z score to data structure
-        catch
-            warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', fullstreamfieldname]) 
+        if strcmp(allparams.normtype,'standard')
+            try
+                BLmean = mean(data(eachfile).(customstreamfieldname),'omitnan'); % Find the mean of the session baseline
+                BLsd = std(data(eachfile).(customstreamfieldname),'omitnan'); % Find the standard deviation of the session baseline
+        
+                data(eachfile).(normfieldoutputname) = (data(eachfile).(fullstreamfieldname) - BLmean)/BLsd; % Z score the whole session to the custom stream
+                data(eachfile).(append(normfieldoutputname,'_mean')) = BLmean; % Add mean used for Z score to data structure
+                data(eachfile).(append(normfieldoutputname,'_sd')) = BLsd; % Add sd used for Z score to data structure
+            catch
+                warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', fullstreamfieldname]) 
+            end
+        elseif strcmp(allparams.normtype,'sd')
+            try
+                BLsd = std(data(eachfile).(customstreamfieldname),'omitnan'); % Find the standard deviation of the session baseline
+        
+                data(eachfile).(normfieldoutputname) = (data(eachfile).(fullstreamfieldname))/BLsd; % Standardizes whole session to custom stream sd
+                data(eachfile).(append(normfieldoutputname,'_sd')) = BLsd; % Add sd used for Z score to data structure
+            catch
+                warning(['File ',num2str(eachfile), ' - failed to normalize stream: ', fullstreamfieldname]) 
+            end
+        else
+            warning(['ERROR: File ',num2str(eachfile), ' - failed to normalize stream: ', fullstreamfieldname,'. Check normtype input is set to standard or sd.']) 
         end
     end
 end

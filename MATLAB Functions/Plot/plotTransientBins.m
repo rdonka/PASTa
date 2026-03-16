@@ -1,4 +1,4 @@
-function [allbins] = plotTransientBins(data,fileindex,streamfieldname,transientdata,binfieldname,maintitle,varargin)
+function [allbins] = plotTransientBins(data,fileindex,streamfieldname,fsfieldname,transientdata,binfieldname,maintitle,varargin)
 % PLOTTRANSIENTBINS     Plots every bin for a session with detected
 %                       transient peaks marked by circles.
 %
@@ -72,8 +72,8 @@ function [allbins] = plotTransientBins(data,fileindex,streamfieldname,transientd
     transientcolor = '#0004ff';
     
     %% Prep axis variables
-    binsamples = transientdata(fileindex).params.binTransients.(binfieldname).binlengthsamples;
-    binlengthmins = transientdata(fileindex).params.binTransients.(binfieldname).binlengthmins;
+    fs = data(fileindex).(fsfieldname);
+
     nbins = transientdata(fileindex).params.binTransients.(binfieldname).nbins;
     
     binymax = ceil(max(data(fileindex).(streamfieldname))+(0.1*max(data(fileindex).(streamfieldname))));
@@ -93,21 +93,23 @@ function [allbins] = plotTransientBins(data,fileindex,streamfieldname,transientd
     % Create tiled layout
     allbins = tiledlayout(ceil(nbins/5), 5, 'Padding','compact', 'TileSpacing','compact');
 
-     for bin = 0:(nbins-1)
+     for bin = 1:nbins
+        binsamples = transientdata(fileindex).params.binTransients.(binfieldname).binlengthsamples(bin);
+        binlengthmins = binsamples/fs/60;
 
         nexttile
         hold on
         
         % Prepare start and end indices for stream trace
-        startbin = (bin*binsamples)+1;
-        if length(data(fileindex).(streamfieldname)) > ((bin+1)*binsamples)
-            endbin = (bin+1)*binsamples;
+        startbin = transientdata(fileindex).binstart(bin);
+        if length(data(fileindex).(streamfieldname)) > transientdata(fileindex).binend(bin)
+            endbin = transientdata(fileindex).binend(bin);
         else
             endbin = length(data(fileindex).(streamfieldname));
         end
         
         % Prepare transient max locations
-        pklocs = transientdata(fileindex).transientquantification.maxloc(transientdata(fileindex).transientquantification.(binfieldname) == (bin+1));
+        pklocs = transientdata(fileindex).transientquantification.maxloc(transientdata(fileindex).transientquantification.(binfieldname) == (bin));
 
         % Plot stream trace with detected transients
         plot(data(fileindex).(streamfieldname)(startbin:endbin), 'Color', tracecolor)
@@ -118,7 +120,7 @@ function [allbins] = plotTransientBins(data,fileindex,streamfieldname,transientd
         yticks(binyticks)
         xlabel('Minute')
         ylabel(currylabel)
-        title(append('Bin ',num2str(bin+1)))
+        title(append('Bin ',num2str(bin)))
         hold off
      end
     

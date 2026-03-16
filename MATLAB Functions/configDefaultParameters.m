@@ -31,6 +31,11 @@ function defaultparameters = configDefaultParameters(callerFunction)
     allparameters.extractCSVdata.skipexisting = 1;
     allparameters.extractCSVdata.loadepocs = 0;
 
+    % extractNPdata
+    allparameters.extractNPdata.trim = 5;
+    allparameters.extractNPdata.skipexisting = 1;
+    allparameters.extractNPdata.loadepocs = 0;
+
     % subtractFPdata
     allparameters.subtractFPdata.baqscalingtype = 'frequency'; % Subtraction type defaults to frequency scaling
     allparameters.subtractFPdata.baqscalingfreqmin = 10; % Background scaling frequency min defaults to 10 Hz
@@ -57,7 +62,8 @@ function defaultparameters = configDefaultParameters(callerFunction)
 
     % normCustom
     allparameters.normCustom.normfieldoutputname = 'z_normcustom'; % Default to baseline mean method
-    
+    allparameters.normCustom.normtype = 'standard'; % Default to standard z score
+
     % findSessionTransients
     allparameters.findTransients.bltype = 'blmean'; % Default to baseline mean method
     allparameters.findTransients.blstartms = 1000; % Pre-transient baseline ms start

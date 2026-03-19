@@ -53,8 +53,8 @@ function defaultparameters = configDefaultParameters(callerFunction)
     % removeStreamArtifacts
     allparameters.removeStreamArtifacts.outlierthresholdk = 10; % Outlier detection threshold; k = 3 or 4 is a common choice for outlier detection
     allparameters.removeStreamArtifacts.artifactremovalwindow = 0.3; % Seconds to replace with NaNs before and after artifact
-    allparameters.removeStreamArtifacts.artifactampthreshold_max = 8; % Artifact SD detection threshold - max artifacts
-    allparameters.removeStreamArtifacts.artifactampthreshold_min = 8; % Artifact SD detection threshold - min artifacts
+    allparameters.removeStreamArtifacts.artifactampthreshold_max = 12; % Artifact SD detection threshold - max artifacts
+    allparameters.removeStreamArtifacts.artifactampthreshold_min = 6; % Artifact SD detection threshold - min artifacts
     allparameters.removeStreamArtifacts.bucketsizeSecs = 30; % Bucket size (seconds) for session amplitude and mean calculations
 
     % downsamplestreams

@@ -93,7 +93,7 @@ function [artifactremovaldata] = removeStreamArtifacts(datastream,whichstream,fs
         allminlocs = find(islocalmin(datastream)); % Find all local minima in the data stream
         
         % Extract locations of detected artifacts
-        allartifactlocs = [allmaxlocs(datastream(allmaxlocs) > maxThreshold); allminlocs(datastream(allminlocs) < minThreshold)];
+        allartifactlocs = [allmaxlocs(datastream(allmaxlocs) > maxThreshold), allminlocs(datastream(allminlocs) < minThreshold)];
         nanstream = datastream; % Copy data stream to replace artifacts with NaNs
         meanstream = datastream; % Copy data stream to replace artifacts with mean values
 

@@ -36,7 +36,7 @@ function [data] = normTrialdata(data,trialstreamfieldname,trialBLstartepocfieldn
     disp(['   Baseline end indices field: ', trialBLendepocfieldname]);
 
     for eachfile = 1:length(data)
-        ntrials = size(data(eachfile).(trialstreamfieldname),1);
+        ntrials = size(data(eachfile).(trialBLstartepocfieldname),1);
         maxtrialsamples = length(data(eachfile).(trialstreamfieldname));
         % Prepare data structure
         data(eachfile).(append(trialstreamfieldname,'z'))(1:ntrials,1:maxtrialsamples) = NaN;

@@ -88,7 +88,7 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialphasestartfieldn
         disp(['     QUANTIFYING TRIALS: File ', num2str(eachfile)])
         currfiletrialvals = table();
     
-        ntrials = size(data(eachfile).(trialstreamfieldname),1);        
+        ntrials = size(data(eachfile).(trialphasestartfieldname),1);        
         fs = data(eachfile).(fsfieldname);
     
         for eachtrial = 1:ntrials
@@ -129,23 +129,31 @@ function [data] = quantifyTrials(data,trialstreamfieldname,trialphasestartfieldn
                 currvals.TrialPhaseS = currtrialphaseS;
 
                 % Add trial phase quantification
-                currvals.TrialPhasemean = mean(currtrialphasedata,2,'omitnan'); % Phase mean
-                currvals.TrialPhasemin = min(currtrialphasedata,[],2,'omitnan'); % Phase min
-                currvals.TrialPhasemax = max(currtrialphasedata,[],2,'omitnan'); % Phase max
-                currvals.TrialPhaserange = currvals.TrialPhasemax - currvals.TrialPhasemin; % Phase range
-                currvals.TrialPhasesd = std(currtrialphasedata,'omitnan'); % Phase standard deviation
+                currvals.TrialPhaseMean = mean(currtrialphasedata,2,'omitnan'); % Phase mean
+                currvals.TrialPhaseMedian = median(currtrialphasedata,2,'omitnan'); % Phase mean
+                currvals.TrialPhaseMin = min(currtrialphasedata,[],2,'omitnan'); % Phase min
+                currvals.TrialPhaseMax = max(currtrialphasedata,[],2,'omitnan'); % Phase max
+                currvals.TrialPhaseRange = currvals.TrialPhaseMax - currvals.TrialPhaseMin; % Phase range
+                currvals.TrialPhaseSD = std(currtrialphasedata,'omitnan'); % Phase standard deviation
+                currvals.TrialPhaseRMS = sqrt(mean(currtrialphasedata.^2,'omitnan')); % Phase Root Mean Squared
 
                 % Add amplitude relative to baseline
                 if eachphase == 1 % Skip for baseline phase
                     currvals.TrialPhaseMaxAmp = nan;
                     currvals.TrialPhaseMeanAmp = nan; 
+                    currvals.TrialPhaseMedianAmp = nan; 
                     currvals.TrialPhaseAUC = nan;
+                    currvals.TrialPhaseiAUC = nan;
                 else % Determine amplitude for all phases after baseline
-                    currtrialphaseAUCdata = currtrialphasedata - currtrialvals.TrialPhasemean(1); 
+                    currtrialphaseAUCdata = currtrialphasedata - currtrialvals.TrialPhaseMean(1);
+                    currtrialphaseiAUCdata = currtrialphaseAUCdata;
+                    currtrialphaseiAUCdata(currtrialphaseiAUCdata < 0) = 0;
 
-                    currvals.TrialPhaseMaxAmp = currvals.TrialPhasemax - currtrialvals.TrialPhasemax(1); % Phase max amplitude relative to baseline
-                    currvals.TrialPhaseMeanAmp = currvals.TrialPhasemean - currtrialvals.TrialPhasemean(1); % Phase mean amplitude relative to baseline
+                    currvals.TrialPhaseMaxAmp = currvals.TrialPhaseMax - currtrialvals.TrialPhaseMean(1); % Phase max amplitude relative to baseline mean
+                    currvals.TrialPhaseMeanAmp = currvals.TrialPhaseMean - currtrialvals.TrialPhaseMean(1); % Phase mean amplitude relative to baseline
+                    currvals.TrialPhaseMedianAmp = currvals.TrialPhaseMedian - currtrialvals.TrialPhaseMedian(1); % Phase mean amplitude relative to baseline
                     currvals.TrialPhaseAUC = trapz(currtrialphaseAUCdata, 2)/currtrialphasesamples; % Phase AUC relative to baseline
+                    currvals.TrialPhaseiAUC = trapz(currtrialphaseAUCdata, 2)/currtrialphasesamples; % Phase integrated AUC (positive values only) relative to baseline
                 end
 
                 % Add trial ids if optional input 'trialidfieldnames' provided

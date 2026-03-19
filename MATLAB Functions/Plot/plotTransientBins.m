@@ -94,7 +94,7 @@ function [allbins] = plotTransientBins(data,fileindex,streamfieldname,fsfieldnam
     allbins = tiledlayout(ceil(nbins/5), 5, 'Padding','compact', 'TileSpacing','compact');
 
      for bin = 1:nbins
-        binsamples = transientdata(fileindex).params.binTransients.(binfieldname).binlengthsamples(bin);
+        binsamples = transientdata(fileindex).params.binTransients.(append(binfieldname,'_binsamples'))(bin);
         binlengthmins = binsamples/fs/60;
 
         nexttile
